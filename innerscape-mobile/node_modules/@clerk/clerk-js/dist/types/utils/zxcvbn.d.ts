@@ -1,3 +1,0 @@
-import type { ZxcvbnResult } from '@clerk/shared/types';
-export type zxcvbnFN = (password: string, userInputs?: (string | number)[]) => ZxcvbnResult;
-export declare const loadZxcvbn: () => Promise<(password: string, userInputs?: (string | number)[]) => import("@zxcvbn-ts/core").ZxcvbnResult>;
