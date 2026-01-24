@@ -128,11 +128,11 @@ export function VoiceRecorder() {
             </div>
             
             <div className="flex flex-col gap-3">
-              <Button className="w-full py-6 rounded-2xl bg-green-600 hover:bg-green-700 text-lg font-bold gap-2">
+              <Button className="w-full py-6 rounded-2xl bg-green-600 text-white hover:bg-green-700 text-lg font-bold gap-2">
                 <Save size={20} />
                 Save Entry
               </Button>
-              <Button variant="ghost" className="text-slate-400" onClick={() => setTranscription('')}>
+              <Button className="text-slate-400 bg-transparent hover:bg-slate-50 border-none shadow-none" onClick={() => setTranscription('')}>
                 Discard
               </Button>
             </div>

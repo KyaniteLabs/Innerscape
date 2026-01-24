@@ -20,7 +20,7 @@ interface Habit {
 
 export default async function FlowPage() {
   const habitsResult = await api.get<Habit[]>('/flow/habits').catch(() => null);
-  const habits = habitsResult?.data ?? [];
+  const habits = habitsResult ?? [];
 
   return (
     <div className="container mx-auto py-8 space-y-8">
@@ -40,11 +40,11 @@ export default async function FlowPage() {
         </div>
         
         <div className="flex gap-3">
-          <Button variant="outline" className="gap-2">
+          <Button className="gap-2 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50">
             <Filter size={16} />
             Filter
           </Button>
-          <Button className="gap-2 bg-amber-500 hover:bg-amber-600 border-amber-500">
+          <Button className="gap-2 bg-amber-500 text-white hover:bg-amber-600 border border-amber-500">
             <Plus size={16} />
             Add Habit
           </Button>
@@ -56,13 +56,13 @@ export default async function FlowPage() {
           <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
             Daily Habits
             <span className="text-xs font-normal text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
-              {habits.filter(h => h.completedToday).length}/{habits.length} Done
+              {habits.filter((h: Habit) => h.completedToday).length}/{habits.length} Done
             </span>
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {habits.length > 0 ? (
-              habits.map((habit) => (
+              habits.map((habit: Habit) => (
                 <HabitCard 
                   key={habit.id} 
                   habit={habit} 

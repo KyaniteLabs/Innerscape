@@ -26,9 +26,10 @@ export function HabitCard({ habit, onToggle }: Props) {
         <div className="flex items-center gap-4">
           <Button
             onClick={() => onToggle(habit.id)}
-            variant={habit.completedToday ? "primary" : "outline"}
             className={`w-12 h-12 rounded-2xl p-0 transition-transform active:scale-95 ${
-              habit.completedToday ? 'bg-amber-500 hover:bg-amber-600 border-amber-500' : ''
+              habit.completedToday 
+                ? 'bg-amber-500 text-white hover:bg-amber-600 border border-amber-500' 
+                : 'bg-white text-slate-300 hover:text-slate-400 border border-slate-200'
             }`}
           >
             <Check size={24} className={habit.completedToday ? "text-white" : "text-slate-300 group-hover:text-slate-400"} />

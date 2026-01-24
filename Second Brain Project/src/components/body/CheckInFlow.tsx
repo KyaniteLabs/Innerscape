@@ -42,7 +42,7 @@ export function CheckInFlow() {
               <Button 
                 disabled={selectedRegions.length === 0}
                 onClick={() => setStep('wheel')}
-                className="gap-2 rounded-2xl px-8 bg-indigo-600 hover:bg-indigo-700"
+                className="gap-2 rounded-2xl px-8 bg-indigo-600 text-white hover:bg-indigo-700"
               >
                 Next <ChevronRight size={18} />
               </Button>
@@ -62,13 +62,13 @@ export function CheckInFlow() {
               <EmotionWheel onEmotionSelect={setSelectedEmotion} />
             </div>
             <div className="flex justify-between">
-              <Button variant="outline" onClick={() => setStep('scan')} className="gap-2 rounded-2xl">
+              <Button onClick={() => setStep('scan')} className="gap-2 rounded-2xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50">
                 <ChevronLeft size={18} /> Back
               </Button>
               <Button 
                 disabled={!selectedEmotion}
                 onClick={() => setStep('reflection')}
-                className="gap-2 rounded-2xl px-8 bg-indigo-600 hover:bg-indigo-700"
+                className="gap-2 rounded-2xl px-8 bg-indigo-600 text-white hover:bg-indigo-700"
               >
                 Next <ChevronRight size={18} />
               </Button>
@@ -90,12 +90,12 @@ export function CheckInFlow() {
               autoFocus
             />
             <div className="flex justify-between">
-              <Button variant="outline" onClick={() => setStep('wheel')} className="gap-2 rounded-2xl">
+              <Button onClick={() => setStep('wheel')} className="gap-2 rounded-2xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50">
                 <ChevronLeft size={18} /> Back
               </Button>
               <Button 
                 onClick={handleFinish}
-                className="gap-2 rounded-2xl px-8 bg-indigo-600 hover:bg-indigo-700"
+                className="gap-2 rounded-2xl px-8 bg-indigo-600 text-white hover:bg-indigo-700"
               >
                 Finish <Check size={18} />
               </Button>
