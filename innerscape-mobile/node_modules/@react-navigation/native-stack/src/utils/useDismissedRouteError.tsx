@@ -4,7 +4,7 @@ import type {
 } from '@react-navigation/native';
 import * as React from 'react';
 
-export function useDismissedRouteError(
+export default function useInvalidPreventRemoveError(
   state: StackNavigationState<ParamListBase>
 ) {
   const [nextDismissedKey, setNextDismissedKey] = React.useState<string | null>(

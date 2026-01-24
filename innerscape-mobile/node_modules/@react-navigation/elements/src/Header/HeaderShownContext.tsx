@@ -1,3 +1,5 @@
-import { getNamedContext } from '../getNamedContext';
+import getNamedContext from '../getNamedContext';
 
-export const HeaderShownContext = getNamedContext('HeaderShownContext', false);
+const HeaderShownContext = getNamedContext('HeaderShownContext', false);
+
+export default HeaderShownContext;

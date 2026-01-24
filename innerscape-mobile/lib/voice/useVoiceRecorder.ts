@@ -4,12 +4,12 @@
  * Outputs: { isRecording, duration, startRecording, stopRecording, audioUri }
  * Errors: Permission denied, recording failure
  * Edge cases: Background interruption, permission changes
+ * Note: Uses expo-av (SDK 52 stable)
  */
 import { useState, useRef, useCallback } from 'react';
-import { useAudioRecorder, AudioModule, RecordingPresets } from 'expo-audio';
+import { Audio } from 'expo-av';
 
 // Named constants (APEX: No Magic)
-const RECORDING_OPTIONS = RecordingPresets.HIGH_QUALITY;
 const DURATION_INTERVAL_MS = 1000;
 
 interface VoiceRecorderState {
@@ -27,24 +27,29 @@ export const useVoiceRecorder = () => {
     error: null,
   });
 
-  const audioRecorder = useAudioRecorder(RECORDING_OPTIONS);
+  const recordingRef = useRef<Audio.Recording | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const startRecording = useCallback(async () => {
     try {
-      // Request permissions
-      const status = await AudioModule.requestRecordingPermissionsAsync();
-      if (!status.granted) {
+      const permission = await Audio.requestPermissionsAsync();
+      if (permission.status !== 'granted') {
         setState(s => ({ ...s, error: 'Microphone permission denied' }));
-        console.log('[APEX] Recording permission denied');
         return;
       }
 
-      // Start recording
-      await audioRecorder.record();
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+      
+      recordingRef.current = recording;
       setState(s => ({ ...s, isRecording: true, duration: 0, audioUri: null, error: null }));
 
-      // Duration counter
       intervalRef.current = setInterval(() => {
         setState(s => ({ ...s, duration: s.duration + 1 }));
       }, DURATION_INTERVAL_MS);
@@ -55,18 +60,24 @@ export const useVoiceRecorder = () => {
       console.error('[APEX] Recording start error:', message);
       setState(s => ({ ...s, error: message }));
     }
-  }, [audioRecorder]);
+  }, []);
 
   const stopRecording = useCallback(async (): Promise<string | null> => {
     try {
+      if (!recordingRef.current) return null;
+      
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
 
-      const uri = await audioRecorder.stop();
+      await recordingRef.current.stopAndUnloadAsync();
+      const uri = recordingRef.current.getURI();
+      recordingRef.current = null;
+      
       setState(s => ({ ...s, isRecording: false, audioUri: uri }));
       console.log('[APEX] Recording stopped, uri:', uri);
+      
       return uri;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to stop recording';
@@ -74,7 +85,7 @@ export const useVoiceRecorder = () => {
       setState(s => ({ ...s, isRecording: false, error: message }));
       return null;
     }
-  }, [audioRecorder]);
+  }, []);
 
   return {
     ...state,

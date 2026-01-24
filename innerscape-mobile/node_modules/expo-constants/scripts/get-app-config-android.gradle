@@ -23,9 +23,6 @@ afterEvaluate {
       assetsDir.mkdirs()
     }
 
-    // Mark the task as always out-of-date so it always runs - ie. regenerate app.config on every build
-    outputs.upToDateWhen { false }
-
     // Add generated assetsDir into assets.srcDirs
     project.android.sourceSets.main.assets.srcDirs += assetsDir
 

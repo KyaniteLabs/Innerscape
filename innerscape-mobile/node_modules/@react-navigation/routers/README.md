@@ -9,7 +9,7 @@ You probably don't need to use this package directly if you're not building cust
 Open a Terminal in your project's folder and run,
 
 ```sh
-npm install @react-navigation/routers
+yarn add @react-navigation/routers
 ```
 
 ## Usage

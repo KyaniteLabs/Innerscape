@@ -1,6 +1,8 @@
-import { getNamedContext } from '../getNamedContext';
+import getNamedContext from '../getNamedContext';
 
-export const HeaderHeightContext = getNamedContext<number | undefined>(
+const HeaderHeightContext = getNamedContext<number | undefined>(
   'HeaderHeightContext',
   undefined
 );
+
+export default HeaderHeightContext;

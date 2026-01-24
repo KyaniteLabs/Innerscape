@@ -6,7 +6,7 @@ import * as React from 'react';
  */
 export type PreventedRoutes = Record<string, { preventRemove: boolean }>;
 
-export const PreventRemoveContext = React.createContext<
+const PreventRemoveContext = React.createContext<
   | {
       preventedRoutes: PreventedRoutes;
       setPreventRemove: (
@@ -17,3 +17,5 @@ export const PreventRemoveContext = React.createContext<
     }
   | undefined
 >(undefined);
+
+export default PreventRemoveContext;

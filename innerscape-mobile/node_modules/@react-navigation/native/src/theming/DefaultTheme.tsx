@@ -1,7 +1,6 @@
 import type { Theme } from '../types';
-import { fonts } from './fonts';
 
-export const DefaultTheme: Theme = {
+const DefaultTheme: Theme = {
   dark: false,
   colors: {
     primary: 'rgb(0, 122, 255)',
@@ -11,5 +10,6 @@ export const DefaultTheme: Theme = {
     border: 'rgb(216, 216, 216)',
     notification: 'rgb(255, 59, 48)',
   },
-  fonts,
 };
+
+export default DefaultTheme;

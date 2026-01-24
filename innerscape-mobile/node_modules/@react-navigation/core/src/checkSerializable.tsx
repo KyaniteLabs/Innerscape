@@ -69,6 +69,6 @@ const checkSerializableWithoutCircularReference = (
   return { serializable: true };
 };
 
-export function checkSerializable(o: { [key: string]: any }) {
+export default function checkSerializable(o: { [key: string]: any }) {
   return checkSerializableWithoutCircularReference(o, new Set<any>(), []);
 }

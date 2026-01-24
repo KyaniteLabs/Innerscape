@@ -6,6 +6,8 @@ import type { NavigationContainerRef } from './types';
 /**
  * Context which holds the route prop for a screen.
  */
-export const NavigationContainerRefContext = React.createContext<
+const NavigationContainerRefContext = React.createContext<
   NavigationContainerRef<ParamListBase> | undefined
 >(undefined);
+
+export default NavigationContainerRefContext;

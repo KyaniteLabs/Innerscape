@@ -3,7 +3,7 @@ import * as React from 'react';
 
 import type { NativeStackDescriptorMap } from '../types';
 
-export function useInvalidPreventRemoveError(
+export default function useInvalidPreventRemoveError(
   descriptors: NativeStackDescriptorMap
 ) {
   const { preventedRoutes } = usePreventRemoveContext();

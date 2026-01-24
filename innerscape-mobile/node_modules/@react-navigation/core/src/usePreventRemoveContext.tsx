@@ -1,8 +1,8 @@
 import * as React from 'react';
 
-import { PreventRemoveContext } from './PreventRemoveContext';
+import PreventRemoveContext from './PreventRemoveContext';
 
-export function usePreventRemoveContext() {
+export default function usePreventRemoveContext() {
   const value = React.useContext(PreventRemoveContext);
 
   if (value == null) {
