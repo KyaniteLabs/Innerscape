@@ -67,7 +67,7 @@ export function UniversalHeader({
         <Text style={{ fontSize: 18, fontWeight: '600', color: '#111827' }}>
           {appNames[currentApp]}
         </Text>
-        <ChevronDown size={16} color="#6B7280" style={{ marginLeft: 4 }} />
+        <ChevronDown size={16} />
       </TouchableOpacity>
 
       {/* Emotional Context Indicator */}
@@ -87,10 +87,10 @@ export function UniversalHeader({
       {/* Actions */}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
         <TouchableOpacity onPress={onSearch}>
-          <Search size={24} color="#6B7280" />
+          <Search size={24} />
         </TouchableOpacity>
         <TouchableOpacity onPress={onProfile}>
-          <User size={24} color="#6B7280" />
+          <User size={24} />
         </TouchableOpacity>
       </View>
     </View>

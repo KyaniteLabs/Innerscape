@@ -9,36 +9,39 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
-    "test": "jest"
+    "test": "jest",
+    "build": "npx expo export --output-dir dist"
   },
   "dependencies": {
+    "@lifeos/shared": "file:../lifeos-shared",
+    "@powersync/react-native": "^1.28.1",
+    "@react-native-async-storage/async-storage": "^2.2.0",
+    "@tanstack/react-query": "^5.0.0",
     "expo": "~52.0.0",
-    "expo-router": "~3.5.0",
-    "expo-status-bar": "~2.0.0",
     "expo-av": "~15.0.0",
+    "expo-constants": "~16.0.0",
     "expo-file-system": "~17.0.0",
     "expo-linking": "~6.3.0",
-    "expo-constants": "~16.0.0",
+    "expo-router": "~3.5.0",
     "expo-secure-store": "~13.0.0",
-    "react": "18.3.1",
-    "react-native": "0.76.0",
-    "react-native-safe-area-context": "4.12.0",
-    "react-native-screens": "~4.0.0",
-    "react-native-reanimated": "~3.16.0",
-    "react-native-gesture-handler": "~2.20.0",
-    "@clerk/clerk-expo": "^2.1.0",
-    "zustand": "^4.5.0",
-    "@lifeos/shared": "file:../lifeos-shared",
-    "@tanstack/react-query": "^5.0.0",
+    "expo-status-bar": "~2.0.0",
     "lucide-react-native": "^0.300.0",
     "nativewind": "^4.0.0",
-    "tailwindcss": "^3.4.0"
+    "react": "18.3.1",
+    "react-native": "0.76.0",
+    "react-native-gesture-handler": "~2.20.0",
+    "react-native-reanimated": "~3.16.0",
+    "react-native-safe-area-context": "4.12.0",
+    "react-native-screens": "~4.0.0",
+    "react-native-svg": "15.12.1",
+    "tailwindcss": "^3.4.0",
+    "zustand": "^4.5.0"
   },
   "devDependencies": {
+    "@testing-library/react-native": "^12.0.0",
     "@types/react": "~18.3.0",
-    "typescript": "^5.0.0",
     "jest": "^29.0.0",
-    "@testing-library/react-native": "^12.0.0"
+    "typescript": "^5.0.0"
   },
   "private": true
 }

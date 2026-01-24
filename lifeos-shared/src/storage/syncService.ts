@@ -1,5 +1,5 @@
 import { PowerSyncDatabase } from '@powersync/react-native';
-import { SCHEMA } from '../../../innerscape-soma/lib/sync/schema'; // Reference the schema
+import { SCHEMA } from '../schemas/powerSyncSchema';
 
 /**
  * @fileoverview Shared PowerSync Service

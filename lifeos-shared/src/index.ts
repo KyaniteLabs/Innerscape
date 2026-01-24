@@ -11,6 +11,9 @@ export * from './hooks/useEmotionalContext';
 export * from './storage/appGroups';
 export * from './storage/syncService';
 
+// Export schemas
+export * from './schemas/powerSyncSchema';
+
 // Export onboarding
 export * from './onboarding/OnboardingProvider';
 export * from './onboarding/WelcomeScreen';

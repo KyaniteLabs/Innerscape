@@ -1,12 +1,13 @@
 import { Schema, Table, Column, ColumnType } from '@powersync/react-native';
 
 /**
- * @fileoverview PowerSync Schema for Soma
- * @module lib/sync/schema
+ * @fileoverview PowerSync Schema (Shared)
+ * @module schemas/powerSyncSchema
  * 
  * APEX Contract:
- * - Syncs somatic data with Turso via PowerSync
- * - Matches lifeos-backend/src/db/schema.ts
+ * - Single source of truth for PowerSync schema
+ * - Syncs somatic/emotional data with Turso via PowerSync
+ * - Matches lifeos-backend/src/db/schema.ts structure
  */
 
 export const SCHEMA = new Schema([

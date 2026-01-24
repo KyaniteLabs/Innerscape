@@ -2,8 +2,11 @@
   "compilerOptions": {
     "strict": true,
     "jsx": "react-jsx",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@lifeos/shared": ["../lifeos-shared/src"],
+      "@lifeos/shared/*": ["../lifeos-shared/src/*"]
     }
   },
   "extends": "expo/tsconfig.base"
