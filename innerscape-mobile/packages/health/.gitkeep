@@ -1,0 +1,10 @@
+# Health Package
+# Abstraction layer for Apple HealthKit and Google Health Connect
+#
+# Exports:
+# - useHealthData() hook
+# - syncHealthMetrics()
+# - getSleepRecords()
+# - getHRV()
+# - getSteps()
+# - getExercise()
