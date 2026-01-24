@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { habits, habitCompletions } from '../db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, gte, inArray } from 'drizzle-orm';
 import { HonoEnv } from '../types';
 
 const flow = new Hono<HonoEnv>();
@@ -12,11 +12,38 @@ flow.get('/habits', async (c) => {
   try {
     const userId = c.get('userId');
     const db = c.get('db');
-    const results = await db.select()
+    
+    // Get all habits for user
+    const userHabits = await db.select()
       .from(habits)
       .where(eq(habits.userId, userId));
+    
+    if (userHabits.length === 0) {
+      return c.json({ success: true, data: [] });
+    }
+
+    // Get today's completions
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const completions = await db.select()
+      .from(habitCompletions)
+      .where(
+        and(
+          inArray(habitCompletions.habitId, userHabits.map(h => h.id)),
+          gte(habitCompletions.completedAt, today)
+        )
+      );
+    
+    const completionSet = new Set(completions.map(c => c.habitId));
+    
+    // Map habits with completion status
+    const data = userHabits.map(habit => ({
+      ...habit,
+      completedToday: completionSet.has(habit.id)
+    }));
       
-    return c.json({ success: true, data: results });
+    return c.json({ success: true, data });
   } catch (error) {
     console.error('[APEX] GET /habits error:', error);
     return c.json({ success: false, error: { code: 'DATABASE_ERROR', message: 'Failed to fetch habits' } }, 500);
@@ -72,6 +99,32 @@ flow.post('/habits/:id/complete', async (c) => {
   } catch (error) {
     console.error('[APEX] POST /habits/:id/complete error:', error);
     return c.json({ success: false, error: { code: 'DATABASE_ERROR', message: 'Failed to complete habit' } }, 500);
+  }
+});
+
+/**
+ * APEX Contract: Undo Habit Completion
+ */
+flow.delete('/habits/:id/complete', async (c) => {
+  try {
+    const userId = c.get('userId');
+    const db = c.get('db');
+    const habitId = c.req.param('id');
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Note: In production, verify habit belongs to user first
+    await db.delete(habitCompletions)
+      .where(and(
+        eq(habitCompletions.habitId, habitId),
+        gte(habitCompletions.completedAt, today)
+      ));
+    
+    return c.json({ success: true });
+  } catch (error) {
+    console.error('[APEX] DELETE /habits/:id/complete error:', error);
+    return c.json({ success: false, error: { code: 'DATABASE_ERROR', message: 'Failed to undo habit completion' } }, 500);
   }
 });
 

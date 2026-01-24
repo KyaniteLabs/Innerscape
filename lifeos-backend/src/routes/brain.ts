@@ -1,13 +1,13 @@
 import { Hono } from 'hono';
 import { captures } from '../db/schema';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc, and, like } from 'drizzle-orm';
 import { HonoEnv } from '../types';
 
 const brain = new Hono<HonoEnv>();
 
 /**
  * APEX Contract: Get Inbox Items
- * Inputs: None
+ * Inputs: { search } query param
  * Outputs: ApiResponse<Capture[]>
  * Errors: DATABASE_ERROR
  */
@@ -15,14 +15,20 @@ brain.get('/inbox', async (c) => {
   try {
     const userId = c.get('userId');
     const db = c.get('db');
+    const search = c.req.query('search');
+
+    const conditions = [
+      eq(captures.userId, userId),
+      eq(captures.status, 'inbox')
+    ];
+    
+    if (search) {
+      conditions.push(like(captures.content, `%${search}%`));
+    }
+
     const results = await db.select()
       .from(captures)
-      .where(
-        and(
-          eq(captures.userId, userId),
-          eq(captures.status, 'inbox')
-        )
-      )
+      .where(and(...conditions))
       .orderBy(desc(captures.createdAt));
       
     return c.json({ success: true, data: results });
