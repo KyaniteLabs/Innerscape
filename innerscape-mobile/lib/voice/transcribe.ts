@@ -34,9 +34,8 @@ export const transcribeAudio = async (
     console.log('[APEX] Starting transcription for:', audioUri);
 
     // Read audio file
-    const audioBase64 = await FileSystem.readAsStringAsync(audioUri, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
+    const file = new FileSystem.File(audioUri);
+    const audioBase64 = await file.base64();
 
     // Convert to binary
     const binaryString = atob(audioBase64);

@@ -104,7 +104,7 @@ export default function JournalMode() {
 
       <View style={styles.promptContainer}>
         <Text style={styles.promptTitle}>Reflection Prompt</Text>
-        <Text style={styles.promptText}>"What is one thing that surprised you today?"</Text>
+        <Text style={styles.promptText}>&quot;What is one thing that surprised you today?&quot;</Text>
       </View>
     </ScrollView>
   );

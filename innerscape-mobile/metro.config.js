@@ -43,4 +43,7 @@ config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, "node_modules"),
 ];
 
+// Add Skia asset extensions
+config.resolver.assetExts.push('sksl');
+
 module.exports = config;

@@ -45,7 +45,7 @@ export default function HubScreen() {
       contentContainerStyle={styles.content}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
-      <Text style={styles.title}>Today's Snapshot</Text>
+      <Text style={styles.title}>Today&apos;s Snapshot</Text>
       
       <View style={styles.summaryGrid}>
         <View style={styles.summaryCard}>
