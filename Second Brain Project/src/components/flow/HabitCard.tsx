@@ -5,6 +5,16 @@ import { Check, Flame, Clock } from 'lucide-react';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 
+/**
+ * @fileoverview Habit item card for Web
+ * @module components/flow/HabitCard
+ * 
+ * APEX Contract:
+ * - Inputs: habit (Habit object), onToggle (callback)
+ * - Outputs: Renders a card with habit status and streak
+ * - Errors: Graceful fallback for missing habit data
+ */
+
 interface Habit {
   id: string;
   name: string;
@@ -26,6 +36,7 @@ export function HabitCard({ habit, onToggle }: Props) {
         <div className="flex items-center gap-4">
           <Button
             onClick={() => onToggle(habit.id)}
+            aria-label={`Mark ${habit.name} as ${habit.completedToday ? 'incomplete' : 'complete'}`}
             className={`w-12 h-12 rounded-2xl p-0 transition-transform active:scale-95 ${
               habit.completedToday 
                 ? 'bg-amber-500 text-white hover:bg-amber-600 border border-amber-500' 

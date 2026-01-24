@@ -2,6 +2,16 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { CheckCircle2, Circle } from 'lucide-react-native';
 
+/**
+ * @fileoverview Habit item card for Mobile
+ * @module components/HabitCard
+ * 
+ * APEX Contract:
+ * - Inputs: habit (Habit object), onToggle (callback)
+ * - Outputs: Renders a card with habit status and streak
+ * - Errors: Graceful fallback for missing habit data
+ */
+
 interface Habit {
   id: string;
   name: string;
@@ -21,6 +31,9 @@ export const HabitCard = ({
     <TouchableOpacity 
       style={[styles.container, habit.completedToday && styles.completed]} 
       onPress={() => onToggle(habit.id)}
+      accessibilityLabel={`Habit: ${habit.name}, ${habit.completedToday ? 'completed' : 'incomplete'}, streak ${habit.streak} days`}
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked: habit.completedToday }}
     >
       <View style={styles.content}>
         <Text style={[styles.name, habit.completedToday && styles.completedText]}>

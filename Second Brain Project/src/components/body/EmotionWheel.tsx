@@ -5,6 +5,11 @@ import React, { useState } from 'react';
 /**
  * @fileoverview Plutchik Emotion Wheel for Web (CSS-based)
  * @module components/body/EmotionWheel
+ * 
+ * APEX Contract:
+ * - Inputs: onEmotionSelect (callback)
+ * - Outputs: Renders interactive emotion wheel with CSS animations
+ * - Errors: Graceful handling of missing selections
  */
 
 interface Emotion {
@@ -44,6 +49,8 @@ export function EmotionWheel({ onEmotionSelect }: Props) {
           return (
             <div
               key={emotion.name}
+              role="button"
+              aria-label={`Select ${emotion.name}`}
               className="absolute top-0 left-1/2 w-1/2 h-full -ml-1/4 origin-bottom cursor-pointer group"
               style={{ transform: `rotate(${angle}deg)` }}
               onClick={() => {

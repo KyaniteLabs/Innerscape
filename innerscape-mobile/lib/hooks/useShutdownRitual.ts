@@ -4,6 +4,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 /**
  * @fileoverview Shutdown Ritual logic and data
  * @module lib/hooks/useShutdownRitual
+ * 
+ * APEX Contract:
+ * - Inputs: None (Uses local storage)
+ * - Outputs: Shutdown steps, completion status, and time-aware flags
+ * - Errors: Graceful handling of storage read/write failures
  */
 
 export interface ShutdownStep {

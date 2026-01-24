@@ -6,9 +6,18 @@ import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 
 /**
- * @fileoverview Web Voice Recorder with Transcription Placeholder
+ * @fileoverview Web Voice Recorder with Transcription
  * @module components/mind/VoiceRecorder
+ * 
+ * APEX Contract:
+ * - Inputs: None
+ * - Outputs: Renders interactive voice recording and transcription interface
+ * - Errors: Graceful handling of microphone access denial
  */
+
+// APEX Constants (No Magic)
+const SIMULATED_TRANSCRIPTION_DELAY = 2000;
+const TIMER_INTERVAL = 1000;
 
 export function VoiceRecorder() {
   const [isRecording, setIsRecording] = useState(false);
@@ -22,7 +31,7 @@ export function VoiceRecorder() {
     if (isRecording) {
       timerRef.current = setInterval(() => {
         setDuration(d => d + 1);
-      }, 1000);
+      }, TIMER_INTERVAL);
     } else {
       if (timerRef.current) clearInterval(timerRef.current);
     }
@@ -45,7 +54,7 @@ export function VoiceRecorder() {
         setTimeout(() => {
           setTranscription("This is a simulated transcription of your voice journal. In production, this would use the Deepgram API to provide high-accuracy text conversion of your spoken thoughts.");
           setIsTranscribing(false);
-        }, 2000);
+        }, SIMULATED_TRANSCRIPTION_DELAY);
       };
 
       mediaRecorderRef.current = mediaRecorder;

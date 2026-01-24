@@ -53,6 +53,7 @@ export function BodyScan({ selectedRegions, onRegionSelect }: Props) {
                 stroke={isSelected ? '#8B5CF6' : '#94A3B8'}
                 strokeWidth={2}
                 onPress={() => onRegionSelect(region.id)}
+                accessibilityLabel={`${region.name} region, ${isSelected ? 'selected' : 'not selected'}`}
               />
             );
           })}

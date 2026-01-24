@@ -1,11 +1,15 @@
 import React from 'react';
-import { View, Text, Dimensions } from 'react-native';
-import { CartesianChart, Line, Area, CartesianAxis } from 'victory-native';
-import { useFont } from '@shopify/react-native-skia';
+import { View, Text } from 'react-native';
+import { CartesianChart, Line, Area } from 'victory-native';
 
 /**
  * @fileoverview Trend chart for analytics using Victory Native XL (Skia-powered)
  * @module components/AnalyticsChart
+ * 
+ * APEX Contract:
+ * - Inputs: data ({ x, y }[]), title (string), color (string)
+ * - Outputs: Renders a Skia-powered area/line chart
+ * - Errors: Graceful handling of empty or malformed data
  */
 
 interface Props {
@@ -14,12 +18,9 @@ interface Props {
   color?: string;
 }
 
-const { width } = Dimensions.get('window');
-
 export function AnalyticsChart({ data, title, color = '#4F46E5' }: Props) {
-  // We'll use a simple placeholder if font is not loaded, but CartesianAxis needs a font
-  // For now, let's just use the chart without axis if font is complex to load here, 
-  // or use the default system font if Skia allows.
+  // APEX: CartesianAxis removed to avoid complex font loading in this audit stage.
+  // Charts use Skia-powered animations for better UX.
   
   return (
     <View className="bg-white p-6 rounded-[32px] border border-gray-100 mb-6 shadow-sm overflow-hidden">

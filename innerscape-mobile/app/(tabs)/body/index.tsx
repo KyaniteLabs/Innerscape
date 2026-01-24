@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -33,7 +33,7 @@ export default function BodyScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const api = useApiClient();
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setError(null);
       const [feelingsRes, healthRes] = await Promise.all([
@@ -60,7 +60,7 @@ export default function BodyScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [api]);
 
   const formatDuration = (sleep: any) => {
     const diff = new Date(sleep.endTime).getTime() - new Date(sleep.startTime).getTime();
@@ -76,7 +76,7 @@ export default function BodyScreen() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   if (loading && !refreshing) {
     return (

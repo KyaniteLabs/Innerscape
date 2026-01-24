@@ -1,8 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, RefreshControl, ActivityIndicator, TouchableOpacity, TextInput, Modal, SafeAreaView } from 'react-native';
 import { Plus, X, Target } from 'lucide-react-native';
-import { useGoals, Goal } from '../../../lib/hooks/useGoals';
+import { useGoals } from '../../../lib/hooks/useGoals';
 import { GoalCard } from '../../../components/GoalCard';
+
+/**
+ * @fileoverview Goals management screen
+ * @module app/(tabs)/hub/goals
+ * 
+ * APEX Contract:
+ * - Inputs: None
+ * - Outputs: Renders a list of goals with a creation form
+ * - Errors: Graceful handling of API failures
+ */
 
 export default function GoalsScreen() {
   const { goals, loading, error, fetchGoals, createGoal } = useGoals();

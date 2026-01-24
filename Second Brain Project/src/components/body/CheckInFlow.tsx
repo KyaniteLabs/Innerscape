@@ -5,7 +5,18 @@ import { BodyScan } from './BodyScan';
 import { EmotionWheel } from './EmotionWheel';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
-import { ChevronRight, ChevronLeft, Check } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Check, Loader2 } from 'lucide-react';
+import { api } from '@/lib/api';
+
+/**
+ * @fileoverview Multi-step somatic check-in flow for Web
+ * @module components/body/CheckInFlow
+ * 
+ * APEX Contract:
+ * - Inputs: None
+ * - Outputs: Renders interactive check-in flow
+ * - Errors: API failure handled with visible error message
+ */
 
 type Step = 'scan' | 'wheel' | 'reflection' | 'result';
 
@@ -14,6 +25,8 @@ export function CheckInFlow() {
   const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
   const [selectedEmotion, setSelectedEmotion] = useState<string | null>(null);
   const [reflection, setReflection] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const toggleRegion = (id: string) => {
     setSelectedRegions(prev => 
@@ -21,9 +34,30 @@ export function CheckInFlow() {
     );
   };
 
-  const handleFinish = () => {
-    // API call would go here
-    setStep('result');
+  const handleFinish = async () => {
+    try {
+      setIsSaving(true);
+      setError(null);
+      
+      const success = await api.post('/feelings/check-in', {
+        dominantFeeling: selectedEmotion,
+        bodySensation: selectedRegions.join(','),
+        reflection: reflection,
+        energy: 50, // Default for now
+        valence: 0,  // Default for now
+      });
+
+      if (success) {
+        setStep('result');
+      } else {
+        throw new Error('Failed to save check-in');
+      }
+    } catch (err) {
+      setError('Something went wrong while saving. Please try again.');
+      console.error('[APEX] Check-in save error:', err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -95,11 +129,23 @@ export function CheckInFlow() {
               </Button>
               <Button 
                 onClick={handleFinish}
-                className="gap-2 rounded-2xl px-8 bg-indigo-600 text-white hover:bg-indigo-700"
+                disabled={isSaving}
+                className="gap-2 rounded-2xl px-8 bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
               >
-                Finish <Check size={18} />
+                {isSaving ? (
+                  <>
+                    Saving <Loader2 size={18} className="animate-spin" />
+                  </>
+                ) : (
+                  <>
+                    Finish <Check size={18} />
+                  </>
+                )}
               </Button>
             </div>
+            {error && (
+              <p className="text-sm text-red-500 text-center animate-in fade-in">{error}</p>
+            )}
           </div>
         )}
 

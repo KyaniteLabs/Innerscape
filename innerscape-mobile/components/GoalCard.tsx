@@ -6,6 +6,11 @@ import { Goal } from '../lib/hooks/useGoals';
 /**
  * @fileoverview Goal item card
  * @module components/GoalCard
+ * 
+ * APEX Contract:
+ * - Inputs: goal (Goal object), onPress (callback)
+ * - Outputs: Renders a card with goal progress and metadata
+ * - Errors: Graceful handling of missing goal data
  */
 
 interface Props {
@@ -17,6 +22,8 @@ export function GoalCard({ goal, onPress }: Props) {
   return (
     <TouchableOpacity 
       onPress={onPress}
+      accessibilityLabel={`Goal: ${goal.title}, ${goal.progress}% complete, category ${goal.category}`}
+      accessibilityRole="button"
       className="bg-white p-5 rounded-[28px] border border-gray-100 mb-4 shadow-sm"
     >
       <View className="flex-row items-center justify-between mb-4">

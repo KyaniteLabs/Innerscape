@@ -4,6 +4,11 @@ import { useApiClient } from '../api/client';
 /**
  * @fileoverview Goals management hook
  * @module lib/hooks/useGoals
+ * 
+ * APEX Contract:
+ * - Inputs: None (for fetch), Partial<Goal> (for create/update)
+ * - Outputs: List of goals, status (loading, error), and management functions
+ * - Errors: API failure handled with visible error message
  */
 
 export interface Goal {

@@ -4,6 +4,20 @@ import { useRouter } from 'expo-router';
 import { useCheckInStore } from '../../../../lib/store/useCheckInStore';
 import { useApiClient } from '../../../../lib/api/client';
 
+/**
+ * @fileoverview Check-in completion summary and save screen
+ * @module app/(tabs)/body/check-in/result
+ * 
+ * APEX Contract:
+ * - Inputs: Context from useCheckInStore
+ * - Outputs: Renders summary and saves to API
+ * - Errors: API failure shows retry message
+ */
+
+// APEX Constants (No Magic)
+const DEFAULT_ENERGY_LEVEL = 50;
+const NEUTRAL_VALENCE = 0;
+
 export default function ResultScreen() {
   const router = useRouter();
   const { selectedEmotion, selectedRegions, selectedSensations, reflection, reset } = useCheckInStore();
@@ -22,8 +36,8 @@ export default function ResultScreen() {
         bodySensation: selectedRegions.join(','),
         sensations: selectedSensations,
         reflection: reflection,
-        energy: 50, // Default for now
-        valence: 0,  // Default for now
+        energy: DEFAULT_ENERGY_LEVEL,
+        valence: NEUTRAL_VALENCE,
       });
 
       reset();

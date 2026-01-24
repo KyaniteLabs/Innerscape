@@ -1,19 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl } from 'react-native';
 import { useApiClient } from '../../../lib/api/client';
 import { CaptureInput } from '../../../components/CaptureInput';
+
+/**
+ * @fileoverview Mind inbox and capture screen
+ * @module app/(tabs)/mind/index
+ * 
+ * APEX Contract:
+ * - Inputs: None
+ * - Outputs: Renders an inbox of captured thoughts and a capture input
+ * - Errors: Graceful handling of API failures
+ */
 
 export default function MindScreen() {
   const [inbox, setInbox] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const api = useApiClient();
 
-  const fetchInbox = async () => {
+  const fetchInbox = useCallback(async () => {
     const res = await api.get<any[]>('/brain/inbox');
     if (res.success) {
       setInbox(res.data || []);
     }
-  };
+  }, [api]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -23,7 +33,7 @@ export default function MindScreen() {
 
   useEffect(() => {
     fetchInbox();
-  }, []);
+  }, [fetchInbox]);
 
   return (
     <View style={styles.container}>

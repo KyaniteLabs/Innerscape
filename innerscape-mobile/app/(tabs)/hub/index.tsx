@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { useApiClient } from '../../../lib/api/client';
-import { Brain, Zap, Heart, CheckCircle2, RefreshCcw } from 'lucide-react-native';
+import { Brain, Zap, Heart, CheckCircle2 } from 'lucide-react-native';
 import { DopamineMenu } from '../../../components/DopamineMenu';
 import { ShutdownRitual } from '../../../components/ShutdownRitual';
 
@@ -16,7 +16,7 @@ export default function HubScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const api = useApiClient();
 
-  const fetchSummary = async () => {
+  const fetchSummary = useCallback(async () => {
     // In production, this would be a single Hub API call
     const [captures, habits, feelings] = await Promise.all([
       api.get<any[]>('/brain/inbox'),
@@ -30,7 +30,7 @@ export default function HubScreen() {
       energy: feelings.data?.energy > 70 ? 'High' : feelings.data?.energy < 30 ? 'Low' : 'Moderate',
       mood: feelings.data?.valence > 0 ? 'Pleasant' : feelings.data?.valence < 0 ? 'Unpleasant' : 'Neutral'
     });
-  };
+  }, [api]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -40,7 +40,7 @@ export default function HubScreen() {
 
   useEffect(() => {
     fetchSummary();
-  }, []);
+  }, [fetchSummary]);
 
   return (
     <ScrollView 

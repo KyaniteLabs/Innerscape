@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, LayoutAnimation } from 'react-native';
+import { View, Text, TouchableOpacity, LayoutAnimation } from 'react-native';
 import { 
   Check, 
   Moon, 
@@ -13,6 +13,11 @@ import { useShutdownRitual } from '../lib/hooks/useShutdownRitual';
 /**
  * @fileoverview Shutdown Ritual Component for Mobile
  * @module components/ShutdownRitual
+ * 
+ * APEX Contract:
+ * - Inputs: None (Uses useShutdownRitual hook)
+ * - Outputs: Renders interactive end-of-day checklist
+ * - Errors: Graceful handling of storage failures
  */
 
 export function ShutdownRitual() {
@@ -48,6 +53,8 @@ export function ShutdownRitual() {
       <View className="flex-row items-center justify-between mb-4">
         <TouchableOpacity 
           onPress={toggleExpand}
+          accessibilityLabel={`${isExpanded ? 'Collapse' : 'Expand'} wind down ritual`}
+          accessibilityRole="button"
           className="flex-row items-center gap-3 flex-1"
         >
           <View className="w-10 h-10 rounded-2xl bg-amber-50 items-center justify-center">
@@ -91,6 +98,9 @@ export function ShutdownRitual() {
               <TouchableOpacity
                 key={step.id}
                 onPress={() => toggleStep(step.id)}
+                accessibilityLabel={`Mark ${step.label} as ${completed.includes(step.id) ? 'incomplete' : 'complete'}`}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: completed.includes(step.id) }}
                 className="flex-row items-center gap-3 p-3 rounded-2xl bg-gray-50/50"
               >
                 <View 

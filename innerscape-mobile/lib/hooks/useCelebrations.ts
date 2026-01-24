@@ -3,6 +3,11 @@ import { create } from 'zustand';
 /**
  * @fileoverview Celebration event store
  * @module lib/hooks/useCelebrations
+ * 
+ * APEX Contract:
+ * - Inputs: Message string via trigger()
+ * - Outputs: Celebration state (showConfetti, message)
+ * - Errors: None (pure state management)
  */
 
 interface CelebrationState {

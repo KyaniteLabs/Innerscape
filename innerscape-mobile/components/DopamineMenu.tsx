@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Modal, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Modal } from 'react-native';
 import { 
   Coffee, 
   Activity, 
@@ -20,6 +20,11 @@ import { useDopamineMenu, RegulationItem, RegulationSection } from '../lib/hooks
 /**
  * @fileoverview Dopamine Menu Component for Mobile
  * @module components/DopamineMenu
+ * 
+ * APEX Contract:
+ * - Inputs: None
+ * - Outputs: Renders regulation activities based on time of day
+ * - Errors: Graceful handling of empty menu or missing icons
  */
 
 const ICON_MAP: Record<string, any> = {
@@ -81,6 +86,8 @@ export function DopamineMenu() {
               <TouchableOpacity
                 key={item.name}
                 onPress={() => setSelectedItem({ section, item })}
+                accessibilityLabel={`${item.name}, ${item.duration}, ${section.category}`}
+                accessibilityRole="button"
                 className="flex-row items-center p-3 rounded-2xl bg-white/60"
                 style={index === 0 ? { backgroundColor: 'rgba(79, 70, 229, 0.1)' } : {}}
               >
@@ -127,6 +134,8 @@ export function DopamineMenu() {
                   <TouchableOpacity 
                     key={item.name}
                     onPress={() => setSelectedItem({ section, item })}
+                    accessibilityLabel={`View ${item.name} instructions`}
+                    accessibilityRole="button"
                     className="flex-row items-center justify-between -mx-1 p-1 rounded-lg"
                   >
                     <View className="flex-row items-center gap-2 flex-1">

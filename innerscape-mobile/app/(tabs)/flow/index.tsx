@@ -1,19 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { useApiClient } from '../../../lib/api/client';
 import { HabitCard } from '../../../components/HabitCard';
+
+/**
+ * @fileoverview Habits tracking screen
+ * @module app/(tabs)/flow/index
+ * 
+ * APEX Contract:
+ * - Inputs: None
+ * - Outputs: Renders a list of daily habits with toggle functionality
+ * - Errors: Graceful handling of API failures
+ */
 
 export default function FlowScreen() {
   const [habits, setHabits] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const api = useApiClient();
 
-  const fetchHabits = async () => {
+  const fetchHabits = useCallback(async () => {
     const res = await api.get<any[]>('/flow/habits');
     if (res.success) {
       setHabits(res.data || []);
     }
-  };
+  }, [api]);
 
   const toggleHabit = async (id: string) => {
     const res = await api.post(`/flow/habits/${id}/complete`, {});
@@ -30,7 +40,7 @@ export default function FlowScreen() {
 
   useEffect(() => {
     fetchHabits();
-  }, []);
+  }, [fetchHabits]);
 
   return (
     <ScrollView 

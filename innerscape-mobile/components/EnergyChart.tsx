@@ -1,16 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
-
-const SCREEN_WIDTH = Dimensions.get('window').width;
+import { View, Text, StyleSheet } from 'react-native';
 
 export const EnergyChart = ({ data }: { data: number[] }) => {
-  // Simple SVG-based line chart placeholder
-  const maxVal = Math.max(...data, 100);
-  const points = data.map((val, i) => {
-    const x = (i / (data.length - 1)) * (SCREEN_WIDTH - 80);
-    const y = 150 - (val / maxVal) * 150;
-    return `${x},${y}`;
-  }).join(' ');
+  // APEX: This component is a placeholder for real-time energy visualization.
+  // data parameter is accepted but currently using a visual placeholder.
 
   return (
     <View style={styles.container}>
