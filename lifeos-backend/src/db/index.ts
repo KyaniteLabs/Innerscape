@@ -23,7 +23,7 @@ export const createDb = (env: Bindings) => {
   }
 
   const client = createClient({ url, authToken });
-  return drizzle(client, { schema });
+  return drizzle({ client, schema });
 };
 
 export type Database = ReturnType<typeof createDb>;
