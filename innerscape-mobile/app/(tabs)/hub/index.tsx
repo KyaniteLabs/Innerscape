@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import { router } from 'expo-router';
 import { useApiClient } from '../../../lib/api/client';
 import { Brain, Zap, Heart, CheckCircle2, RefreshCcw } from 'lucide-react-native';
 import { DopamineMenu } from '../../../components/DopamineMenu';
@@ -82,7 +83,12 @@ export default function HubScreen() {
       <ShutdownRitual />
       <DopamineMenu />
 
-      <Text style={styles.sectionTitle}>Upcoming Goals</Text>
+      <View className="flex-row items-center justify-between mt-8 mb-4">
+        <Text style={styles.sectionTitle}>Upcoming Goals</Text>
+        <TouchableOpacity onPress={() => router.push('/(tabs)/hub/goals')}>
+          <Text className="text-indigo-600 font-bold text-xs">View All</Text>
+        </TouchableOpacity>
+      </View>
       <View style={styles.goalPlaceholder}>
         <Text style={styles.placeholderText}>Syncing with Innerscape Hub (Web)...</Text>
       </View>
