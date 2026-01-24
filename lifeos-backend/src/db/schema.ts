@@ -37,6 +37,7 @@ export const projects = sqliteTable('projects', {
   name: text('name').notNull(),
   status: text('status').default('active'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
 });
 
 // --- HABITS (FLOW) ---
@@ -48,6 +49,7 @@ export const habits = sqliteTable('habits', {
   preferredEnergy: integer('preferred_energy'),
   streak: integer('streak').default(0),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
 });
 
 export const habitCompletions = sqliteTable('habit_completions', {
@@ -96,6 +98,7 @@ export const goals = sqliteTable('goals', {
   status: text('status').default('active'), // 'active' | 'completed' | 'archived'
   category: text('category'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
 });
 
 // --- INSIGHTS ---

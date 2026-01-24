@@ -1,22 +1,31 @@
 {
   "name": "lifeos-backend",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
-    "dev": "wrangler dev src/index.ts",
-    "deploy": "wrangler deploy --minify src/index.ts",
-    "db:generate": "drizzle-kit generate:sqlite",
-    "db:push": "drizzle-kit push:sqlite"
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/",
+    "test": "vitest",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "hono": "^4.0.0",
-    "@clerk/backend": "^0.38.0",
-    "drizzle-orm": "^0.29.0",
-    "@libsql/client": "^0.4.0"
+    "@clerk/backend": "^1.20.0",
+    "@libsql/client": "^0.14.0",
+    "drizzle-orm": "^1.0.0-beta.12",
+    "hono": "^4.11.5",
+    "zod": "^3.24.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20231218.0",
-    "drizzle-kit": "^0.20.0",
-    "typescript": "^5.3.0",
-    "wrangler": "^3.22.0"
+    "@cloudflare/workers-types": "^4.20260124.0",
+    "@types/node": "^22.10.0",
+    "drizzle-kit": "^1.0.0-beta.12",
+    "eslint": "^9.18.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0",
+    "wrangler": "^3.99.0"
   }
 }
