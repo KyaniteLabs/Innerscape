@@ -1,12 +1,109 @@
 /**
  * Do not edit directly
- * Generated on Sat, 24 Jan 2026 17:22:05 GMT
+ * Generated on Sat, 24 Jan 2026 17:58:15 GMT
  */
 
 module.exports = {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "lifeos-design-tokens-typography",
   "color": {
+    "app": {
+      "soma": {
+        "value": "#8b5cf6",
+        "filePath": "tokens/colors.json",
+        "isSource": true,
+        "original": {
+          "value": "#8B5CF6"
+        },
+        "name": "ColorAppSoma",
+        "attributes": {
+          "category": "color",
+          "type": "app",
+          "item": "soma"
+        },
+        "path": [
+          "color",
+          "app",
+          "soma"
+        ]
+      },
+      "mind": {
+        "value": "#4f46e5",
+        "filePath": "tokens/colors.json",
+        "isSource": true,
+        "original": {
+          "value": "#4F46E5"
+        },
+        "name": "ColorAppMind",
+        "attributes": {
+          "category": "color",
+          "type": "app",
+          "item": "mind"
+        },
+        "path": [
+          "color",
+          "app",
+          "mind"
+        ]
+      },
+      "flow": {
+        "value": "#f59e0b",
+        "filePath": "tokens/colors.json",
+        "isSource": true,
+        "original": {
+          "value": "#F59E0B"
+        },
+        "name": "ColorAppFlow",
+        "attributes": {
+          "category": "color",
+          "type": "app",
+          "item": "flow"
+        },
+        "path": [
+          "color",
+          "app",
+          "flow"
+        ]
+      },
+      "pulse": {
+        "value": "#22c55e",
+        "filePath": "tokens/colors.json",
+        "isSource": true,
+        "original": {
+          "value": "#22C55E"
+        },
+        "name": "ColorAppPulse",
+        "attributes": {
+          "category": "color",
+          "type": "app",
+          "item": "pulse"
+        },
+        "path": [
+          "color",
+          "app",
+          "pulse"
+        ]
+      },
+      "hub": {
+        "value": "#3b82f6",
+        "filePath": "tokens/colors.json",
+        "isSource": true,
+        "original": {
+          "value": "#3B82F6"
+        },
+        "name": "ColorAppHub",
+        "attributes": {
+          "category": "color",
+          "type": "app",
+          "item": "hub"
+        },
+        "path": [
+          "color",
+          "app",
+          "hub"
+        ]
+      }
+    },
     "brand": {
       "primary": {
         "value": "#4f46e5",
@@ -658,6 +755,835 @@ module.exports = {
             "inverse"
           ]
         }
+      }
+    }
+  },
+  "component": {
+    "button": {
+      "primary": {
+        "background": {
+          "value": "#4f46e5",
+          "filePath": "tokens/components.json",
+          "isSource": true,
+          "original": {
+            "value": "{color.brand.primary}"
+          },
+          "name": "ComponentButtonPrimaryBackground",
+          "attributes": {
+            "category": "component",
+            "type": "button",
+            "item": "primary",
+            "subitem": "background"
+          },
+          "path": [
+            "component",
+            "button",
+            "primary",
+            "background"
+          ]
+        },
+        "text": {
+          "value": "#FFFFFF",
+          "filePath": "tokens/components.json",
+          "isSource": true,
+          "original": {
+            "value": "#FFFFFF"
+          },
+          "name": "ComponentButtonPrimaryText",
+          "attributes": {
+            "category": "component",
+            "type": "button",
+            "item": "primary",
+            "subitem": "text"
+          },
+          "path": [
+            "component",
+            "button",
+            "primary",
+            "text"
+          ]
+        },
+        "borderRadius": {
+          "value": "12px",
+          "filePath": "tokens/components.json",
+          "isSource": true,
+          "original": {
+            "value": "{radius.lg}"
+          },
+          "name": "ComponentButtonPrimaryBorderRadius",
+          "attributes": {
+            "category": "component",
+            "type": "button",
+            "item": "primary",
+            "subitem": "borderRadius"
+          },
+          "path": [
+            "component",
+            "button",
+            "primary",
+            "borderRadius"
+          ]
+        },
+        "paddingX": {
+          "value": "16px",
+          "filePath": "tokens/components.json",
+          "isSource": true,
+          "original": {
+            "value": "{spacing.4}"
+          },
+          "name": "ComponentButtonPrimaryPaddingX",
+          "attributes": {
+            "category": "component",
+            "type": "button",
+            "item": "primary",
+            "subitem": "paddingX"
+          },
+          "path": [
+            "component",
+            "button",
+            "primary",
+            "paddingX"
+          ]
+        },
+        "paddingY": {
+          "value": "12px",
+          "filePath": "tokens/components.json",
+          "isSource": true,
+          "original": {
+            "value": "{spacing.3}"
+          },
+          "name": "ComponentButtonPrimaryPaddingY",
+          "attributes": {
+            "category": "component",
+            "type": "button",
+            "item": "primary",
+            "subitem": "paddingY"
+          },
+          "path": [
+            "component",
+            "button",
+            "primary",
+            "paddingY"
+          ]
+        }
+      },
+      "secondary": {
+        "background": {
+          "value": "transparent",
+          "filePath": "tokens/components.json",
+          "isSource": true,
+          "original": {
+            "value": "transparent"
+          },
+          "name": "ComponentButtonSecondaryBackground",
+          "attributes": {
+            "category": "component",
+            "type": "button",
+            "item": "secondary",
+            "subitem": "background"
+          },
+          "path": [
+            "component",
+            "button",
+            "secondary",
+            "background"
+          ]
+        },
+        "text": {
+          "value": "#4f46e5",
+          "filePath": "tokens/components.json",
+          "isSource": true,
+          "original": {
+            "value": "{color.brand.primary}"
+          },
+          "name": "ComponentButtonSecondaryText",
+          "attributes": {
+            "category": "component",
+            "type": "button",
+            "item": "secondary",
+            "subitem": "text"
+          },
+          "path": [
+            "component",
+            "button",
+            "secondary",
+            "text"
+          ]
+        },
+        "border": {
+          "value": "1px solid #4f46e5",
+          "filePath": "tokens/components.json",
+          "isSource": true,
+          "original": {
+            "value": "1px solid {color.brand.primary}"
+          },
+          "name": "ComponentButtonSecondaryBorder",
+          "attributes": {
+            "category": "component",
+            "type": "button",
+            "item": "secondary",
+            "subitem": "border"
+          },
+          "path": [
+            "component",
+            "button",
+            "secondary",
+            "border"
+          ]
+        },
+        "borderRadius": {
+          "value": "12px",
+          "filePath": "tokens/components.json",
+          "isSource": true,
+          "original": {
+            "value": "{radius.lg}"
+          },
+          "name": "ComponentButtonSecondaryBorderRadius",
+          "attributes": {
+            "category": "component",
+            "type": "button",
+            "item": "secondary",
+            "subitem": "borderRadius"
+          },
+          "path": [
+            "component",
+            "button",
+            "secondary",
+            "borderRadius"
+          ]
+        }
+      },
+      "ghost": {
+        "background": {
+          "value": "transparent",
+          "filePath": "tokens/components.json",
+          "isSource": true,
+          "original": {
+            "value": "transparent"
+          },
+          "name": "ComponentButtonGhostBackground",
+          "attributes": {
+            "category": "component",
+            "type": "button",
+            "item": "ghost",
+            "subitem": "background"
+          },
+          "path": [
+            "component",
+            "button",
+            "ghost",
+            "background"
+          ]
+        },
+        "text": {
+          "value": "#111827",
+          "filePath": "tokens/components.json",
+          "isSource": true,
+          "original": {
+            "value": "{color.text.light.primary}"
+          },
+          "name": "ComponentButtonGhostText",
+          "attributes": {
+            "category": "component",
+            "type": "button",
+            "item": "ghost",
+            "subitem": "text"
+          },
+          "path": [
+            "component",
+            "button",
+            "ghost",
+            "text"
+          ]
+        },
+        "borderRadius": {
+          "value": "12px",
+          "filePath": "tokens/components.json",
+          "isSource": true,
+          "original": {
+            "value": "{radius.lg}"
+          },
+          "name": "ComponentButtonGhostBorderRadius",
+          "attributes": {
+            "category": "component",
+            "type": "button",
+            "item": "ghost",
+            "subitem": "borderRadius"
+          },
+          "path": [
+            "component",
+            "button",
+            "ghost",
+            "borderRadius"
+          ]
+        }
+      }
+    },
+    "card": {
+      "background": {
+        "value": "#ffffff",
+        "filePath": "tokens/components.json",
+        "isSource": true,
+        "original": {
+          "value": "{color.surface.light.card}"
+        },
+        "name": "ComponentCardBackground",
+        "attributes": {
+          "category": "component",
+          "type": "card",
+          "item": "background"
+        },
+        "path": [
+          "component",
+          "card",
+          "background"
+        ]
+      },
+      "borderRadius": {
+        "value": "16px",
+        "filePath": "tokens/components.json",
+        "isSource": true,
+        "original": {
+          "value": "{radius.xl}"
+        },
+        "name": "ComponentCardBorderRadius",
+        "attributes": {
+          "category": "component",
+          "type": "card",
+          "item": "borderRadius"
+        },
+        "path": [
+          "component",
+          "card",
+          "borderRadius"
+        ]
+      },
+      "padding": {
+        "value": "16px",
+        "filePath": "tokens/components.json",
+        "isSource": true,
+        "original": {
+          "value": "{spacing.4}"
+        },
+        "name": "ComponentCardPadding",
+        "attributes": {
+          "category": "component",
+          "type": "card",
+          "item": "padding"
+        },
+        "path": [
+          "component",
+          "card",
+          "padding"
+        ]
+      },
+      "shadow": {
+        "value": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)",
+        "filePath": "tokens/components.json",
+        "isSource": true,
+        "original": {
+          "value": "{shadow.md}"
+        },
+        "name": "ComponentCardShadow",
+        "attributes": {
+          "category": "component",
+          "type": "card",
+          "item": "shadow"
+        },
+        "path": [
+          "component",
+          "card",
+          "shadow"
+        ]
+      }
+    },
+    "input": {
+      "background": {
+        "value": "#fafafa",
+        "filePath": "tokens/components.json",
+        "isSource": true,
+        "original": {
+          "value": "{color.surface.light.background}"
+        },
+        "name": "ComponentInputBackground",
+        "attributes": {
+          "category": "component",
+          "type": "input",
+          "item": "background"
+        },
+        "path": [
+          "component",
+          "input",
+          "background"
+        ]
+      },
+      "border": {
+        "value": "1px solid #e5e7eb",
+        "filePath": "tokens/components.json",
+        "isSource": true,
+        "original": {
+          "value": "1px solid {color.surface.light.border}"
+        },
+        "name": "ComponentInputBorder",
+        "attributes": {
+          "category": "component",
+          "type": "input",
+          "item": "border"
+        },
+        "path": [
+          "component",
+          "input",
+          "border"
+        ]
+      },
+      "borderRadius": {
+        "value": "12px",
+        "filePath": "tokens/components.json",
+        "isSource": true,
+        "original": {
+          "value": "{radius.lg}"
+        },
+        "name": "ComponentInputBorderRadius",
+        "attributes": {
+          "category": "component",
+          "type": "input",
+          "item": "borderRadius"
+        },
+        "path": [
+          "component",
+          "input",
+          "borderRadius"
+        ]
+      },
+      "padding": {
+        "value": "12px",
+        "filePath": "tokens/components.json",
+        "isSource": true,
+        "original": {
+          "value": "{spacing.3}"
+        },
+        "name": "ComponentInputPadding",
+        "attributes": {
+          "category": "component",
+          "type": "input",
+          "item": "padding"
+        },
+        "path": [
+          "component",
+          "input",
+          "padding"
+        ]
+      },
+      "focusBorder": {
+        "value": "2px solid #4f46e5",
+        "filePath": "tokens/components.json",
+        "isSource": true,
+        "original": {
+          "value": "2px solid {color.brand.primary}"
+        },
+        "name": "ComponentInputFocusBorder",
+        "attributes": {
+          "category": "component",
+          "type": "input",
+          "item": "focusBorder"
+        },
+        "path": [
+          "component",
+          "input",
+          "focusBorder"
+        ]
+      }
+    },
+    "header": {
+      "height": {
+        "value": "56px",
+        "filePath": "tokens/components.json",
+        "isSource": true,
+        "original": {
+          "value": "56px"
+        },
+        "name": "ComponentHeaderHeight",
+        "attributes": {
+          "category": "component",
+          "type": "header",
+          "item": "height"
+        },
+        "path": [
+          "component",
+          "header",
+          "height"
+        ]
+      },
+      "background": {
+        "value": "#ffffff",
+        "filePath": "tokens/components.json",
+        "isSource": true,
+        "original": {
+          "value": "{color.surface.light.card}"
+        },
+        "name": "ComponentHeaderBackground",
+        "attributes": {
+          "category": "component",
+          "type": "header",
+          "item": "background"
+        },
+        "path": [
+          "component",
+          "header",
+          "background"
+        ]
+      },
+      "borderBottom": {
+        "value": "1px solid #e5e7eb",
+        "filePath": "tokens/components.json",
+        "isSource": true,
+        "original": {
+          "value": "1px solid {color.surface.light.border}"
+        },
+        "name": "ComponentHeaderBorderBottom",
+        "attributes": {
+          "category": "component",
+          "type": "header",
+          "item": "borderBottom"
+        },
+        "path": [
+          "component",
+          "header",
+          "borderBottom"
+        ]
+      }
+    },
+    "tabBar": {
+      "height": {
+        "value": "64px",
+        "filePath": "tokens/components.json",
+        "isSource": true,
+        "original": {
+          "value": "64px"
+        },
+        "name": "ComponentTabBarHeight",
+        "attributes": {
+          "category": "component",
+          "type": "tabBar",
+          "item": "height"
+        },
+        "path": [
+          "component",
+          "tabBar",
+          "height"
+        ]
+      },
+      "background": {
+        "value": "#ffffff",
+        "filePath": "tokens/components.json",
+        "isSource": true,
+        "original": {
+          "value": "{color.surface.light.card}"
+        },
+        "name": "ComponentTabBarBackground",
+        "attributes": {
+          "category": "component",
+          "type": "tabBar",
+          "item": "background"
+        },
+        "path": [
+          "component",
+          "tabBar",
+          "background"
+        ]
+      },
+      "activeColor": {
+        "value": "#4f46e5",
+        "filePath": "tokens/components.json",
+        "isSource": true,
+        "original": {
+          "value": "{color.brand.primary}"
+        },
+        "name": "ComponentTabBarActiveColor",
+        "attributes": {
+          "category": "component",
+          "type": "tabBar",
+          "item": "activeColor"
+        },
+        "path": [
+          "component",
+          "tabBar",
+          "activeColor"
+        ]
+      },
+      "inactiveColor": {
+        "value": "#9ca3af",
+        "filePath": "tokens/components.json",
+        "isSource": true,
+        "original": {
+          "value": "{color.text.light.muted}"
+        },
+        "name": "ComponentTabBarInactiveColor",
+        "attributes": {
+          "category": "component",
+          "type": "tabBar",
+          "item": "inactiveColor"
+        },
+        "path": [
+          "component",
+          "tabBar",
+          "inactiveColor"
+        ]
+      }
+    }
+  },
+  "motion": {
+    "duration": {
+      "instant": {
+        "value": "0ms",
+        "filePath": "tokens/motion.json",
+        "isSource": true,
+        "original": {
+          "value": "0ms"
+        },
+        "name": "MotionDurationInstant",
+        "attributes": {
+          "category": "motion",
+          "type": "duration",
+          "item": "instant"
+        },
+        "path": [
+          "motion",
+          "duration",
+          "instant"
+        ]
+      },
+      "fast": {
+        "value": "150ms",
+        "filePath": "tokens/motion.json",
+        "isSource": true,
+        "original": {
+          "value": "150ms"
+        },
+        "name": "MotionDurationFast",
+        "attributes": {
+          "category": "motion",
+          "type": "duration",
+          "item": "fast"
+        },
+        "path": [
+          "motion",
+          "duration",
+          "fast"
+        ]
+      },
+      "normal": {
+        "value": "300ms",
+        "filePath": "tokens/motion.json",
+        "isSource": true,
+        "original": {
+          "value": "300ms"
+        },
+        "name": "MotionDurationNormal",
+        "attributes": {
+          "category": "motion",
+          "type": "duration",
+          "item": "normal"
+        },
+        "path": [
+          "motion",
+          "duration",
+          "normal"
+        ]
+      },
+      "slow": {
+        "value": "500ms",
+        "filePath": "tokens/motion.json",
+        "isSource": true,
+        "original": {
+          "value": "500ms"
+        },
+        "name": "MotionDurationSlow",
+        "attributes": {
+          "category": "motion",
+          "type": "duration",
+          "item": "slow"
+        },
+        "path": [
+          "motion",
+          "duration",
+          "slow"
+        ]
+      },
+      "slower": {
+        "value": "700ms",
+        "filePath": "tokens/motion.json",
+        "isSource": true,
+        "original": {
+          "value": "700ms"
+        },
+        "name": "MotionDurationSlower",
+        "attributes": {
+          "category": "motion",
+          "type": "duration",
+          "item": "slower"
+        },
+        "path": [
+          "motion",
+          "duration",
+          "slower"
+        ]
+      }
+    },
+    "easing": {
+      "default": {
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "filePath": "tokens/motion.json",
+        "isSource": true,
+        "original": {
+          "value": "cubic-bezier(0.4, 0, 0.2, 1)"
+        },
+        "name": "MotionEasingDefault",
+        "attributes": {
+          "category": "motion",
+          "type": "easing",
+          "item": "default"
+        },
+        "path": [
+          "motion",
+          "easing",
+          "default"
+        ]
+      },
+      "easeIn": {
+        "value": "cubic-bezier(0.4, 0, 1, 1)",
+        "filePath": "tokens/motion.json",
+        "isSource": true,
+        "original": {
+          "value": "cubic-bezier(0.4, 0, 1, 1)"
+        },
+        "name": "MotionEasingEaseIn",
+        "attributes": {
+          "category": "motion",
+          "type": "easing",
+          "item": "easeIn"
+        },
+        "path": [
+          "motion",
+          "easing",
+          "easeIn"
+        ]
+      },
+      "easeOut": {
+        "value": "cubic-bezier(0, 0, 0.2, 1)",
+        "filePath": "tokens/motion.json",
+        "isSource": true,
+        "original": {
+          "value": "cubic-bezier(0, 0, 0.2, 1)"
+        },
+        "name": "MotionEasingEaseOut",
+        "attributes": {
+          "category": "motion",
+          "type": "easing",
+          "item": "easeOut"
+        },
+        "path": [
+          "motion",
+          "easing",
+          "easeOut"
+        ]
+      },
+      "easeInOut": {
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "filePath": "tokens/motion.json",
+        "isSource": true,
+        "original": {
+          "value": "cubic-bezier(0.4, 0, 0.2, 1)"
+        },
+        "name": "MotionEasingEaseInOut",
+        "attributes": {
+          "category": "motion",
+          "type": "easing",
+          "item": "easeInOut"
+        },
+        "path": [
+          "motion",
+          "easing",
+          "easeInOut"
+        ]
+      },
+      "bounce": {
+        "value": "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
+        "filePath": "tokens/motion.json",
+        "isSource": true,
+        "original": {
+          "value": "cubic-bezier(0.68, -0.55, 0.265, 1.55)"
+        },
+        "name": "MotionEasingBounce",
+        "attributes": {
+          "category": "motion",
+          "type": "easing",
+          "item": "bounce"
+        },
+        "path": [
+          "motion",
+          "easing",
+          "bounce"
+        ]
+      },
+      "spring": {
+        "value": "cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+        "filePath": "tokens/motion.json",
+        "isSource": true,
+        "original": {
+          "value": "cubic-bezier(0.175, 0.885, 0.32, 1.275)"
+        },
+        "name": "MotionEasingSpring",
+        "attributes": {
+          "category": "motion",
+          "type": "easing",
+          "item": "spring"
+        },
+        "path": [
+          "motion",
+          "easing",
+          "spring"
+        ]
+      }
+    },
+    "scale": {
+      "pressed": {
+        "value": "0.96",
+        "filePath": "tokens/motion.json",
+        "isSource": true,
+        "original": {
+          "value": "0.96"
+        },
+        "name": "MotionScalePressed",
+        "attributes": {
+          "category": "motion",
+          "type": "scale",
+          "item": "pressed"
+        },
+        "path": [
+          "motion",
+          "scale",
+          "pressed"
+        ]
+      },
+      "hover": {
+        "value": "1.02",
+        "filePath": "tokens/motion.json",
+        "isSource": true,
+        "original": {
+          "value": "1.02"
+        },
+        "name": "MotionScaleHover",
+        "attributes": {
+          "category": "motion",
+          "type": "scale",
+          "item": "hover"
+        },
+        "path": [
+          "motion",
+          "scale",
+          "hover"
+        ]
       }
     }
   },

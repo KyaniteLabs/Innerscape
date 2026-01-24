@@ -18,17 +18,20 @@
         {
           "destination": "tokens.js",
           "format": "javascript/module"
+        },
+        {
+          "destination": "tokens.d.ts",
+          "format": "typescript/module-declarations"
         }
       ]
     },
-    "flutter": {
-      "transformGroup": "flutter",
-      "buildPath": "build/flutter/",
+    "css": {
+      "transformGroup": "css",
+      "buildPath": "build/css/",
       "files": [
         {
-          "destination": "style_dictionary.dart",
-          "format": "flutter/class.dart",
-          "className": "InnerscapeDesign"
+          "destination": "variables.css",
+          "format": "css/variables"
         }
       ]
     }

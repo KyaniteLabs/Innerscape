@@ -7,6 +7,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { createDb } from './db';
 import { clerkAuth } from './middleware/clerk-auth';
+import { rateLimit } from './middleware/rate-limit';
 import type { HonoEnv } from './types';
 
 // Routes
@@ -58,6 +59,9 @@ app.use('/api/*', async (c, next) => {
 
 // Auth middleware
 app.use('/api/*', clerkAuth);
+
+// Rate limit middleware
+app.use('/api/*', rateLimit);
 
 // Protected routes
 app.route('/api/feelings', feelings);

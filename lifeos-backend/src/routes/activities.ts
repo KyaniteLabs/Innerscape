@@ -1,101 +1,67 @@
-/**
- * APEX Contract: Activities Route
- * Aggregates recent activity across all domains
- * GET / - Returns unified activity feed
- */
 import { Hono } from 'hono';
-import { desc, eq } from 'drizzle-orm';
-import { captures, emotionalContext, journalEntries, goals } from '../db/schema';
-import type { HonoEnv } from '../types';
+import { activities } from '../db/schema';
+import { eq, desc, and } from 'drizzle-orm';
+import { HonoEnv } from '../types';
 
-// Named constants (APEX: No Magic)
-const DEFAULT_LIMIT = 20;
-const MAX_LIMIT = 100;
-const ITEMS_PER_SOURCE = 5;
-
-interface Activity {
-  id: string;
-  userId: string;
-  type: 'capture' | 'checkin' | 'journal' | 'goal';
-  description: string;
-  timestamp: Date;
-  metadata?: Record<string, unknown>;
-}
-
-const activities = new Hono<HonoEnv>();
+const activitiesRoute = new Hono<HonoEnv>();
 
 /**
- * APEX Contract: Get Recent Activities
- * Inputs: query.limit (optional, default 20, max 100)
+ * APEX Contract: Get Activity Feed
+ * Inputs: None (Optional: limit, offset)
  * Outputs: ApiResponse<Activity[]>
  * Errors: DATABASE_ERROR
- * Edge cases: Empty data, large limit values
  */
-activities.get('/', async (c) => {
+activitiesRoute.get('/', async (c) => {
   try {
     const userId = c.get('userId');
     const db = c.get('db');
     
-    // Input validation with safe bounds (APEX: Safe Defaults)
-    const rawLimit = parseInt(c.req.query('limit') ?? String(DEFAULT_LIMIT));
-    const limit = Math.min(Math.max(1, rawLimit), MAX_LIMIT);
-
-    // Parallel fetch from all sources
-    const [recentCaptures, recentCheckins, recentJournals, recentGoals] = await Promise.all([
-      db.select().from(captures).where(eq(captures.userId, userId)).orderBy(desc(captures.createdAt)).limit(ITEMS_PER_SOURCE),
-      db.select().from(emotionalContext).where(eq(emotionalContext.userId, userId)).orderBy(desc(emotionalContext.timestamp)).limit(ITEMS_PER_SOURCE),
-      db.select().from(journalEntries).where(eq(journalEntries.userId, userId)).orderBy(desc(journalEntries.createdAt)).limit(ITEMS_PER_SOURCE),
-      db.select().from(goals).where(eq(goals.userId, userId)).orderBy(desc(goals.createdAt)).limit(ITEMS_PER_SOURCE),
-    ]);
-
-    // Transform to unified format
-    const allActivities: Activity[] = [
-      ...recentCaptures.map(c => ({
-        id: c.id,
-        userId: c.userId,
-        type: 'capture' as const,
-        description: `Captured: ${c.content.substring(0, 50)}${c.content.length > 50 ? '...' : ''}`,
-        timestamp: c.createdAt,
-        metadata: { captureType: c.type, status: c.status },
-      })),
-      ...recentCheckins.map(c => ({
-        id: c.id,
-        userId: c.userId,
-        type: 'checkin' as const,
-        description: `Check-in: ${c.dominantFeeling} (Energy: ${c.energy}/100)`,
-        timestamp: c.timestamp,
-        metadata: { energy: c.energy, valence: c.valence },
-      })),
-      ...recentJournals.map(j => ({
-        id: j.id,
-        userId: j.userId,
-        type: 'journal' as const,
-        description: `Journal: ${j.content.substring(0, 50)}${j.content.length > 50 ? '...' : ''}`,
-        timestamp: j.createdAt,
-        metadata: { source: j.transcriptionSource },
-      })),
-      ...recentGoals.map(g => ({
-        id: g.id,
-        userId: g.userId,
-        type: 'goal' as const,
-        description: `Goal: ${g.title} (${g.progress}%)`,
-        timestamp: g.createdAt,
-        metadata: { progress: g.progress, status: g.status },
-      })),
-    ];
-
-    // Sort by timestamp and limit
-    allActivities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-
-    return c.json({ success: true, data: allActivities.slice(0, limit) });
-
+    // Optional query params
+    const limit = Number(c.req.query('limit')) || 50;
+    
+    const results = await db.select()
+      .from(activities)
+      .where(eq(activities.userId, userId))
+      .orderBy(desc(activities.timestamp))
+      .limit(limit);
+      
+    return c.json({ success: true, data: results });
   } catch (error) {
-    console.error('[APEX] GET /activities error:', error instanceof Error ? error.message : error);
-    return c.json({
-      success: false,
-      error: { code: 'DATABASE_ERROR', message: 'Failed to fetch activities' }
-    }, 500);
+    console.error('[APEX] GET /activities error:', error);
+    return c.json({ success: false, error: { code: 'DATABASE_ERROR', message: 'Failed to fetch activity feed' } }, 500);
   }
 });
 
-export default activities;
+/**
+ * APEX Contract: Record Activity
+ * Inputs: { action, entityType, entityId, content, metadata }
+ * Outputs: ApiResponse<Activity>
+ * Errors: DATABASE_ERROR
+ */
+activitiesRoute.post('/', async (c) => {
+  try {
+    const userId = c.get('userId');
+    const db = c.get('db');
+    const body = await c.req.json();
+    
+    const newActivity = {
+      id: crypto.randomUUID(),
+      userId,
+      action: body.action,
+      entityType: body.entityType,
+      entityId: body.entityId,
+      content: body.content || null,
+      metadata: body.metadata ? (typeof body.metadata === 'string' ? body.metadata : JSON.stringify(body.metadata)) : null,
+      timestamp: new Date(),
+    };
+    
+    await db.insert(activities).values(newActivity);
+    
+    return c.json({ success: true, data: newActivity });
+  } catch (error) {
+    console.error('[APEX] POST /activities error:', error);
+    return c.json({ success: false, error: { code: 'DATABASE_ERROR', message: 'Failed to record activity' } }, 500);
+  }
+});
+
+export default activitiesRoute;

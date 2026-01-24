@@ -110,3 +110,15 @@ export const insights = sqliteTable('insights', {
   type: text('type').notNull(), // 'pattern', 'correlation', 'suggestion'
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
 });
+
+// --- ACTIVITIES ---
+export const activities = sqliteTable('activities', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').references(() => users.id).notNull(),
+  action: text('action').notNull(), // 'captured', 'completed', 'updated', etc.
+  entityType: text('entity_type').notNull(), // 'task', 'habit', 'goal', 'mood'
+  entityId: text('entity_id').notNull(),
+  content: text('content'), // Optional preview text
+  metadata: text('metadata'), // JSON string
+  timestamp: integer('timestamp', { mode: 'timestamp' }).notNull(),
+});

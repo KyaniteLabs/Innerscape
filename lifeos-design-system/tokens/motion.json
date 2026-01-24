@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "lifeos-design-tokens-motion",
+  "motion": {
+    "duration": {
+      "instant": { "value": "0ms" },
+      "fast": { "value": "150ms" },
+      "normal": { "value": "300ms" },
+      "slow": { "value": "500ms" },
+      "slower": { "value": "700ms" }
+    },
+    "easing": {
+      "default": { "value": "cubic-bezier(0.4, 0, 0.2, 1)" },
+      "easeIn": { "value": "cubic-bezier(0.4, 0, 1, 1)" },
+      "easeOut": { "value": "cubic-bezier(0, 0, 0.2, 1)" },
+      "easeInOut": { "value": "cubic-bezier(0.4, 0, 0.2, 1)" },
+      "bounce": { "value": "cubic-bezier(0.68, -0.55, 0.265, 1.55)" },
+      "spring": { "value": "cubic-bezier(0.175, 0.885, 0.32, 1.275)" }
+    },
+    "scale": {
+      "pressed": { "value": "0.96" },
+      "hover": { "value": "1.02" }
+    }
+  }
+}

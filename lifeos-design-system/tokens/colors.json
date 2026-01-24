@@ -2,6 +2,13 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "lifeos-design-tokens-colors",
   "color": {
+    "app": {
+      "soma": { "value": "#8B5CF6" },
+      "mind": { "value": "#4F46E5" },
+      "flow": { "value": "#F59E0B" },
+      "pulse": { "value": "#22C55E" },
+      "hub": { "value": "#3B82F6" }
+    },
     "brand": {
       "primary": { "value": "#4F46E5", "comment": "Deep indigo - introspection, depth" },
       "primaryLight": { "value": "#818CF8" },

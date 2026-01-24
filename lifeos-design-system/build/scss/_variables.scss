@@ -1,7 +1,12 @@
 
 // Do not edit directly
-// Generated on Sat, 24 Jan 2026 17:22:05 GMT
+// Generated on Sat, 24 Jan 2026 17:58:15 GMT
 
+$color-app-soma: #8b5cf6;
+$color-app-mind: #4f46e5;
+$color-app-flow: #f59e0b;
+$color-app-pulse: #22c55e;
+$color-app-hub: #3b82f6;
 $color-brand-primary: #4f46e5; // Deep indigo - introspection, depth
 $color-brand-primary-light: #818cf8;
 $color-brand-primary-dark: #3730a3;
@@ -33,6 +38,47 @@ $color-text-dark-primary: #f9fafb;
 $color-text-dark-secondary: #d1d5db;
 $color-text-dark-muted: #6b7280;
 $color-text-dark-inverse: #111827;
+$component-button-primary-background: #4f46e5;
+$component-button-primary-text: #FFFFFF;
+$component-button-primary-border-radius: 12px;
+$component-button-primary-padding-x: 16px;
+$component-button-primary-padding-y: 12px;
+$component-button-secondary-background: transparent;
+$component-button-secondary-text: #4f46e5;
+$component-button-secondary-border: 1px solid #4f46e5;
+$component-button-secondary-border-radius: 12px;
+$component-button-ghost-background: transparent;
+$component-button-ghost-text: #111827;
+$component-button-ghost-border-radius: 12px;
+$component-card-background: #ffffff;
+$component-card-border-radius: 16px;
+$component-card-padding: 16px;
+$component-card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+$component-input-background: #fafafa;
+$component-input-border: 1px solid #e5e7eb;
+$component-input-border-radius: 12px;
+$component-input-padding: 12px;
+$component-input-focus-border: 2px solid #4f46e5;
+$component-header-height: 56px;
+$component-header-background: #ffffff;
+$component-header-border-bottom: 1px solid #e5e7eb;
+$component-tab-bar-height: 64px;
+$component-tab-bar-background: #ffffff;
+$component-tab-bar-active-color: #4f46e5;
+$component-tab-bar-inactive-color: #9ca3af;
+$motion-duration-instant: 0ms;
+$motion-duration-fast: 150ms;
+$motion-duration-normal: 300ms;
+$motion-duration-slow: 500ms;
+$motion-duration-slower: 700ms;
+$motion-easing-default: cubic-bezier(0.4, 0, 0.2, 1);
+$motion-easing-ease-in: cubic-bezier(0.4, 0, 1, 1);
+$motion-easing-ease-out: cubic-bezier(0, 0, 0.2, 1);
+$motion-easing-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+$motion-easing-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+$motion-easing-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+$motion-scale-pressed: 0.96;
+$motion-scale-hover: 1.02;
 $spacing-0: 0px;
 $spacing-1: 4px;
 $spacing-2: 8px;
