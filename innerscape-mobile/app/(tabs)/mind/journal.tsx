@@ -5,8 +5,21 @@ import { useVoiceRecorder } from '../../../lib/voice/useVoiceRecorder';
 import { transcribeAudio } from '../../../lib/voice/transcribe';
 import { useApiClient } from '../../../lib/api/client';
 import Constants from 'expo-constants';
+import { useLocalSearchParams } from 'expo-router';
+
+interface CheckInContext {
+  emotion: string;
+  regions: string[];
+  sensations: string[];
+  quickReflection: string;
+}
 
 export default function JournalMode() {
+  const { checkInContext } = useLocalSearchParams<{ checkInContext?: string }>();
+  const context: CheckInContext | null = checkInContext 
+    ? JSON.parse(checkInContext) 
+    : null;
+
   const { isRecording, duration, startRecording, stopRecording } = useVoiceRecorder();
   const [transcription, setTranscription] = useState('');
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -14,6 +27,16 @@ export default function JournalMode() {
   const api = useApiClient();
 
   const DEEPGRAM_API_KEY = Constants.expoConfig?.extra?.deepgramApiKey || process.env.EXPO_PUBLIC_DEEPGRAM_API_KEY;
+
+  const getPrompt = (): string => {
+    if (context) {
+      const regionText = context.regions.length > 0 
+        ? ` in your ${context.regions.join(' and ')}`
+        : '';
+      return `Following your check-in where you felt ${context.emotion}${regionText}... What else is on your mind?`;
+    }
+    return "What is one thing that surprised you today?";
+  };
 
   const toggleRecording = async () => {
     if (isRecording) {
@@ -104,7 +127,7 @@ export default function JournalMode() {
 
       <View style={styles.promptContainer}>
         <Text style={styles.promptTitle}>Reflection Prompt</Text>
-        <Text style={styles.promptText}>&quot;What is one thing that surprised you today?&quot;</Text>
+        <Text style={styles.promptText}>&quot;{getPrompt()}&quot;</Text>
       </View>
     </ScrollView>
   );
