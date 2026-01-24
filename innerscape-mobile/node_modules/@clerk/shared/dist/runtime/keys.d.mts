@@ -1,3 +1,0 @@
-import "./index-CxV4BKo8.mjs";
-import { buildPublishableKey, createDevOrStagingUrlCache, getCookieSuffix, getSuffixedCookieName, isDevelopmentFromPublishableKey, isDevelopmentFromSecretKey, isProductionFromPublishableKey, isProductionFromSecretKey, isPublishableKey, parsePublishableKey } from "./keys-DfnxTLxv.mjs";
-export { buildPublishableKey, createDevOrStagingUrlCache, getCookieSuffix, getSuffixedCookieName, isDevelopmentFromPublishableKey, isDevelopmentFromSecretKey, isProductionFromPublishableKey, isProductionFromSecretKey, isPublishableKey, parsePublishableKey };
