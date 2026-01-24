@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { UniversalHeader, OnboardingProvider, useOnboarding, WelcomeScreen, SomaIntroScreen, MindIntroScreen, FlowIntroScreen, PulseIntroScreen, HubIntroScreen, SetupScreen, EmotionalContextBanner } from '@lifeos/shared';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Linking, View, ActivityIndicator } from 'react-native';
+import { Celebrations } from '../components/Celebrations';
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ function AppContent() {
         <Stack.Screen name="capture" options={{ presentation: 'modal', title: 'Quick Capture' }} />
         <Stack.Screen name="chat" options={{ presentation: 'modal', title: 'Innerscape AI' }} />
       </Stack>
+      <Celebrations />
     </SafeAreaView>
   );
 }
