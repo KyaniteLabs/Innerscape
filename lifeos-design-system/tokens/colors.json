@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "lifeos-design-tokens-colors",
+  "color": {
+    "brand": {
+      "primary": { "value": "#4F46E5", "comment": "Deep indigo - introspection, depth" },
+      "primaryLight": { "value": "#818CF8" },
+      "primaryDark": { "value": "#3730A3" },
+      "secondary": { "value": "#F59E0B", "comment": "Warm amber - energy, warmth" },
+      "secondaryLight": { "value": "#FCD34D" },
+      "secondaryDark": { "value": "#D97706" }
+    },
+    "semantic": {
+      "success": { "value": "#22C55E" },
+      "warning": { "value": "#F59E0B" },
+      "error": { "value": "#EF4444" },
+      "info": { "value": "#3B82F6" }
+    },
+    "feelings": {
+      "pleasant": { "value": "#34D399", "comment": "Green - positive valence" },
+      "unpleasant": { "value": "#F87171", "comment": "Red - negative valence" },
+      "neutral": { "value": "#9CA3AF", "comment": "Gray - neutral valence" },
+      "highEnergy": { "value": "#FBBF24", "comment": "Yellow/amber - high energy" },
+      "lowEnergy": { "value": "#60A5FA", "comment": "Blue - low energy" }
+    },
+    "surface": {
+      "light": {
+        "background": { "value": "#FAFAFA" },
+        "card": { "value": "#FFFFFF" },
+        "elevated": { "value": "#FFFFFF" },
+        "border": { "value": "#E5E7EB" }
+      },
+      "dark": {
+        "background": { "value": "#0F172A" },
+        "card": { "value": "#1E293B" },
+        "elevated": { "value": "#334155" },
+        "border": { "value": "#475569" }
+      }
+    },
+    "text": {
+      "light": {
+        "primary": { "value": "#111827" },
+        "secondary": { "value": "#6B7280" },
+        "muted": { "value": "#9CA3AF" },
+        "inverse": { "value": "#FFFFFF" }
+      },
+      "dark": {
+        "primary": { "value": "#F9FAFB" },
+        "secondary": { "value": "#D1D5DB" },
+        "muted": { "value": "#6B7280" },
+        "inverse": { "value": "#111827" }
+      }
+    }
+  }
+}

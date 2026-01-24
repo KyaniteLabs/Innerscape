@@ -1,0 +1,21 @@
+{
+  "name": "@lifeos/shared",
+  "version": "1.0.0",
+  "description": "Shared types and schemas for the Innerscape suite",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "zod": "^3.22.0"
+  },
+  "peerDependencies": {
+    "zod": "^3.22.0"
+  }
+}
