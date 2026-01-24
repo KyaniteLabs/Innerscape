@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native
 import { useApiClient } from '../../../lib/api/client';
 import { Brain, Zap, Heart, CheckCircle2, RefreshCcw } from 'lucide-react-native';
 import { DopamineMenu } from '../../../components/DopamineMenu';
+import { ShutdownRitual } from '../../../components/ShutdownRitual';
 
 export default function HubScreen() {
   const [summary, setSummary] = useState({
@@ -78,6 +79,7 @@ export default function HubScreen() {
         </Text>
       </View>
 
+      <ShutdownRitual />
       <DopamineMenu />
 
       <Text style={styles.sectionTitle}>Upcoming Goals</Text>
