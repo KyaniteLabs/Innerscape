@@ -9,6 +9,7 @@ out/
 build/
 dist/
 *.js.map
+*.tsbuildinfo
 
 # React Native / Expo
 .expo/
