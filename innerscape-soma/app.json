@@ -16,8 +16,12 @@
     "ios": {
       "supportsTablet": true,
       "entitlements": {
-        "com.apple.security.application-groups": ["group.app.innerscape.suite"]
-      }
+        "com.apple.security.application-groups": [
+          "group.app.innerscape.suite",
+          "group.app.innerscape.suite"
+        ]
+      },
+      "bundleIdentifier": "com.anonymous.innerscapesoma"
     },
     "android": {
       "adaptiveIcon": {
@@ -25,7 +29,8 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.innerscapesoma"
     },
     "web": {
       "favicon": "./assets/favicon.png"

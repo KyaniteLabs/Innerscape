@@ -1,9 +1,9 @@
+"use client";
+
 import React, { useState } from 'react';
-import { api } from '@/lib/api';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { Plus } from 'lucide-react';
-// import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 export const GoalForm = () => {
   const [open, setOpen] = useState(false);
@@ -12,9 +12,16 @@ export const GoalForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post('/goals', { title });
+      const res = await fetch('/api/goals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title }),
+      });
+      
+      if (!res.ok) throw new Error('Failed to create goal');
+      
       // Trigger refetch of goals list
-      window.location.reload(); // Simple approach; use SWR/React Query for better UX
+      window.location.reload(); 
     } catch (error) {
       console.error('Failed to create goal:', error);
     }

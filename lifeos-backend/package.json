@@ -5,9 +5,10 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint src/",
+    "build": "wrangler deploy --dry-run --outdir dist",
     "test": "vitest",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"
@@ -21,7 +22,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260124.0",
-    "@types/node": "^22.10.0",
+    "@types/node": "^22.19.7",
     "drizzle-kit": "^1.0.0-beta.12",
     "eslint": "^9.18.0",
     "typescript": "^5.9.3",

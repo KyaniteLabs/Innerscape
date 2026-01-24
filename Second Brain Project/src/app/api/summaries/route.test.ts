@@ -16,10 +16,14 @@ vi.mock("@/lib/rate-limit", () => ({
 vi.mock("@/lib/summaries", () => ({
     generateDailySummary: vi.fn().mockResolvedValue({
         date: "2024-01-15",
-        captures: 10,
-        filed: 8,
-        projects: ["Project A", "Project B"],
+        captures: {
+            total: 10,
+            byType: { projects: 2, people: 2, ideas: 4, admin: 2 }
+        },
         highlights: ["Completed task X"],
+        patterns: ["Pattern A"],
+        suggestedActions: ["Action 1"],
+        topItems: [{ type: "task", name: "Task X", capturedAt: "2024-01-15T10:00:00Z" }],
     }),
     storeDailySummary: vi.fn().mockResolvedValue(undefined),
     getDailySummary: vi.fn().mockResolvedValue(null),
@@ -55,27 +59,35 @@ describe("Summaries API", () => {
             const { getDailySummary } = await import("@/lib/summaries");
             vi.mocked(getDailySummary).mockResolvedValueOnce({
                 date: "2024-01-15",
-                captures: 5,
-                filed: 5,
-                projects: ["Cached Project"],
+                captures: {
+                    total: 5,
+                    byType: { projects: 1, people: 1, ideas: 2, admin: 1 }
+                },
                 highlights: [],
+                patterns: [],
+                suggestedActions: [],
+                topItems: [{ type: "Project", name: "Cached Project", capturedAt: "2024-01-15T10:00:00Z" }],
             });
 
             const req = new NextRequest("http://localhost/api/summaries");
             const response = await GET(req);
             const data = await response.json();
 
-            expect(data.summary.projects).toContain("Cached Project");
+            expect(data.summary.topItems[0].name).toBe("Cached Project");
         });
 
         it("forces regeneration when generate=true", async () => {
             const { generateDailySummary, getDailySummary } = await import("@/lib/summaries");
             vi.mocked(getDailySummary).mockResolvedValueOnce({
                 date: "2024-01-15",
-                captures: 5,
-                filed: 5,
-                projects: ["Cached"],
+                captures: {
+                    total: 5,
+                    byType: { projects: 1, people: 1, ideas: 2, admin: 1 }
+                },
                 highlights: [],
+                patterns: [],
+                suggestedActions: [],
+                topItems: [],
             });
 
             const req = new NextRequest("http://localhost/api/summaries?generate=true");

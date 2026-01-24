@@ -149,7 +149,7 @@ export function validateBody<T extends z.ZodSchema>(
     if (!result.success) {
         // Zod v4 uses 'issues' instead of 'errors'
         const issues = result.error.issues || [];
-        const errors = issues.map((e: { path: (string | number)[]; message: string }) => 
+        const errors = issues.map((e) => 
             e.path.length ? `${e.path.join(".")}: ${e.message}` : e.message
         );
         throw new ValidationError(errors.join("; ") || "Validation failed");

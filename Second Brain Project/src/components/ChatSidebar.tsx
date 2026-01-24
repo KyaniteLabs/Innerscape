@@ -224,7 +224,7 @@ export function ChatSidebar() {
 
             const data = await safeJsonParse<{ message?: { content: string }; error?: string }>(response);
 
-            if (!response.ok) {
+            if (!response.ok || !data.message) {
                 throw new Error(data.error || "Failed to get response");
             }
 

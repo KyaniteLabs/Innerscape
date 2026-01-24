@@ -1,5 +1,7 @@
 "use client";
 
+"use client";
+
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Check, Moon, Sparkle, RefreshCw, Globe, Clock, Eye, Inbox, Activity, ChevronDown, ChevronUp } from "lucide-react";
 import { useTimeContext } from "@/lib/hooks/useAppContext";

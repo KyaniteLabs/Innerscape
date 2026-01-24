@@ -28,7 +28,7 @@ export const useVoiceRecorder = () => {
   });
 
   const recordingRef = useRef<Audio.Recording | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<any>(null);
 
   const startRecording = useCallback(async () => {
     try {

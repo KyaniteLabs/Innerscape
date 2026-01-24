@@ -14,6 +14,8 @@ import Link from "next/link";
 import { useTimeContext } from "@/lib/hooks/useAppContext";
 import { EditItemModal } from "@/components/EditItemModal";
 
+export const dynamic = 'force-dynamic';
+
 // Time-aware greetings
 const TIME_GREETINGS = {
     morning: { text: "Good morning!", sub: "Here's your focus for today" },

@@ -1,0 +1,30 @@
+{
+  "name": "innerscape-suite",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build:ds": "cd lifeos-design-system && npm run build",
+    "build:shared": "cd lifeos-shared && npm run build",
+    "build:backend": "cd lifeos-backend && npm run build",
+    "build:web": "cd \"Second Brain Project\" && npm run build",
+    "build:soma": "cd innerscape-soma && npx expo export",
+    "build:mobile": "cd innerscape-mobile && npx expo export",
+    "dev:backend": "cd lifeos-backend && npm run dev",
+    "dev:soma": "cd innerscape-soma && npx expo start",
+    "dev:mobile": "cd innerscape-mobile && npx expo start",
+    "dev:web": "cd \"Second Brain Project\" && npm run dev",
+    "seed": "cd lifeos-backend && npx tsx src/db/seed.ts",
+    "verify": "npm run verify:backend && npm run verify:soma && npm run verify:mobile && npm run verify:web",
+    "verify:all": "npm run verify && npm run build:ds && npm run build:shared && npm run build:backend && npm run build:web && npm run build:soma && npm run build:mobile",
+    "clean": "rm -rf lifeos-design-system/build lifeos-shared/dist lifeos-backend/dist \"Second Brain Project/.next\" innerscape-soma/dist innerscape-mobile/dist",
+    "verify:backend": "cd lifeos-backend && npx tsc --noEmit",
+    "verify:soma": "cd innerscape-soma && npx tsc --noEmit",
+    "verify:mobile": "cd innerscape-mobile && npx tsc --noEmit",
+    "verify:web": "cd \"Second Brain Project\" && npx tsc --noEmit --skipLibCheck",
+    "install:all": "npm install && cd lifeos-design-system && npm install && cd ../lifeos-shared && npm install && cd ../lifeos-backend && npm install && cd ../innerscape-soma && npm install --legacy-peer-deps && cd ../innerscape-mobile && npm install --legacy-peer-deps && cd \"../Second Brain Project\" && npm install --legacy-peer-deps"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0"
+  }
+}

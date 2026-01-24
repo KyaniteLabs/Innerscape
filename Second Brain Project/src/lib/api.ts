@@ -1,4 +1,5 @@
 // src/lib/api.ts
+import 'server-only';
 import { auth } from '@clerk/nextjs/server';
 
 const API_BASE = 'https://api.innerscape.app/api';

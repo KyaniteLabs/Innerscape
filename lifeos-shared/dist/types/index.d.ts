@@ -1,33 +1,11 @@
 /**
- * Innerscape Suite — Canonical Type Definitions
- * Single source of truth for all data models
+ * @fileoverview Unified types for Innerscape Suite
+ * @module types
  */
-export * from './brain';
-export * from './feelings';
-export * from './habits';
-export * from './insights';
-export * from './sync';
 export interface User {
     id: string;
     email: string;
     createdAt: Date;
-}
-export interface ApiResponse<T> {
-    success: boolean;
-    data?: T;
-    error?: {
-        code: string;
-        message: string;
-        details?: unknown;
-    };
-}
-export interface PaginatedResponse<T> extends ApiResponse<T[]> {
-    pagination: {
-        page: number;
-        limit: number;
-        total: number;
-        hasMore: boolean;
-    };
 }
 export interface EmotionalContext {
     id: string;
@@ -35,7 +13,7 @@ export interface EmotionalContext {
     energy: number;
     valence: number;
     dominantFeeling: string;
-    bodySensation?: string;
+    bodySensation?: string | null;
     timestamp: Date;
 }
 export interface Capture {
@@ -44,7 +22,15 @@ export interface Capture {
     content: string;
     type: 'task' | 'idea' | 'journal' | 'person';
     status: 'inbox' | 'processed' | 'archived';
-    metadata?: any;
+    metadata?: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+}
+export interface Project {
+    id: string;
+    userId: string;
+    name: string;
+    status: 'active' | 'completed' | 'archived';
     createdAt: Date;
     updatedAt: Date;
 }
@@ -52,30 +38,21 @@ export interface Habit {
     id: string;
     userId: string;
     name: string;
-    frequency: 'daily' | 'weekly' | 'custom';
-    preferredEnergy?: number;
+    frequency: string;
+    preferredEnergy?: number | null;
     streak: number;
     createdAt: Date;
     updatedAt: Date;
-}
-export interface JournalEntry {
-    id: string;
-    userId: string;
-    content: string;
-    transcriptionSource: 'whisper' | 'deepgram' | 'typed';
-    moodId?: string;
-    tags?: string[];
-    createdAt: Date;
 }
 export interface Goal {
     id: string;
     userId: string;
     title: string;
-    description?: string;
+    description?: string | null;
+    targetDate?: Date | null;
     progress: number;
     status: 'active' | 'completed' | 'archived';
-    category?: string;
-    targetDate?: Date;
+    category?: string | null;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -90,8 +67,19 @@ export interface Insight {
 export interface Activity {
     id: string;
     userId: string;
-    description: string;
-    type: 'capture' | 'checkin' | 'habit' | 'journal' | 'goal';
+    action: string;
+    entityType: string;
+    entityId: string;
+    content?: string | null;
+    metadata?: string | null;
     timestamp: Date;
-    metadata?: Record<string, unknown>;
+}
+export interface ApiResponse<T> {
+    success: boolean;
+    data?: T;
+    error?: {
+        code: string;
+        message: string;
+        details?: any;
+    };
 }

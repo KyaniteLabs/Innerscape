@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
         console.log(`[APEX] [Webhook] Captured from ${source}: ${captureText.substring(0, 50)}...`);
 
         // Process with agent (async, don't wait)
-        processWithAgent(newItem.id, captureText).catch(err => {
+        processWithAgent(captureText).catch(err => {
             console.error("[APEX] [Webhook] Agent processing failed:", err);
         });
 

@@ -5,8 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint 'src/**/*.{ts,tsx}' --max-warnings 100",
     "test": "vitest",
@@ -22,6 +22,7 @@
     "@clerk/nextjs": "^6.36.10",
     "@libsql/client": "^0.17.0",
     "@module-federation/nextjs-mf": "^8.8.52",
+    "@tanstack/react-query": "^5.90.20",
     "@xenova/transformers": "^2.17.2",
     "autoprefixer": "^10.4.23",
     "bullmq": "^5.66.5",
