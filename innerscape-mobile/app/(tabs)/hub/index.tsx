@@ -48,7 +48,12 @@ export default function HubScreen() {
       contentContainerStyle={styles.content}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
-      <Text style={styles.title}>Today&apos;s Snapshot</Text>
+      <View className="flex-row items-center justify-between mb-4">
+        <Text style={styles.title}>Today&apos;s Snapshot</Text>
+        <TouchableOpacity onPress={() => router.push('/(tabs)/hub/analytics')}>
+          <Text className="text-indigo-600 font-bold text-xs">Insights</Text>
+        </TouchableOpacity>
+      </View>
       
       <View style={styles.summaryGrid}>
         <View style={styles.summaryCard}>

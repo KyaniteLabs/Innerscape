@@ -13,6 +13,15 @@ export default function HubLayout() {
           headerShadowVisible: false,
         }} 
       />
+      <Stack.Screen 
+        name="analytics" 
+        options={{ 
+          headerShown: true, 
+          title: 'Insights',
+          headerTitleStyle: { fontWeight: '700' },
+          headerShadowVisible: false,
+        }} 
+      />
     </Stack>
   );
 }
