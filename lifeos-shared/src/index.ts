@@ -9,10 +9,10 @@ export * from './hooks/useEmotionalContext';
 
 // Export storage
 export * from './storage/appGroups';
-export * from './storage/syncService';
-
-// Export schemas
-export * from './schemas/powerSyncSchema';
+// NOTE: syncService and powerSyncSchema require native modules (PowerSync)
+// They are NOT exported from main entry for Expo Go compatibility
+// Import directly from './storage/syncService' or './schemas/powerSyncSchema' 
+// only in development builds that support native modules
 
 // Export onboarding
 export * from './onboarding/OnboardingProvider';

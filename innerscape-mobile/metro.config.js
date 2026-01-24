@@ -1,5 +1,6 @@
 // metro.config.js
 const { getDefaultConfig } = require("expo/metro-config");
+const { withNativeWind } = require('nativewind/metro');
 const path = require("path");
 
 const projectRoot = __dirname;
@@ -46,4 +47,4 @@ config.resolver.nodeModulesPaths = [
 // Add Skia asset extensions
 config.resolver.assetExts.push('sksl');
 
-module.exports = config;
+module.exports = withNativeWind(config, { input: './global.css' });

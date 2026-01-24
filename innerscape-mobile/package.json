@@ -14,9 +14,7 @@
   },
   "dependencies": {
     "@lifeos/shared": "file:../lifeos-shared",
-    "@powersync/react-native": "^1.28.1",
     "@react-native-async-storage/async-storage": "^2.2.0",
-    "@shopify/react-native-skia": "2.2.12",
     "@tanstack/react-query": "^5.90.20",
     "expo": "~54.0.32",
     "expo-av": "~16.0.8",
@@ -32,12 +30,10 @@
     "react-native": "0.81.5",
     "react-native-confetti-cannon": "^1.5.2",
     "react-native-gesture-handler": "~2.28.0",
-    "react-native-reanimated": "~4.1.1",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
     "react-native-svg": "15.12.1",
     "tailwindcss": "^3.4.0",
-    "victory-native": "^41.20.2",
     "zustand": "^5.0.10"
   },
   "devDependencies": {

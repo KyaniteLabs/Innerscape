@@ -5,6 +5,7 @@ export type Bindings = {
   TURSO_AUTH_TOKEN: string;
   CLERK_SECRET_KEY: string;
   DEEPGRAM_API_KEY?: string;
+  LOCAL_DEV?: string; // Set to 'true' for local development without Clerk
 };
 
 export type Variables = {

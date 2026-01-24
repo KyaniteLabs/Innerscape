@@ -1,12 +1,17 @@
 /**
  * APEX Contract: Innerscape Cloud API
  * Entry point for Cloudflare Workers
- * Routes: /api/feelings, /api/brain, /api/flow, /api/journal, /api/health, /api/goals, /api/insights, /api/activities, /api/projects
+ * Routes: /api/feelings, /api/brain, /api/flow, /api/journal, /api/health, /api/goals, /api/insights, /api/activities, /api/projects, /api/analytics
+ * 
+ * Local Development:
+ * - Set LOCAL_DEV=true in .dev.vars to bypass Clerk authentication
+ * - Uses local SQLite database (file:local.db)
  */
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { createDb } from './db';
 import { clerkAuth } from './middleware/clerk-auth';
+import { localAuth } from './middleware/local-auth';
 import { rateLimit } from './middleware/rate-limit';
 import type { HonoEnv } from './types';
 
@@ -58,8 +63,18 @@ app.use('/api/*', async (c, next) => {
   await next();
 });
 
-// Auth middleware
-app.use('/api/*', clerkAuth);
+// Auth middleware (use local auth in development, Clerk in production)
+app.use('/api/*', async (c, next) => {
+  // APEX: Check for local development mode
+  const isLocalDev = (c.env as any).LOCAL_DEV === 'true';
+  
+  if (isLocalDev) {
+    console.log('[APEX] Using LOCAL authentication (development mode)');
+    return localAuth(c, next);
+  }
+  
+  return clerkAuth(c, next);
+});
 
 // Rate limit middleware
 app.use('/api/*', rateLimit);

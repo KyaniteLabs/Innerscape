@@ -5,28 +5,29 @@ import * as schema from './schema';
  * @fileoverview Database seed script for testing
  * @module db/seed
  * 
- * Usage: 
- * export TURSO_CONNECTION_URL=...
- * export TURSO_AUTH_TOKEN=...
- * npx tsx src/db/seed.ts
+ * Usage (local development):
+ *   npx tsx src/db/seed.ts
+ * 
+ * Usage (with Turso):
+ *   export TURSO_CONNECTION_URL=...
+ *   export TURSO_AUTH_TOKEN=...
+ *   npx tsx src/db/seed.ts
  */
 
 async function seed() {
   console.log('[APEX] Starting database seed...');
   
   const env = {
-    TURSO_CONNECTION_URL: process.env.TURSO_CONNECTION_URL!,
-    TURSO_AUTH_TOKEN: process.env.TURSO_AUTH_TOKEN!,
+    TURSO_CONNECTION_URL: process.env.TURSO_CONNECTION_URL || 'file:local.db',
+    TURSO_AUTH_TOKEN: process.env.TURSO_AUTH_TOKEN || '',
   };
 
-  if (!env.TURSO_CONNECTION_URL) {
-    console.error('[APEX] Missing TURSO_CONNECTION_URL');
-    process.exit(1);
-  }
+  console.log(`[APEX] Using database: ${env.TURSO_CONNECTION_URL}`);
 
   const db = createDb(env as any);
 
-  const testUserId = 'user_2test_tester_12345'; // Example Clerk ID
+  // APEX: Use the same user ID as local-auth middleware
+  const testUserId = 'local-dev-user';
 
   try {
     // 1. Seed User
