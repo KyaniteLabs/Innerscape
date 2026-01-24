@@ -1,0 +1,147 @@
+"use client";
+
+import React, { useState } from 'react';
+import { BodyScan } from './BodyScan';
+import { EmotionWheel } from './EmotionWheel';
+import { Button } from '@/components/Button';
+import { Card } from '@/components/Card';
+import { ChevronRight, ChevronLeft, Check } from 'lucide-react';
+
+type Step = 'scan' | 'wheel' | 'reflection' | 'result';
+
+export function CheckInFlow() {
+  const [step, setStep] = useState<Step>('scan');
+  const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
+  const [selectedEmotion, setSelectedEmotion] = useState<string | null>(null);
+  const [reflection, setReflection] = useState('');
+
+  const toggleRegion = (id: string) => {
+    setSelectedRegions(prev => 
+      prev.includes(id) ? prev.filter(r => r !== id) : [...prev, id]
+    );
+  };
+
+  const handleFinish = () => {
+    // API call would go here
+    setStep('result');
+  };
+
+  return (
+    <Card className="max-w-2xl mx-auto overflow-hidden rounded-[40px] border-slate-100 shadow-xl">
+      <div className="p-8">
+        {step === 'scan' && (
+          <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-bold text-slate-900 font-outfit uppercase tracking-wider">Body Scan</h2>
+              <p className="text-slate-500">Where do you feel it in your body?</p>
+            </div>
+            <div className="h-[400px]">
+              <BodyScan selectedRegions={selectedRegions} onRegionSelect={toggleRegion} />
+            </div>
+            <div className="flex justify-end">
+              <Button 
+                disabled={selectedRegions.length === 0}
+                onClick={() => setStep('wheel')}
+                className="gap-2 rounded-2xl px-8 bg-indigo-600 hover:bg-indigo-700"
+              >
+                Next <ChevronRight size={18} />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {step === 'wheel' && (
+          <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-bold text-slate-900 font-outfit uppercase tracking-wider">Emotion</h2>
+              <p className="text-slate-500">
+                {selectedEmotion ? `You're feeling ${selectedEmotion}` : 'Select your dominant feeling'}
+              </p>
+            </div>
+            <div className="flex justify-center py-4">
+              <EmotionWheel onEmotionSelect={setSelectedEmotion} />
+            </div>
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={() => setStep('scan')} className="gap-2 rounded-2xl">
+                <ChevronLeft size={18} /> Back
+              </Button>
+              <Button 
+                disabled={!selectedEmotion}
+                onClick={() => setStep('reflection')}
+                className="gap-2 rounded-2xl px-8 bg-indigo-600 hover:bg-indigo-700"
+              >
+                Next <ChevronRight size={18} />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {step === 'reflection' && (
+          <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-bold text-slate-900 font-outfit uppercase tracking-wider">Reflection</h2>
+              <p className="text-slate-500">Anything else on your mind?</p>
+            </div>
+            <textarea
+              className="w-full min-h-[200px] p-6 bg-slate-50 border-none rounded-3xl text-lg text-slate-800 placeholder:text-slate-300 focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
+              placeholder="Tap to write..."
+              value={reflection}
+              onChange={(e) => setReflection(e.target.value)}
+              autoFocus
+            />
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={() => setStep('wheel')} className="gap-2 rounded-2xl">
+                <ChevronLeft size={18} /> Back
+              </Button>
+              <Button 
+                onClick={handleFinish}
+                className="gap-2 rounded-2xl px-8 bg-indigo-600 hover:bg-indigo-700"
+              >
+                Finish <Check size={18} />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {step === 'result' && (
+          <div className="space-y-8 py-12 text-center animate-in zoom-in duration-500">
+            <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center mx-auto text-white shadow-lg shadow-green-200">
+              <Check size={48} strokeWidth={3} />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-3xl font-bold text-slate-900 font-outfit">Check-in Complete</h2>
+              <p className="text-slate-500 max-w-sm mx-auto">
+                Your somatic data has been synced across all your devices.
+              </p>
+            </div>
+            <div className="bg-slate-50 p-6 rounded-3xl inline-block text-left min-w-[250px] border border-slate-100">
+              <div className="space-y-4">
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Feeling</p>
+                  <p className="text-lg font-bold text-slate-800">{selectedEmotion}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">In your</p>
+                  <p className="text-lg font-bold text-slate-800">{selectedRegions.join(', ') || 'General'}</p>
+                </div>
+              </div>
+            </div>
+            <div>
+              <Button 
+                onClick={() => {
+                  setStep('scan');
+                  setSelectedRegions([]);
+                  setSelectedEmotion(null);
+                  setReflection('');
+                }}
+                className="gap-2 rounded-2xl px-12 bg-slate-900 hover:bg-slate-800"
+              >
+                Done
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}

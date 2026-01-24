@@ -20,12 +20,16 @@ import {
   BarChart3, 
   Brain,
   Settings,
-  ChevronDown
+  ChevronDown,
+  Zap,
+  Heart
 } from 'lucide-react';
 import { EmotionalContextWidget } from './EmotionalContextWidget';
 
 const NAV_ITEMS = [
   { href: '/hub', label: 'Hub', icon: LayoutDashboard, color: '#3B82F6' },
+  { href: '/flow', label: 'Flow', icon: Zap, color: '#F59E0B' },
+  { href: '/body', label: 'Body', icon: Heart, color: '#EF4444' },
   { href: '/goals', label: 'Goals', icon: Target, color: '#22C55E' },
   { href: '/analytics', label: 'Analytics', icon: BarChart3, color: '#F59E0B' },
   { href: '/brain', label: 'Brain', icon: Brain, color: '#4F46E5' },
