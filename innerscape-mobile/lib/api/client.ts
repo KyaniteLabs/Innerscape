@@ -1,4 +1,4 @@
-import { useAuth } from '@clerk/clerk-expo';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_BASE = 'https://api.innerscape.app/api'; // Replace with your production URL
 
@@ -13,17 +13,15 @@ export interface ApiResponse<T> {
 }
 
 export const useApiClient = () => {
-  const { getToken } = useAuth();
-
   const fetchWithAuth = async <T>(path: string, options: RequestInit = {}): Promise<ApiResponse<T>> => {
     try {
-      const token = await getToken();
+      const token = await AsyncStorage.getItem('authToken');
       
       const res = await fetch(`${API_BASE}${path}`, {
         ...options,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
           ...options.headers,
         },
       });

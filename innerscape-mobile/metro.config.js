@@ -1,7 +1,24 @@
 // metro.config.js
 const { getDefaultConfig } = require("expo/metro-config");
-const { withNativeWind } = require("nativewind/metro");
+const path = require("path");
 
-const config = getDefaultConfig(__dirname);
+const projectRoot = __dirname;
+const monorepoRoot = path.resolve(projectRoot, "..");
 
-module.exports = withNativeWind(config, { input: "./global.css" });
+const config = getDefaultConfig(projectRoot);
+
+// Configure watchFolders for monorepo packages
+config.watchFolders = [
+  projectRoot,
+  path.resolve(monorepoRoot, "lifeos-shared"),
+  path.resolve(monorepoRoot, "lifeos-design-system"),
+];
+
+// Configure extraNodeModules for monorepo resolution
+// This tells Metro where to find packages from the monorepo root
+config.resolver.extraNodeModules = {
+  "@lifeos/shared": path.resolve(monorepoRoot, "lifeos-shared"),
+  "@lifeos/design-system": path.resolve(monorepoRoot, "lifeos-design-system"),
+};
+
+module.exports = config;
