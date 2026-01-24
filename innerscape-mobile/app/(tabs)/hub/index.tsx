@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { useApiClient } from '../../../lib/api/client';
-import { Brain, Zap, Heart, CheckCircle2 } from 'lucide-react-native';
+import { Brain, Zap, Heart, CheckCircle2, RefreshCcw } from 'lucide-react-native';
+import { DopamineMenu } from '../../../components/DopamineMenu';
 
 export default function HubScreen() {
   const [summary, setSummary] = useState({
@@ -76,6 +77,8 @@ export default function HubScreen() {
           Your focus peaks between 10 AM and 12 PM. Use this time for your most challenging habits!
         </Text>
       </View>
+
+      <DopamineMenu />
 
       <Text style={styles.sectionTitle}>Upcoming Goals</Text>
       <View style={styles.goalPlaceholder}>
