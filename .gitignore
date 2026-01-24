@@ -1,0 +1,69 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+*.js.map
+
+# React Native / Expo
+.expo/
+ios/Pods/
+ios/.symlinks/
+android/.gradle/
+android/app/build/
+*.apk
+*.aab
+*.ipa
+*.jks
+*.p8
+*.p12
+*.mobileprovision
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+.nyc_output/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Turbo / Vercel
+.turbo/
+.vercel/
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+local.db
+
+# Secrets (NEVER commit)
+**/wrangler.toml
+**/credentials.json
+**/*.pem
+**/*.key
+
+# Design system build output (regenerate with npm run build)
+lifeos-design-system/build/

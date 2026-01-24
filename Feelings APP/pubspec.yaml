@@ -1,0 +1,66 @@
+name: soma
+description: "A somatic translator app for alexithymia and interoception support."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: '>=3.10.7 <4.0.0'
+  flutter: '>=3.10.0'
+
+dependencies:
+  cupertino_icons: ^1.0.8
+  flutter:
+    sdk: flutter
+  flutter_gl: ^0.0.21
+  flutter_riverpod: ^3.1.0
+  flutter_secure_storage: ^10.0.0
+  google_fonts: ^4.0.4
+  intl: ^0.20.2
+  flutter_local_notifications: ^18.0.0
+  local_auth: ^2.3.0
+  path: ^1.9.1
+  pdf: ^3.11.1
+  printing: ^5.13.0
+  shared_preferences: ^2.5.4
+  share_plus: ^10.0.0
+  sqflite_sqlcipher: ^3.4.0
+  three_dart: ^0.0.16
+  timezone: ^0.9.4
+  uuid: ^4.5.2
+  vector_math: ^2.2.0
+
+  # Cloud sync (January 2026)
+  powersync: ^1.12.0
+  
+  # HTTP client
+  dio: ^5.7.0
+  
+  # Voice capabilities  
+  speech_to_text: ^7.0.0
+  flutter_tts: ^4.2.0
+  
+  # Authentication (official Clerk Flutter package)
+  clerk_flutter: ^0.0.13-beta
+  sqlite3: ^2.4.0
+
+  # State persistence
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  mocktail: ^1.0.4
+
+dependency_overrides:
+  image: ^4.1.0
+  http: ^1.1.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/data/sensation_vocabulary.json

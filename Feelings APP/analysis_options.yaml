@@ -1,0 +1,46 @@
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    # Core rules
+    prefer_const_constructors: true
+    prefer_const_literals_to_create_immutables: true
+    avoid_print: true
+    prefer_final_fields: true
+    always_declare_return_types: true
+    unawaited_futures: true
+    recursive_getters: true
+    no_duplicate_case_values: true
+    avoid_dynamic_calls: true
+    prefer_single_quotes: true
+    sort_pub_dependencies: true
+    
+    # Additional quality rules
+    prefer_final_locals: true
+    avoid_empty_else: true
+    prefer_is_empty: true
+    prefer_is_not_empty: true
+    avoid_types_on_closure_parameters: true
+    avoid_unnecessary_containers: true
+    camel_case_extensions: true
+    camel_case_types: true
+    constant_identifier_names: true
+    curly_braces_in_flow_control_structures: true
+    empty_catches: true
+    empty_constructor_bodies: true
+    file_names: true
+    implementation_imports: true
+    library_names: true
+    library_prefixes: true
+    library_private_types_in_public_api: true
+    no_leading_underscores_for_library_prefixes: true
+    no_leading_underscores_for_local_identifiers: true
+    non_constant_identifier_names: true
+    only_throw_errors: true
+    package_names: true
+    prefer_relative_imports: true
+    prefer_typing_uninitialized_variables: true
+    sized_box_for_whitespace: true
+    sized_box_shrink_expand: true
+    use_key_in_widget_constructors: true
+    void_checks: true

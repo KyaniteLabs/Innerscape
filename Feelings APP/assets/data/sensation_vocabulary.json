@@ -1,0 +1,24 @@
+{
+  "categories": [
+    {
+      "name": "Texture",
+      "tokens": ["Static", "Buzzing", "Bees", "Fizzing", "Prickly", "Smooth", "Soft"]
+    },
+    {
+      "name": "Temperature",
+      "tokens": ["Hot", "Warm", "Cold", "Frozen", "Burning"]
+    },
+    {
+      "name": "Pressure",
+      "tokens": ["Tight", "Squeezed", "Heavy", "Light", "Hollow", "Empty"]
+    },
+    {
+      "name": "Movement",
+      "tokens": ["Racing", "Pounding", "Fluttering", "Still", "Sinking"]
+    },
+    {
+      "name": "Conceptual",
+      "tokens": ["Loud", "Quiet", "Foggy", "Sharp", "Numb", "Alive"]
+    }
+  ]
+}
