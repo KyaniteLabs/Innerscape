@@ -28,6 +28,7 @@
     "react-native-gesture-handler": "~2.20.0",
     "@clerk/clerk-expo": "^2.1.0",
     "zustand": "^4.5.0",
+    "@lifeos/shared": "file:../lifeos-shared",
     "@tanstack/react-query": "^5.0.0",
     "lucide-react-native": "^0.300.0",
     "nativewind": "^4.0.0",

@@ -1,12 +1,33 @@
 /**
- * Innerscape Suite — Shared Model Contracts
- * This file defines the single source of truth for all data models.
- * Compliance: APEX Engineering Rules § Single Source
+ * Innerscape Suite — Canonical Type Definitions
+ * Single source of truth for all data models
  */
+export * from './brain';
+export * from './feelings';
+export * from './habits';
+export * from './insights';
+export * from './sync';
 export interface User {
     id: string;
     email: string;
     createdAt: Date;
+}
+export interface ApiResponse<T> {
+    success: boolean;
+    data?: T;
+    error?: {
+        code: string;
+        message: string;
+        details?: unknown;
+    };
+}
+export interface PaginatedResponse<T> extends ApiResponse<T[]> {
+    pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        hasMore: boolean;
+    };
 }
 export interface EmotionalContext {
     id: string;
@@ -35,6 +56,7 @@ export interface Habit {
     preferredEnergy?: number;
     streak: number;
     createdAt: Date;
+    updatedAt: Date;
 }
 export interface JournalEntry {
     id: string;
@@ -55,6 +77,7 @@ export interface Goal {
     category?: string;
     targetDate?: Date;
     createdAt: Date;
+    updatedAt: Date;
 }
 export interface Insight {
     id: string;
@@ -63,4 +86,12 @@ export interface Insight {
     content: string;
     type: 'pattern' | 'correlation' | 'suggestion';
     createdAt: Date;
+}
+export interface Activity {
+    id: string;
+    userId: string;
+    description: string;
+    type: 'capture' | 'checkin' | 'habit' | 'journal' | 'goal';
+    timestamp: Date;
+    metadata?: Record<string, unknown>;
 }
