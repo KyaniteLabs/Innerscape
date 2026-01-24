@@ -13,7 +13,7 @@ export default function TrendsScreen() {
       <View style={styles.header}>
         <TrendingUp size={32} color="#4F46E5" />
         <Text style={styles.title}>Trends</Text>
-      </header>
+      </View>
       <View style={styles.content}>
         <Text style={styles.placeholder}>Tracking your long-term vitality.</Text>
       </View>

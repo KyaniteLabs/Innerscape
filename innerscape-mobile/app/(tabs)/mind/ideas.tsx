@@ -13,7 +13,7 @@ export default function IdeasScreen() {
       <View style={styles.header}>
         <Lightbulb size={32} color="#4F46E5" />
         <Text style={styles.title}>Ideas</Text>
-      </header>
+      </View>
       <View style={styles.content}>
         <Text style={styles.placeholder}>Your creative spark, captured and organized.</Text>
       </View>

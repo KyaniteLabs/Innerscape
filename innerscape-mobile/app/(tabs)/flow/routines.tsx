@@ -13,7 +13,7 @@ export default function RoutinesScreen() {
       <View style={styles.header}>
         <Repeat size={32} color="#4F46E5" />
         <Text style={styles.title}>Routines</Text>
-      </header>
+      </View>
       <View style={styles.content}>
         <Text style={styles.placeholder}>Rituals that ground your day.</Text>
       </View>

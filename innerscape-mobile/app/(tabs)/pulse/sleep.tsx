@@ -13,7 +13,7 @@ export default function SleepScreen() {
       <View style={styles.header}>
         <Moon size={32} color="#4F46E5" />
         <Text style={styles.title}>Sleep</Text>
-      </header>
+      </View>
       <View style={styles.content}>
         <Text style={styles.placeholder}>Insights into your rest and recovery.</Text>
       </View>

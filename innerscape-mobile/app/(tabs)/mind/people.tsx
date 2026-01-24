@@ -13,7 +13,7 @@ export default function PeopleScreen() {
       <View style={styles.header}>
         <Users size={32} color="#4F46E5" />
         <Text style={styles.title}>People</Text>
-      </header>
+      </View>
       <View style={styles.content}>
         <Text style={styles.placeholder}>Track meaningful relationships and shared context.</Text>
       </View>

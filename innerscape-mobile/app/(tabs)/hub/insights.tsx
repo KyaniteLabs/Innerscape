@@ -13,7 +13,7 @@ export default function InsightsScreen() {
       <View style={styles.header}>
         <Sparkles size={32} color="#4F46E5" />
         <Text style={styles.title}>Insights</Text>
-      </header>
+      </View>
       <View style={styles.content}>
         <Text style={styles.placeholder}>AI-powered connections across your life.</Text>
       </View>

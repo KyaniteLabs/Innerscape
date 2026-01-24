@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../src/cache/dummy-data/index.ts"],"sourcesContent":["export { DUMMY_CLERK_CLIENT_RESOURCE } from './client-resource';\nexport { DUMMY_CLERK_ENVIRONMENT_RESOURCE } from './environment-resource';\n"],"mappings":";;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAAA;AAAA,6BAA4C;AAC5C,kCAAiD;","names":[]}

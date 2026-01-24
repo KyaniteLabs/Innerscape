@@ -13,7 +13,7 @@ export default function StreaksScreen() {
       <View style={styles.header}>
         <Zap size={32} color="#4F46E5" />
         <Text style={styles.title}>Streaks</Text>
-      </header>
+      </View>
       <View style={styles.content}>
         <Text style={styles.placeholder}>Visualizing your momentum.</Text>
       </View>
