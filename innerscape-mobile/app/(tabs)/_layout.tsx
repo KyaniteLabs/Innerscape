@@ -26,9 +26,9 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="pulse"
+          name="body"
           options={{
-            title: 'Pulse',
+            title: 'Body',
             tabBarIcon: ({ color }) => <Heart size={24} color={color} />,
           }}
         />
