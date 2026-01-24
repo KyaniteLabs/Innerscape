@@ -1,7 +1,7 @@
 "use client";
 
-import React from 'react';
-import { Check, Flame, Clock } from 'lucide-react';
+import React, { useState, useTransition } from 'react';
+import { Check, Flame, Clock, Loader2 } from 'lucide-react';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 
@@ -10,9 +10,9 @@ import { Button } from '@/components/Button';
  * @module components/flow/HabitCard
  * 
  * APEX Contract:
- * - Inputs: habit (Habit object), onToggle (callback)
+ * - Inputs: habit (Habit object), toggleAction (server action)
  * - Outputs: Renders a card with habit status and streak
- * - Errors: Graceful fallback for missing habit data
+ * - Errors: Graceful fallback for missing habit data, shows loading state
  */
 
 interface Habit {
@@ -26,27 +26,51 @@ interface Habit {
 
 interface Props {
   habit: Habit;
-  onToggle: (id: string) => void;
+  toggleAction: (habitId: string, isCompleted: boolean) => Promise<{ success: boolean; error?: string }>;
 }
 
-export function HabitCard({ habit, onToggle }: Props) {
+export function HabitCard({ habit, toggleAction }: Props) {
+  const [isPending, startTransition] = useTransition();
+  const [optimisticCompleted, setOptimisticCompleted] = useState(habit.completedToday);
+  
+  const handleToggle = () => {
+    // Optimistic update
+    setOptimisticCompleted(!optimisticCompleted);
+    
+    startTransition(async () => {
+      const result = await toggleAction(habit.id, habit.completedToday);
+      if (!result.success) {
+        // Revert on error
+        setOptimisticCompleted(habit.completedToday);
+        console.error('[APEX] Habit toggle failed:', result.error);
+      }
+    });
+  };
+  
+  const isCompleted = optimisticCompleted;
+  
   return (
     <Card className="p-6 transition-all hover:shadow-md border-slate-100 group">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button
-            onClick={() => onToggle(habit.id)}
-            aria-label={`Mark ${habit.name} as ${habit.completedToday ? 'incomplete' : 'complete'}`}
+            onClick={handleToggle}
+            disabled={isPending}
+            aria-label={`Mark ${habit.name} as ${isCompleted ? 'incomplete' : 'complete'}`}
             className={`w-12 h-12 rounded-2xl p-0 transition-transform active:scale-95 ${
-              habit.completedToday 
+              isCompleted 
                 ? 'bg-amber-500 text-white hover:bg-amber-600 border border-amber-500' 
                 : 'bg-white text-slate-300 hover:text-slate-400 border border-slate-200'
-            }`}
+            } ${isPending ? 'opacity-50' : ''}`}
           >
-            <Check size={24} className={habit.completedToday ? "text-white" : "text-slate-300 group-hover:text-slate-400"} />
+            {isPending ? (
+              <Loader2 size={24} className="animate-spin text-slate-400" />
+            ) : (
+              <Check size={24} className={isCompleted ? "text-white" : "text-slate-300 group-hover:text-slate-400"} />
+            )}
           </Button>
           <div>
-            <h3 className={`font-bold ${habit.completedToday ? 'text-slate-400 line-through' : 'text-slate-900'}`}>
+            <h3 className={`font-bold ${isCompleted ? 'text-slate-400 line-through' : 'text-slate-900'}`}>
               {habit.name}
             </h3>
             <div className="flex items-center gap-2 mt-1">

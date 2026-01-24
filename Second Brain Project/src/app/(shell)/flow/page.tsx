@@ -1,13 +1,18 @@
 /**
- * APEX Contract: Flow Page (Habits & Routines)
- * Inputs: None (server component)
- * Outputs: Habit tracking and routine management
+ * @fileoverview Flow Page (Habits & Routines)
+ * @module app/(shell)/flow/page
+ * 
+ * APEX Contract:
+ * - Inputs: None (server component)
+ * - Outputs: Habit tracking and routine management
+ * - Errors: Graceful fallback for empty habits
  */
 import React from 'react';
 import { api } from '@/lib/api';
 import { HabitCard } from '@/components/flow/HabitCard';
 import { Zap, Plus, Filter } from 'lucide-react';
 import { Button } from '@/components/Button';
+import { toggleHabitCompletion } from './actions';
 
 interface Habit {
   id: string;
@@ -66,10 +71,7 @@ export default async function FlowPage() {
                 <HabitCard 
                   key={habit.id} 
                   habit={habit} 
-                  onToggle={async () => {
-                    "use server";
-                    // Toggle implementation would go here
-                  }} 
+                  toggleAction={toggleHabitCompletion}
                 />
               ))
             ) : (

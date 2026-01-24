@@ -5,21 +5,18 @@ import { useAnalytics } from '../../../lib/hooks/useAnalytics';
 import { AnalyticsChart } from '../../../components/AnalyticsChart';
 
 export default function AnalyticsScreen() {
-  const { streaks, correlations, loading, fetchAnalytics } = useAnalytics();
+  const { streaks, correlations, trends, loading, error, fetchAnalytics } = useAnalytics();
 
   useEffect(() => {
     fetchAnalytics();
   }, [fetchAnalytics]);
 
-  const mockMoodData = [
-    { x: 'Mon', y: 3 },
-    { x: 'Tue', y: 4 },
-    { x: 'Wed', y: 3.5 },
-    { x: 'Thu', y: 5 },
-    { x: 'Fri', y: 4.5 },
-    { x: 'Sat', y: 4 },
-    { x: 'Sun', y: 5 },
-  ];
+  // Convert API trend data to chart format
+  const trendData = trends.map((point, idx) => ({
+    x: idx.toString(),
+    y: Math.max(point.value, 0), // Ensure no negative values
+    label: point.date.split('-')[2], // Day of month
+  }));
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FAFAFA' }}>
@@ -50,14 +47,38 @@ export default function AnalyticsScreen() {
         </View>
 
         <AnalyticsChart 
-          title="Mood Trend (Weekly)" 
-          data={mockMoodData} 
-          color="#EC4899"
+          title={trends.length > 0 ? "Habit Completions (7 Days)" : "No Data Yet"} 
+          data={trendData.length > 0 ? trendData : [{ x: '0', y: 0 }]} 
+          color="#8B5CF6"
         />
+
+        {error && (
+          <View className="bg-red-50 p-4 rounded-[20px] mb-4 border border-red-200">
+            <Text className="text-sm text-red-700">{error}</Text>
+          </View>
+        )}
+
+        {trends.length === 0 && !loading && !error && (
+          <View className="bg-amber-50 p-6 rounded-[28px] mb-4 border border-amber-200 items-center">
+            <Zap size={32} color="#F59E0B" />
+            <Text className="text-sm font-bold text-amber-900 mt-3">No Data Yet</Text>
+            <Text className="text-xs text-amber-700 text-center mt-1">
+              Complete habits to start building your streak and unlock analytics insights.
+            </Text>
+          </View>
+        )}
 
         <Text className="text-sm font-bold text-gray-900 mb-4 ml-2 uppercase tracking-widest">
           Key Correlations
         </Text>
+
+        {correlations.length === 0 && !loading && (
+          <View className="bg-gray-50 p-4 rounded-[20px] border border-gray-200 items-center">
+            <Text className="text-xs text-gray-600">
+              Not enough data yet. Continue logging to discover personalized insights.
+            </Text>
+          </View>
+        )}
 
         {correlations.map((corr, i) => (
           <View key={i} className="bg-white p-6 rounded-[28px] border border-gray-100 mb-4 shadow-sm">

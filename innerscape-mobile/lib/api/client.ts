@@ -1,6 +1,17 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE = 'https://api.innerscape.app/api'; // Replace with your production URL
+/**
+ * @fileoverview Mobile API client with auth
+ * @module lib/api/client
+ * 
+ * APEX Contract:
+ * - Inputs: API path and optional body
+ * - Outputs: ApiResponse<T> with success/error status
+ * - Errors: Network failures return error object (never throws)
+ */
+
+// APEX: Use environment variable with fallback
+const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://api.innerscape.app/api';
 
 export interface ApiResponse<T> {
   success: boolean;

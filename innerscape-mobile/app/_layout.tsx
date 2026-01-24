@@ -4,12 +4,22 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { UniversalHeader, OnboardingProvider, useOnboarding, WelcomeScreen, SomaIntroScreen, MindIntroScreen, FlowIntroScreen, PulseIntroScreen, HubIntroScreen, SetupScreen, EmotionalContextBanner } from '@lifeos/shared';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Linking, View, ActivityIndicator } from 'react-native';
+import { useEffect } from 'react';
 import { Celebrations } from '../components/Celebrations';
+import { registerBackgroundSync } from '../lib/health/backgroundSync';
 
 const queryClient = new QueryClient();
 
 function AppContent() {
   const { hasCompletedOnboarding, currentStep, isLoading } = useOnboarding();
+
+  // APEX: Register background health sync on app launch
+  useEffect(() => {
+    registerBackgroundSync().catch((err) => {
+      console.warn('[APEX] Background sync registration failed:', err);
+      // Not critical, app still works without it
+    });
+  }, []);
 
   const handleAppSwitch = (app: 'soma' | 'mobile') => {
     if (app === 'soma') {

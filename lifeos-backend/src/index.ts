@@ -20,6 +20,7 @@ import goals from './routes/goals';
 import insights from './routes/insights';
 import activities from './routes/activities';
 import projectsRoute from './routes/projects';
+import analytics from './routes/analytics';
 
 const app = new Hono<HonoEnv>();
 
@@ -73,5 +74,6 @@ app.route('/api/goals', goals);
 app.route('/api/insights', insights);
 app.route('/api/activities', activities);
 app.route('/api/projects', projectsRoute);
+app.route('/api/analytics', analytics);
 
 export default app;

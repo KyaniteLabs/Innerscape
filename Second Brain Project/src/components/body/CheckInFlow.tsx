@@ -6,7 +6,7 @@ import { EmotionWheel } from './EmotionWheel';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { ChevronRight, ChevronLeft, Check, Loader2 } from 'lucide-react';
-import { api } from '@/lib/api';
+import { apiClient } from '@/lib/api-client';
 
 /**
  * @fileoverview Multi-step somatic check-in flow for Web
@@ -39,7 +39,7 @@ export function CheckInFlow() {
       setIsSaving(true);
       setError(null);
       
-      const success = await api.post('/feelings/check-in', {
+      const result = await apiClient.post('/feelings/check-in', {
         dominantFeeling: selectedEmotion,
         bodySensation: selectedRegions.join(','),
         reflection: reflection,
@@ -47,7 +47,7 @@ export function CheckInFlow() {
         valence: 0,  // Default for now
       });
 
-      if (success) {
+      if (result !== null) {
         setStep('result');
       } else {
         throw new Error('Failed to save check-in');

@@ -52,6 +52,9 @@ flow.get('/habits', async (c) => {
 
 /**
  * APEX Contract: Create Habit
+ * Inputs: { name: string, frequency?: string, preferredEnergy?: number }
+ * Outputs: ApiResponse<Habit>
+ * Errors: VALIDATION_ERROR (missing name), DATABASE_ERROR
  */
 flow.post('/habits', async (c) => {
   try {
@@ -59,10 +62,18 @@ flow.post('/habits', async (c) => {
     const db = c.get('db');
     const body = await c.req.json();
     
+    // APEX: Validate required inputs
+    if (!body.name || typeof body.name !== 'string' || body.name.trim().length === 0) {
+      return c.json({ 
+        success: false, 
+        error: { code: 'VALIDATION_ERROR', message: 'Habit name is required' } 
+      }, 400);
+    }
+    
     const newHabit = {
       id: crypto.randomUUID(),
       userId,
-      name: body.name,
+      name: body.name.trim(),
       frequency: body.frequency || 'daily',
       preferredEnergy: body.preferredEnergy || null,
       streak: 0,
@@ -80,12 +91,28 @@ flow.post('/habits', async (c) => {
 
 /**
  * APEX Contract: Complete Habit
+ * Inputs: habitId (path param)
+ * Outputs: ApiResponse<HabitCompletion>
+ * Errors: NOT_FOUND (habit doesn't exist or wrong user), DATABASE_ERROR
  */
 flow.post('/habits/:id/complete', async (c) => {
   try {
     const userId = c.get('userId');
     const db = c.get('db');
     const habitId = c.req.param('id');
+    
+    // APEX Security: Verify habit belongs to user before completing
+    const [habit] = await db.select()
+      .from(habits)
+      .where(and(eq(habits.id, habitId), eq(habits.userId, userId)))
+      .limit(1);
+    
+    if (!habit) {
+      return c.json({ 
+        success: false, 
+        error: { code: 'NOT_FOUND', message: 'Habit not found' } 
+      }, 404);
+    }
     
     const completion = {
       id: crypto.randomUUID(),
@@ -104,6 +131,9 @@ flow.post('/habits/:id/complete', async (c) => {
 
 /**
  * APEX Contract: Undo Habit Completion
+ * Inputs: habitId (path param)
+ * Outputs: ApiResponse<void>
+ * Errors: NOT_FOUND (habit doesn't exist or wrong user), DATABASE_ERROR
  */
 flow.delete('/habits/:id/complete', async (c) => {
   try {
@@ -111,10 +141,22 @@ flow.delete('/habits/:id/complete', async (c) => {
     const db = c.get('db');
     const habitId = c.req.param('id');
     
+    // APEX Security: Verify habit belongs to user before undoing
+    const [habit] = await db.select()
+      .from(habits)
+      .where(and(eq(habits.id, habitId), eq(habits.userId, userId)))
+      .limit(1);
+    
+    if (!habit) {
+      return c.json({ 
+        success: false, 
+        error: { code: 'NOT_FOUND', message: 'Habit not found' } 
+      }, 404);
+    }
+    
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    // Note: In production, verify habit belongs to user first
     await db.delete(habitCompletions)
       .where(and(
         eq(habitCompletions.habitId, habitId),

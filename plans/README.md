@@ -6,7 +6,8 @@ This folder contains active implementation plans for the LifeOS project.
 
 | Plan | Status | Description |
 |------|--------|-------------|
-| [CONSOLIDATION_PLAN_2026-01-24.md](./CONSOLIDATION_PLAN_2026-01-24.md) | **ACTIVE** | Mobile app consolidation + feature parity |
+| [CONSOLIDATION_PLAN_2026-01-24.md](./CONSOLIDATION_PLAN_2026-01-24.md) | **COMPLETED** | Mobile app consolidation + feature parity |
+| [ANALYTICS_HEALTH_PLAN_2026-01-24.md](./ANALYTICS_HEALTH_PLAN_2026-01-24.md) | **READY** | Analytics endpoints + HealthKit/Health Connect integration |
 
 ## Archived Plans
 

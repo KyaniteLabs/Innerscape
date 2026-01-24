@@ -19,6 +19,9 @@
       "bundleIdentifier": "com.innerscape.mobile",
       "entitlements": {
         "com.apple.security.application-groups": ["group.app.innerscape.suite"]
+      },
+      "infoPlist": {
+        "UIBackgroundModes": ["fetch", "processing"]
       }
     },
     "android": {
@@ -26,7 +29,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.innerscape.mobile"
+      "package": "com.innerscape.mobile",
+      "permissions": ["android.permission.FOREGROUND_SERVICE"]
     },
     "web": {
       "favicon": "./assets/favicon.png"
