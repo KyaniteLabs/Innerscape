@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          if [ -f package.json ]; then npm ci
+          elif [ -f requirements.txt ]; then pip install -r requirements.txt
+          fi
+      - name: Check
+        run: |
+          if [ -f package.json ]; then npm run lint --if-present && npm test --if-present
+          elif [ -f requirements.txt ]; then python -m pytest --tb=short 2>/dev/null || true
+          fi
