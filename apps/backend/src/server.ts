@@ -12,6 +12,12 @@ import {
   sleepRoutes,
   spaceRoutes,
 } from './routes/body.js';
+import {
+  captureRoutes,
+  projectRoutes,
+  knowledgeRoutes,
+  reviewRoutes,
+} from './routes/hub.js';
 
 export const prisma = new PrismaClient();
 
@@ -42,6 +48,10 @@ await app.register(bodyCheckInRoutes);
 await app.register(somaticRoutes);
 await app.register(sleepRoutes);
 await app.register(spaceRoutes);
+await app.register(captureRoutes);
+await app.register(projectRoutes);
+await app.register(knowledgeRoutes);
+await app.register(reviewRoutes);
 
 try {
   const port = Number(process.env.PORT) || 3001;

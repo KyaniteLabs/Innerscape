@@ -52,9 +52,7 @@ export default function HomeScreen() {
           {['Mind', 'Flow', 'Body', 'Hub'].map((module) => (
             <View key={module} style={styles.moduleCard}>
               <Text style={styles.moduleName}>{module}</Text>
-              <Text style={styles.moduleStatus}>
-                {module === 'Mind' || module === 'Flow' ? 'Active' : 'Coming soon'}
-              </Text>
+              <Text style={styles.moduleStatus}>Active</Text>
             </View>
           ))}
         </View>

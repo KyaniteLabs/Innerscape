@@ -47,6 +47,13 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => <Ionicons name="body" size={size} color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="hub"
+        options={{
+          title: 'Hub',
+          tabBarIcon: ({ color, size }) => <Ionicons name="grid" size={size} color={color} />,
+        }}
+      />
     </Tabs>
   );
 }
