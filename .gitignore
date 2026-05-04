@@ -1,60 +1,73 @@
-```
 # Dependencies
 node_modules/
+.pnp/
+.pnp.js
 
-# Logs
-*.log
+# Build outputs
+.next/
+out/
+build/
+dist/
+*.js.map
+*.tsbuildinfo
 
-# Environment variables
+# React Native / Expo
+.expo/
+ios/Pods/
+ios/.symlinks/
+android/.gradle/
+android/app/build/
+*.apk
+*.aab
+*.ipa
+*.jks
+*.p8
+*.p12
+*.mobileprovision
+
+# Environment
 .env
 .env.local
-.env.*
+.env.*.local
+*.env
 
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
-# OS generated files
+# OS
 .DS_Store
 Thumbs.db
 
-# Build outputs
-dist/
-build/
-target/
+# Testing
+coverage/
+.nyc_output/
 
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv/
+# Logs
+*.log
+npm-debug.log*
 
-# Compression
-*.zip
-*.gz
-*.tar
-*.tgz
-*.bz2
-*.xz
-*.7z
-*.rar
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
-*.deb
-*.Z
-*.lz
-*.lzo
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.tar.zst
+# Turbo / Vercel
+.turbo/
+.vercel/
 
-```
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+local.db
+
+# Secrets (NEVER commit)
+**/wrangler.toml
+**/credentials.json
+**/*.pem
+**/*.key
+
+# Design system build output (regenerate with npm run build)
+lifeos-design-system/build/
+
+# OpenSpec
+.qwen/

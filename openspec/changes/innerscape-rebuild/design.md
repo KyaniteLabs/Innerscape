@@ -288,6 +288,55 @@ interface KnowledgeItem {
 }
 ```
 
+### Body Module — Physical Environment (DECLuTTER Integration)
+```typescript
+interface Space {
+  id: string;
+  userId: string;
+  name: string; // e.g., "Office desk", "Bedroom closet"
+  createdAt: Date;
+}
+
+interface SpaceScan {
+  id: string;
+  spaceId: string;
+  userId: string;
+  beforePhotoUri: string; // local path, on-device
+  afterPhotoUri?: string;
+  scannedAt: Date;
+  completedAt?: Date;
+  durationSeconds?: number; // target: <600 (10 minutes)
+  status: 'active' | 'completed' | 'abandoned';
+}
+
+interface DetectedItem {
+  id: string;
+  scanId: string;
+  label: string; // AI-detected or user-corrected
+  confidence: number;
+  decision: 'keep' | 'donate' | 'trash' | 'sell' | 'undecided';
+  decidedAt?: Date;
+  estimatedValueCents?: number; // for sell/donate items
+  category?: string; // AI-assigned
+}
+
+interface DeclutterSprint {
+  id: string;
+  userId: string;
+  scanId: string;
+  startedAt: Date;
+  completedAt?: Date;
+  itemsKept: number;
+  itemsDonated: number;
+  itemsTrashed: number;
+  itemsSold: number;
+  totalItems: number;
+  emotionalCheckInBeforeId?: string;
+  emotionalCheckInAfterId?: string;
+  celebrationTriggered: boolean;
+}
+```
+
 ---
 
 ## Data Flow
@@ -358,6 +407,14 @@ POST   /api/v1/insights/:id/act
 
 GET    /api/v1/analytics/dashboard   # Unified dashboard data
 GET    /api/v1/analytics/weekly      # Weekly review data
+
+POST   /api/v1/spaces                # Create a named space
+GET    /api/v1/spaces                # List user's spaces
+POST   /api/v1/spaces/:id/scan       # Start a declutter scan (upload photo)
+GET    /api/v1/spaces/:id/scans      # Scan history for a space
+POST   /api/v1/scans/:id/items/:iid/decide  # Decide on a detected item
+POST   /api/v1/scans/:id/complete    # Finish a declutter sprint
+GET    /api/v1/analytics/clutter     # Clutter trends over time
 ```
 
 ### GraphQL (Analytics Queries)

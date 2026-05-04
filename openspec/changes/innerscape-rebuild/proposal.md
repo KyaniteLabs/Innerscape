@@ -34,6 +34,8 @@ These failure modes turn tools into sources of psychological entropy rather than
 - Dopamine Menu: Warm Up, Deep Work, Support, Rest categories
 - PARA-inspired projects with enforced deadlines
 - Celebration system scaled by significance
+- **Declutter sprints** — 10-minute timed habit with streak tracking. Each completed sprint triggers a celebration. Weekly goal: "Declutter 1 space."
+- **Trade marketplace** (deferred to later phase) — Barter/trade items cleared during declutter sprints. Credit system, reputation, matching. Lower priority than core features.
 
 ### Body Module — Somatic & Health Awareness
 - 5-step guided body check-in (<90 seconds)
@@ -41,6 +43,8 @@ These failure modes turn tools into sources of psychological entropy rather than
 - Energy tracking with crash prediction
 - Sleep logging (manual + Apple Health/Google Fit integration)
 - Passive health metrics collection (HRV, steps, heart rate)
+- **Space Scan** — Photo a cluttered space → AI detects items → rapid keep/donate/trash/sell decisions in a 10-minute timed sprint. Before/after photos tracked per space over time. Clutter levels correlated with emotional state.
+- **Environment analytics** — Clutter trends per space, items cleared, emotional impact of tidy vs. cluttered spaces
 
 ### Hub Module — Second Brain & Analytics
 - Universal capture inbox (no categorization required at input)

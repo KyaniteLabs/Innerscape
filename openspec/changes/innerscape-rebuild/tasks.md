@@ -251,6 +251,21 @@ Tasks are organized by dependency order. Each phase must be substantially comple
 
 **Exit Criteria:** User can complete body check-in in <90 seconds, sees somatic-emotional correlations, tracks sleep and energy trends.
 
+### 5.6 Physical Environment — Space Tracking (Declutter v1)
+- [ ] Backend: Space CRUD (named spaces per user)
+- [ ] Backend: SpaceScan model (before/after photos, duration, status)
+- [ ] Backend: DetectedItem model (label, confidence, decision, category)
+- [ ] Mobile: Space creation and list UI
+- [ ] Mobile: Photo capture for space scan (before photo)
+- [ ] Mobile: AI item detection via cloud vision API (Claude Vision or similar)
+- [ ] Mobile: Swipeable decision cards (keep/donate/trash/sell) for detected items
+- [ ] Mobile: 10-minute countdown timer for declutter sprint
+- [ ] Mobile: After-photo capture on sprint completion
+- [ ] Mobile: Declutter sprint completion → trigger celebration (Flow integration)
+- [ ] Emotional context gate: suppress declutter suggestions when low energy + unpleasant
+
+**Exit Criteria:** User can create a space, scan it, make keep/donate/trash decisions in under 10 minutes, see before/after, sprint completion triggers a celebration.
+
 ---
 
 ## Phase 6: Hub Module
@@ -316,7 +331,15 @@ Tasks are organized by dependency order. Each phase must be substantially comple
 - [ ] Natural language queries ("What was I working on last Tuesday?")
 - [ ] Privacy safeguards (data never leaves encrypted channel)
 
-**Exit Criteria:** User can capture from anywhere, has unified dashboard, completes daily shutdown and weekly review, can chat with their data.
+### 6.8 Environment Analytics
+- [ ] Backend: Clutter trends aggregation per space over time
+- [ ] Backend: Correlation engine (clutter level vs. emotional state vs. energy)
+- [ ] Mobile: Space history view (scan timeline, before/after photos)
+- [ ] Mobile: Clutter-emotion correlation insights ("Your energy is lower when your desk is cluttered")
+- [ ] Mobile: Items cleared summary (kept/donated/trashed/sold counts)
+- [ ] Dashboard widget: environment health score
+
+**Exit Criteria:** User can capture from anywhere, has unified dashboard including clutter trends, completes daily shutdown and weekly review, can chat with their data.
 
 ---
 
@@ -500,7 +523,42 @@ Tasks are organized by dependency order. Each phase must be substantially comple
 
 ## Post-Launch: Iteration & Growth
 
-**Ongoing tasks after launch:**
+### Trade Marketplace (Deferred — Post-MVP)
+
+**Goal:** Barter/trade marketplace for items cleared during declutter sprints.
+
+### TM.1 Listings & Credits
+- [ ] Backend: TradeListing model (item, condition, estimated value, photos)
+- [ ] Backend: Credit system (earn by giving, spend by receiving)
+- [ ] Backend: Listing search with filters (category, distance, condition)
+- [ ] Mobile: "List for trade" action from declutter decisions
+- [ ] Mobile: Browse listings UI
+- [ ] Mobile: Credit balance display
+
+### TM.2 Matching & Proposals
+- [ ] Backend: Algorithmic matching (based on want lists + proximity)
+- [ ] Backend: Trade proposal flow (propose → accept/decline → schedule)
+- [ ] Mobile: Trade proposal notifications
+- [ ] Mobile: Trade detail screen with item comparison
+
+### TM.3 Trust & Safety
+- [ ] Backend: User reputation system
+- [ ] Backend: Safety checklists per item category
+- [ ] Backend: User verification pipeline
+- [ ] Mobile: Verification badge display
+- [ ] Mobile: Report/block functionality
+
+### TM.4 Agent-Ready Foundation (Future)
+- [ ] MCP server exposing trade tools and listing resources
+- [ ] Auto-match agent: scans listings nightly, proposes matches
+- [ ] User wishlist with priority ranking
+- [ ] Agent transparency dashboard (what the agent did on your behalf)
+
+**Exit Criteria:** Users can list decluttered items for trade, browse and propose trades, earn and spend credits, trust system is functional.
+
+---
+
+### Other Post-Launch Tasks
 
 - [ ] Weekly review of user feedback
 - [ ] Monthly feature prioritization
@@ -520,11 +578,11 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3 ─┐
                     ├→ Phase 4 ─────────┤
                     │                   │
                     ├→ Phase 5 ─────────┼→ Phase 6 → Phase 7 → Phase 8 → Phase 9 → Phase 10
-                    │                   │
-                    └───────────────────┘
+                    │                   │                                │
+                    └───────────────────┘                                └→ TM.1-4 (post-launch)
 ```
 
-**Critical Path:** Phases 0-2 are foundational; delays here cascade. Phases 3-6 can proceed partially in parallel once Phase 2 is complete. Phases 7-10 are sequential.
+**Critical Path:** Phases 0-2 are foundational; delays here cascade. Phases 3-6 can proceed partially in parallel once Phase 2 is complete. Phases 7-10 are sequential. Trade Marketplace is post-launch only.
 
 ---
 
@@ -537,13 +595,14 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3 ─┐
 | Phase 2 | 3-4 weeks | Core differentiator, needs care |
 | Phase 3 | 3-4 weeks | AI integration starts |
 | Phase 4 | 4-5 weeks | Complex UI interactions |
-| Phase 5 | 3-4 weeks | Body check-in UX critical |
+| Phase 5 | 3-4 weeks | Body check-in + declutter sprints |
 | Phase 6 | 5-6 weeks | Largest module, many subfeatures |
 | Phase 7 | 4-6 weeks | AI model training iterative |
 | Phase 8 | 2-3 weeks | Can overlap with Phase 9 |
 | Phase 9 | 3-4 weeks | Testing at scale |
 | Phase 10 | 2-3 weeks | Bureaucracy (app store reviews) |
+| TM.1-4 | 6-8 weeks | Post-launch, trade marketplace |
 
-**Total:** ~30-40 weeks for full rebuild (7-10 months with small team)
+**Total:** ~30-40 weeks for core rebuild + 6-8 weeks for trade marketplace post-launch
 
-**MVP Scope:** Phases 0-4 + subset of Phase 6 (capture, habits, check-ins, basic dashboard) = ~16-20 weeks
+**MVP Scope:** Phases 0-4 + Phase 5 (including declutter sprints) + subset of Phase 6 (capture, habits, check-ins, basic dashboard, environment analytics) = ~18-22 weeks
