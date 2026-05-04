@@ -4,7 +4,7 @@
 
 We are building **Innerscape** — an executive prosthetic for neurodivergent users (ADHD, autism, AuDHD). This is not a productivity app; it is a cognitive environment that replaces degraded executive functions: working memory, task switching, temporal awareness, and emotional regulation.
 
-The rebuild takes a clean-slate approach, learning from existing codebases in this repository while implementing the full vision from PRD v2.0.
+This is both a learning vehicle for agentic SDLC workflows and a real product intended to ship. The rebuild takes a clean-slate approach — new stack, new architecture, no carryover from the existing codebase. The existing TypeScript code (`innerscape-mobile`, `lifeos-backend`, `lifeos-design-system`) serves as reference for product learnings only.
 
 ---
 
@@ -12,11 +12,10 @@ The rebuild takes a clean-slate approach, learning from existing codebases in th
 
 Neurodivergent users experience chronic executive dysfunction that standard productivity tools cannot address:
 
-1. **Capture friction** — Thoughts escape faster than traditional apps can record them
-2. **Out-of-sight, out-of-mind** — Filed information becomes invisible to the ADHD brain
-3. **No dopamine feedback** — Task completion produces no neurochemical reward
-
-These failure modes turn tools into sources of psychological entropy rather than relief.
+1. **Capture friction** — Thoughts escape faster than traditional apps can record them. Working memory decays in seconds.
+2. **Out-of-sight, out-of-mind** — Filed information becomes invisible to the ADHD brain. Traditional organization creates invisibility.
+3. **No dopamine feedback** — Task completion produces no neurochemical reward. Without it, sustained engagement is biologically impossible for ADHD users.
+4. **Environmental blindness** — Physical clutter accumulates invisibly. Interoceptive awareness (reading body signals) is impaired. The connection between environment, body, and emotional state goes unperceived.
 
 ---
 
@@ -35,7 +34,7 @@ These failure modes turn tools into sources of psychological entropy rather than
 - PARA-inspired projects with enforced deadlines
 - Celebration system scaled by significance
 - **Declutter sprints** — 10-minute timed habit with streak tracking. Each completed sprint triggers a celebration. Weekly goal: "Declutter 1 space."
-- **Trade marketplace** (deferred to later phase) — Barter/trade items cleared during declutter sprints. Credit system, reputation, matching. Lower priority than core features.
+- **Trade marketplace** (post-launch) — Barter/trade items cleared during declutter sprints. Credit system, reputation, matching.
 
 ### Body Module — Somatic & Health Awareness
 - 5-step guided body check-in (<90 seconds)
@@ -72,6 +71,40 @@ This is not notification scheduling — it is **state-adaptive interface design*
 
 ---
 
+## Resolved Technical Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Platform priority | **Mobile first** | The product needs capture throughout the day — emotional check-ins, space scans, quick thoughts. You can't do that from a laptop. Web shell comes later for deep analytics. |
+| AI model strategy | **Hybrid** | On-device classification (fast, private, works offline). Cloud LLM for insights/chat/RAG (needs reasoning power that small models can't provide). Standard pattern as of 2026. |
+| Monetization | **Freemium** | Free tier with limited AI insights per week. Premium for unlimited insights, advanced analytics, chat. No ads (violates "calm technology" principle). |
+| Health integration | **Read-only** | Pull data from Apple Health / Health Connect. Never write back. Manual entry as fallback. Keeps the app in "self-awareness" territory, not "medical device." |
+| Social features | **No** | Private cognitive space. Maybe an optional accountability partner feature post-launch if users ask for it. Default is solo. |
+
+---
+
+## Target Users
+
+### Primary: Simon (AuDHD, building for self first)
+- Combined ADHD + autism traits. Hyperfocuses for hours then crashes for days.
+- Has tried Notion, Todoist, Apple Notes, Google Keep — all abandoned within weeks.
+- Physical workspace cycles between pristine and chaos with no in-between.
+- Struggles to perceive body signals until burnout hits.
+- Needs: a system that works even when he doesn't use it consistently, captures faster than thoughts escape, and makes the invisible (patterns, body signals, clutter) visible.
+
+### Secondary: Alex (ADHD, 20s-30s, tech-adjacent)
+- Constantly starting projects they never finish. 47 open browser tabs. 3 abandoned to-do apps.
+- Forgets to eat. Cannot estimate how long anything takes. Loses track of time.
+- Needs: capture that's faster than the thought escaping, visual streaks for dopamine, a system that degrades gracefully during weeks of non-use.
+
+### Tertiary: Sam (Autistic, 30s, detail-oriented)
+- Meticulous about structure but overwhelmed by unstructured information.
+- Has elaborate Notion setups that collapsed under their own complexity.
+- Cannot tell when stressed until physically burned out. Interoception is impaired.
+- Needs: AI-driven pattern detection for self-awareness, predictable structure that doesn't require manual maintenance, body awareness tools that build interoceptive vocabulary over time.
+
+---
+
 ## AI Infrastructure (Not Features)
 
 Three engines run continuously:
@@ -90,29 +123,48 @@ Three engines run continuously:
 
 ---
 
-## Target Users
+## Business Value Analysis
 
-| Persona | Profile | Needs |
-|---------|---------|-------|
-| Alex (ADHD, 28) | Tech worker, 47 open tabs, abandoned apps | Fast capture, visual streaks, grace for inconsistency |
-| Sam (Autistic, 34) | Structure-loving, overwhelmed by chaos | AI pattern detection, predictable structure, body awareness |
-| Jordan (AuDHD, 22) | Hyperfocus/crash cycles | Energy curve awareness, shutdown rituals, achievable consistency |
+### Who Benefits and How
+| Beneficiary | How They Benefit | Value Type |
+|-------------|-----------------|------------|
+| Primary user (neurodivergent individual) | Regains executive function capacity. Stops losing thoughts, forgetting tasks, and burning out from invisible stress. | Direct personal utility |
+| User's support network (partners, family, therapists) | Gets a window into the user's patterns that the user themselves cannot perceive. Therapist can review emotional timelines. | Indirect, via user's wellbeing |
+| Future users in the neurodivergent community | A tool built *for* them, not adapted *to* them. Not an afterthought. | Community / mission |
 
----
+### What Problem It Solves (The "Why")
+Standard productivity tools (Notion, Todoist, Apple Notes) presume intact executive function. They assume you remember to check your to-do list, can categorize a note without friction, and feel rewarded when you complete a task. For neurodivergent users, these assumptions collapse. Innerscape replaces the executive functions that are degraded, not the user.
 
-## Success Metrics
+### Priority by Value Delivered (Not Technical Interest)
+| Priority | Feature | Why It's Prioritized |
+|----------|---------|---------------------|
+| P0 (Critical) | Emotional check-in + context system | This is the core differentiator. Without it, Innerscape is just another app. The context layer makes everything else work. |
+| P0 (Critical) | Sub-2-second capture | If capture has friction, the product fails on first use. Non-negotiable. |
+| P1 (High) | Habit tracking + celebrations | Provides the dopamine feedback loop that sustains engagement. Without it, users churn in days. |
+| P1 (High) | AI insight engine (even rule-based) | Makes invisible patterns visible. This is the "aha moment" that creates retention. |
+| P2 (Medium) | Journal + prompts | Deepens self-awareness but requires more user investment. Second-wave engagement. |
+| P2 (Medium) | Space scan + declutter sprints | Extends value into physical environment. High emotional impact but complex to build. |
+| P3 (Lower) | Trade marketplace | Nice-to-have for the declutter flow. Doesn't affect core value proposition. Post-launch. |
+| P3 (Lower) | AI assistant / chat | Powerful but expensive to build and run. Can be premium-only later. |
 
-| Category | Metric | Target |
-|----------|--------|--------|
-| Engagement | Daily check-ins | 3+ per day |
-| Engagement | 7-day retention | >60% |
-| Engagement | Sessions per day | >4 |
-| Effectiveness | Self-reported clarity | 7/10+ |
-| Effectiveness | Goal completion | 50% |
-| Effectiveness | Insight utilization | 30% acted upon |
-| Cognitive Load | Capture time | <2 seconds |
-| Cognitive Load | Time to first value | <5 seconds |
-| Cognitive Load | Feature discovery | >70% without tutorials |
+### What Happens If We Don't Build This
+- Neurodivergent users continue cycling through productivity apps, each abandoned after 2-6 weeks.
+- The "executive prosthetic" category remains unfilled. No one is building this.
+- Existing solutions (Notion templates, habit trackers, therapy apps) each address one symptom but none address the systemic executive dysfunction.
+- The user's environment, emotional patterns, and health data remain disconnected — no correlation, no insight, no action.
+
+### Success Metrics — How We'll Know It's Working
+| Category | Metric | Target | Why This Metric |
+|----------|--------|--------|-----------------|
+| Engagement | Daily check-ins | 3+ per day | Proves the capture flow is fast enough and the habit is forming |
+| Engagement | 7-day retention | >60% | Industry average for health/wellness apps is ~25%. 60% proves we're solving a real problem |
+| Engagement | Sessions per day | >4 | Indicates habitual use, not novelty |
+| Effectiveness | Self-reported clarity | 7/10+ | Direct measure of whether insights are landing |
+| Effectiveness | Goal completion | 50% | Proves the action system works, not just the awareness system |
+| Effectiveness | Insight utilization | 30% acted upon | Measures whether AI insights drive behavior change |
+| Cognitive Load | Capture time | <2 seconds | The foundational constraint. Everything else depends on this. |
+| Cognitive Load | Time to first value | <5 seconds | New session → useful information in under 5 seconds |
+| Cognitive Load | Feature discovery | >70% without tutorials | If users need a manual, the design has failed |
 
 ---
 
@@ -122,6 +174,7 @@ Three engines run continuously:
 - **Offline-first** — Full functionality without internet; sync when connected
 - **Accessible** — WCAG AA minimum, dyslexia fonts, high-contrast, reduced-motion, screen reader compatible
 - **Calm technology** — No dark patterns, no engagement hacking, no notification spam
+- **Clean slate** — New stack, new repo structure, no carryover from existing codebases. Old code is reference only.
 
 ---
 
@@ -132,17 +185,6 @@ Three engines run continuously:
 - Not generic productivity (every feature addresses specific dysfunction)
 - Not enterprise software (individual users only)
 - Not a medical device (self-awareness only, no clinical recommendations)
-
----
-
-## Why Rebuild Now?
-
-Existing codebases in this repository (`innerscape-mobile`, `lifeos-backend`, `lifeos-design-system`) contain valuable learnings but were not built with the complete emotional context architecture or the full AI infrastructure described in this PRD. A clean-slate rebuild allows us to:
-
-1. Implement the emotional context layer as foundational infrastructure, not an add-on
-2. Design the AI engines as core architecture from day one
-3. Apply lessons learned from previous iterations without technical debt
-4. Ship a cohesive product that fully embodies the design principles
 
 ---
 
