@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { prisma } from '../server.js';
 import { authMiddleware } from '../middleware/auth.js';
+import { generateInsights } from '../services/insights.js';
 
 const journalSchema = z.object({
   content: z.string().min(1).max(10000),
@@ -109,5 +110,31 @@ export async function insightRoutes(app: FastifyInstance) {
       data: { actedUponAt: new Date() },
     });
     return updated;
+  });
+
+  app.post('/api/v1/insights/generate', { preHandler: authMiddleware }, async (request) => {
+    const candidates = await generateInsights(request.userId!);
+
+    const created = [];
+    for (const candidate of candidates) {
+      const existing = await prisma.insight.findFirst({
+        where: {
+          userId: request.userId!,
+          type: candidate.type,
+          title: candidate.title,
+          dismissedAt: null,
+          createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+        },
+      });
+
+      if (!existing) {
+        const insight = await prisma.insight.create({
+          data: { userId: request.userId!, ...candidate },
+        });
+        created.push(insight);
+      }
+    }
+
+    return { generated: created.length, insights: created };
   });
 }
