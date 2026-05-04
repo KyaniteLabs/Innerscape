@@ -3,6 +3,7 @@ import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import { PrismaClient } from '@prisma/client';
 import { authRoutes } from './routes/auth.js';
+import { emotionalRoutes } from './routes/emotional.js';
 
 export const prisma = new PrismaClient();
 
@@ -23,6 +24,7 @@ app.get('/api/v1', async () => ({
 }));
 
 await app.register(authRoutes);
+await app.register(emotionalRoutes);
 
 try {
   const port = Number(process.env.PORT) || 3001;
