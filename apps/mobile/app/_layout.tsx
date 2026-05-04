@@ -4,12 +4,10 @@ export default function RootLayout() {
   return (
     <Stack
       screenOptions={{
-        headerStyle: { backgroundColor: '#1a1a2e' },
-        headerTintColor: '#e0e0e0',
-        headerTitleStyle: { fontWeight: '600' },
+        headerShown: false,
       }}
     >
-      <Stack.Screen name="index" options={{ title: 'Innerscape' }} />
+      <Stack.Screen name="(tabs)" />
     </Stack>
   );
 }
