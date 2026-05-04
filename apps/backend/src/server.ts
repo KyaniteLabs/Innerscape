@@ -1,12 +1,18 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import rateLimit from '@fastify/rate-limit';
 import { PrismaClient } from '@prisma/client';
+import { authRoutes } from './routes/auth.js';
 
 export const prisma = new PrismaClient();
 
 const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
+await app.register(rateLimit, {
+  max: 100,
+  timeWindow: '1 minute',
+});
 
 app.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
 
@@ -15,6 +21,8 @@ app.get('/api/v1', async () => ({
   version: '0.1.0',
   status: 'operational',
 }));
+
+await app.register(authRoutes);
 
 try {
   const port = Number(process.env.PORT) || 3001;
