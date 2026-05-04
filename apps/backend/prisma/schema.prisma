@@ -1,0 +1,311 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  preferences   UserPreference?
+  checkIns      EmotionalCheckIn[]
+  journalEntries JournalEntry[]
+  insights      Insight[]
+  habits        Habit[]
+  goals         Goal[]
+  tasks         Task[]
+  dopamineMenu  DopamineMenuItem[]
+  bodyCheckIns  BodyCheckIn[]
+  sleepLogs     SleepLog[]
+  somaticMaps   SomaticMapping[]
+  spaces        Space[]
+  spaceScans    SpaceScan[]
+  captureItems  CaptureItem[]
+  projects      Project[]
+  knowledgeItems KnowledgeItem[]
+
+  @@map("users")
+}
+
+model UserPreference {
+  id                String @id @default(uuid())
+  userId            String @unique
+  timezone          String @default("UTC")
+  shutdownRitualTime String @default("21:00")
+  weeklyReviewDay   Int    @default(0)
+  fontSize          String @default("medium")
+  highContrast      Boolean @default(false)
+  reducedMotion     Boolean @default(false)
+  dyslexiaFont      Boolean @default(false)
+  checkInReminders  Boolean @default(true)
+  shutdownRitual    Boolean @default(true)
+  weeklyReview      Boolean @default(true)
+  insightAlerts     Boolean @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model EmotionalCheckIn {
+  id                String   @id @default(uuid())
+  userId            String
+  energyLevel       Int
+  valence           String
+  feelingLabel      String?
+  bodySensationNote String?
+  source            String   @default("manual")
+  timestamp         DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, timestamp])
+  @@map("emotional_checkins")
+}
+
+model JournalEntry {
+  id            String   @id @default(uuid())
+  userId        String
+  content       String
+  tags          String[]
+  linkedCheckIns String[]
+  aiPromptUsed  String?
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("journal_entries")
+}
+
+model Insight {
+  id          String    @id @default(uuid())
+  userId      String
+  type        String
+  title       String
+  description String
+  confidence  Float
+  dataPoints  String[]
+  dismissedAt DateTime?
+  actedUponAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("insights")
+}
+
+model Habit {
+  id             String    @id @default(uuid())
+  userId         String
+  name           String
+  frequency      String    @default("daily")
+  streak         Int       @default(0)
+  longestStreak  Int       @default(0)
+  lastCompletedAt DateTime?
+  createdAt      DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("habits")
+}
+
+model Goal {
+  id           String   @id @default(uuid())
+  userId       String
+  title        String
+  description  String?
+  deadline     DateTime?
+  status       String   @default("active")
+  parentGoalId String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@map("goals")
+}
+
+model Task {
+  id                   String    @id @default(uuid())
+  goalId               String?
+  userId               String
+  title                String
+  estimatedDuration    Int
+  completed            Boolean   @default(false)
+  completedAt          DateTime?
+  dueDate              DateTime?
+  contextRequirements  String[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, completed])
+  @@map("tasks")
+}
+
+model DopamineMenuItem {
+  id                 String    @id @default(uuid())
+  userId             String
+  category           String
+  name               String
+  instructions       String[]
+  estimatedDuration  Int
+  effectivenessScore Float?
+  lastUsedAt         DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, category])
+  @@map("dopamine_menu_items")
+}
+
+model BodyCheckIn {
+  id                 String   @id @default(uuid())
+  userId             String
+  bodyScan           Json
+  emotionWheelFeeling String
+  emotionWheelValence String
+  aiHypothesis       String?
+  reflectionRating   Int?
+  timestamp          DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, timestamp])
+  @@map("body_checkins")
+}
+
+model SomaticMapping {
+  id               String    @id @default(uuid())
+  userId           String
+  sensationPattern Json
+  predictedEmotion String
+  confidence       Float
+  occurrences      Int       @default(1)
+  lastValidatedAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("somatic_mappings")
+}
+
+model SleepLog {
+  id            String   @id @default(uuid())
+  userId        String
+  date          DateTime
+  durationHours Float
+  qualityScore  Int
+  source        String   @default("manual")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@map("sleep_logs")
+}
+
+model Space {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  createdAt DateTime @default(now())
+
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scans SpaceScan[]
+
+  @@index([userId])
+  @@map("spaces")
+}
+
+model SpaceScan {
+  id              String    @id @default(uuid())
+  spaceId         String
+  userId          String
+  beforePhotoUri  String
+  afterPhotoUri   String?
+  scannedAt       DateTime  @default(now())
+  completedAt     DateTime?
+  durationSeconds Int?
+  status          String    @default("active")
+
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  space Space         @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  items DetectedItem[]
+
+  @@index([spaceId, scannedAt])
+  @@map("space_scans")
+}
+
+model DetectedItem {
+  id                  String   @id @default(uuid())
+  scanId              String
+  label               String
+  confidence          Float
+  decision            String   @default("undecided")
+  decidedAt           DateTime?
+  estimatedValueCents Int?
+  category            String?
+
+  scan SpaceScan @relation(fields: [scanId], references: [id], onDelete: Cascade)
+
+  @@index([scanId])
+  @@map("detected_items")
+}
+
+model CaptureItem {
+  id                  String   @id @default(uuid())
+  userId              String
+  content             String
+  contentType         String
+  capturedAt          DateTime @default(now())
+  source              String   @default("app")
+  classificationStatus String  @default("pending")
+  classifiedModule    String?
+  classifiedType      String?
+  classifiedConfidence Float?
+  tags                String[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, classificationStatus])
+  @@map("capture_items")
+}
+
+model Project {
+  id       String   @id @default(uuid())
+  userId   String
+  name     String
+  area     String?
+  deadline DateTime
+  status   String   @default("active")
+  taskIds  String[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@map("projects")
+}
+
+model KnowledgeItem {
+  id               String   @id @default(uuid())
+  userId           String
+  title            String
+  content          String
+  paraCategory     String
+  tags             String[]
+  lastAccessedAt   DateTime @default(now())
+  relatedProjectIds String[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, paraCategory])
+  @@map("knowledge_items")
+}

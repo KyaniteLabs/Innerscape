@@ -60,6 +60,9 @@ npm-debug.log*
 *.sqlite3
 local.db
 
+# Build output
+dist/
+
 # Secrets (NEVER commit)
 **/wrangler.toml
 **/credentials.json

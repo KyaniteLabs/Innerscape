@@ -1,7 +1,30 @@
-# LifeOS
+# Innerscape
 
 ## Project
-Innerscape Suite - A cohesive 100% TypeScript suite for self-awareness, productivity, and health. Includes React Native mobile app, Next.js web shell, Hono backend, design system, and shared libraries.
+Executive prosthetic for neurodivergent users (ADHD, autism, AuDHD). Not a productivity app — a cognitive environment that replaces degraded executive functions. Clean-slate rebuild (May 2026).
+
+## Architecture
+Monorepo with npm workspaces:
+- `apps/mobile` — React Native + Expo Router (mobile-first)
+- `apps/backend` — Fastify + Prisma + PostgreSQL
+- `packages/shared` — TypeScript types shared across all packages
+- `openspec/` — Spec documents (proposal, design, tasks)
+- `_archived/` — Old codebases (reference only, never import from here)
+
+## Key Commands
+- `npm run dev:backend` — Start backend with hot reload
+- `npm run dev:mobile` — Start Expo dev server
+- `npm run build:shared` — Compile shared types
+- `npm run typecheck` — Typecheck all workspaces
+- `docker compose up -d` — PostgreSQL + Redis for local dev
+
+## Stack
+Mobile: React Native, Expo Router, Zustand, TanStack Query, WatermelonDB, NativeWind
+Backend: Fastify, Prisma, PostgreSQL, Redis/BullMQ
+AI: Hybrid (on-device classification + cloud LLM for insights/chat)
+
+## Core Concept
+Emotional Context System — real-time state tracking (energy + valence) that adapts the entire UI. This is the differentiator. Every feature must integrate with it.
 
 ## Rules
 This project follows KyaniteLabs engineering standards.

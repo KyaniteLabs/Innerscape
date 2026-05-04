@@ -1,27 +1,27 @@
 {
-  "name": "innerscape-suite",
-  "version": "1.0.0",
+  "name": "innerscape",
+  "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "install:all": "npm install && cd lifeos-design-system && npm install && cd ../lifeos-shared && npm install && cd ../lifeos-backend && npm install && cd ../innerscape-mobile && npm install --legacy-peer-deps && cd \"../Second Brain Project\" && npm install --legacy-peer-deps",
-    "build:shared": "cd lifeos-shared && npm run build",
-    "build:ds": "cd lifeos-design-system && npm run build",
-    "build:backend": "cd lifeos-backend && npm run build",
-    "build:web": "cd \"Second Brain Project\" && npm run build",
-    "build:mobile": "cd innerscape-mobile && npx expo export",
-    "dev:backend": "cd lifeos-backend && npm run dev",
-    "dev:web": "cd \"Second Brain Project\" && npm run dev",
-    "dev:mobile": "cd innerscape-mobile && npx expo start",
-    "seed": "cd lifeos-backend && npx tsx src/db/seed.ts",
-    "verify:backend": "cd lifeos-backend && npx tsc --noEmit",
-    "verify:web": "cd \"Second Brain Project\" && npx tsc --noEmit --skipLibCheck",
-    "verify:mobile": "cd innerscape-mobile && npx tsc --noEmit",
-    "verify": "npm run verify:backend && npm run verify:mobile && npm run verify:web",
-    "verify:all": "npm run verify && npm run build:ds && npm run build:shared && npm run build:backend && npm run build:web && npm run build:mobile",
-    "clean": "rm -rf lifeos-design-system/build lifeos-shared/dist lifeos-backend/dist \"Second Brain Project/.next\" innerscape-mobile/dist"
+    "dev:backend": "npm run dev --workspace=apps/backend",
+    "dev:mobile": "npm run dev --workspace=apps/mobile",
+    "build": "npm run build --workspaces",
+    "build:shared": "npm run build --workspace=packages/shared",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "clean": "rm -rf apps/mobile/.expo apps/mobile/node_modules/.cache apps/backend/dist"
   },
   "devDependencies": {
-    "tsx": "^4.7.0",
-    "typescript": "^5.3.0"
+    "typescript": "^5.7.0",
+    "prettier": "^3.4.0",
+    "eslint": "^9.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }

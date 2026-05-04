@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": ".",
+    "jsx": "react-jsx",
+    "moduleResolution": "bundler",
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": ["app", "components", "hooks", "stores", "lib", "**/*.ts", "**/*.tsx"],
+  "references": [
+    { "path": "../../packages/shared" }
+  ]
+}
