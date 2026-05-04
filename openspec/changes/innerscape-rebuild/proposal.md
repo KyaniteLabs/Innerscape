@@ -166,6 +166,87 @@ Standard productivity tools (Notion, Todoist, Apple Notes) presume intact execut
 | Cognitive Load | Time to first value | <5 seconds | New session → useful information in under 5 seconds |
 | Cognitive Load | Feature discovery | >70% without tutorials | If users need a manual, the design has failed |
 
+### Porter's Value Chain Analysis
+
+How each activity in Innerscape creates value for the neurodivergent user.
+
+#### Primary Activities
+
+| Activity | Innerscape Implementation | Value Created |
+|----------|--------------------------|---------------|
+| **Inbound Logistics** (data acquisition) | Universal capture inbox — text, voice, link, image, email, SMS, iOS Shortcuts. Sub-2-second capture requirement. Health data pulled from Apple Health / Health Connect. Body scan input. Space photos for declutter. | Eliminates capture friction. Thoughts don't escape. Data enters the system faster than working memory decays. |
+| **Operations** (processing) | AI Classifier auto-categorizes all captured items. Insight Engine runs correlation analysis. Automation Engine converts patterns to actions. On-device ML for privacy-sensitive classification. Somatic dictionary builds sensation→emotion mappings over time. | Makes the invisible visible. User never manually tags anything. Patterns emerge that the user cannot perceive on their own. |
+| **Outbound Logistics** (delivering value) | Emotional Context Layer adapts entire UI based on user state. State-adaptive interface shows challenging tasks when energy is high, grounding exercises when overwhelmed. Insights surfaced with BLUF communication. Deduplication-first routing. | Right information at the right time. The system meets the user where they are, not where a to-do list expects them to be. |
+| **Marketing & Sales** (acquisition & onboarding) | First-run experience: emotional check-in as first interaction (not account setup). Feature discovery >70% without tutorials. Time to first value <5 seconds. Freemium model with meaningful free tier. | The product sells itself through immediate value. No learning curve. First interaction proves the concept. |
+| **Service** (retention & growth) | Shutdown ritual (end-of-day review). Weekly AI-generated review. AI assistant for querying personal data. Graceful degradation during non-use periods — no guilt, no backlog shame. | Sustained engagement without shame mechanics. The system works even when the user doesn't. |
+
+#### Support Activities
+
+| Activity | Innerscape Implementation | Value Created |
+|----------|--------------------------|---------------|
+| **Firm Infrastructure** | Emotional Context System (core platform). Offline-first sync with conflict resolution. E2E encrypted cloud sync (optional). Privacy-by-design architecture. | Trust and reliability. The system never loses data and never betrays privacy. Works without internet. |
+| **Technology Development** | On-device classification (DistilBERT-class models). Cloud LLM for insights/chat/RAG. Somatic learning engine. Declutter vision pipeline (object detection + decision flow). | Continuous improvement of AI accuracy without compromising privacy. The system gets smarter the more the user uses it. |
+| **Procurement** | Cloud LLM API (Anthropic/OpenAI for reasoning). Push notification service (OneSignal). Object storage (Cloudflare R2). Hosting (Fly.io/Railway). | Managed services for non-core needs. Engineering focus stays on the cognitive prosthetic, not infrastructure. |
+
+#### Value Chain Differentiator
+
+Traditional productivity apps have a **linear** value chain: user inputs data → system stores it → user retrieves it. This fails neurodivergent users because it requires intact executive function at every stage.
+
+Innerscape's value chain is **closed-loop**: capture is automatic, processing is AI-driven, delivery is state-adaptive, and feedback (emotional check-ins) feeds back into capture optimization. The user is never the weakest link in the chain.
+
+### Wardley Map
+
+Strategic positioning of Innerscape components along the evolution axis (Genesis → Custom → Product → Commodity).
+
+```
+Value Chain (user needs)
+│
+│  Executive function        ┌─────────────────────┐
+│  replacement          ──── │  Emotional Context   │ ◄── Genesis (nobody does this)
+│                            │  Adaptive UI         │
+│                            └─────────────────────┘
+│
+│  Self-awareness            ┌─────────────────────┐
+│  (invisible → visible) ─── │  Insight Engine      │ ◄── Custom (rule-based +
+│                            │  Somatic Learning    │     statistical, built for us)
+│                            └─────────────────────┘
+│
+│  Capture & habits          ┌─────────────────────┐
+│                       ──── │  Habit Tracking      │ ◄── Product (many exist,
+│                            │  Goal Decomposition  │     our differentiator is context)
+│                            └─────────────────────┘
+│
+│  Knowledge management      ┌─────────────────────┐
+│                       ──── │  PARA Knowledge Base │ ◄── Product/Commodity
+│                            │  Universal Capture   │     (Notion, Obsidian exist)
+│                            └─────────────────────┘
+│
+│  Infrastructure            ┌─────────────────────┐
+│                       ──── │  SQLite + Sync       │ ◄── Commodity (WatermelonDB,
+│                            │  Cloud LLM API       │     Redis, Fastify, etc.)
+│                            └─────────────────────┘
+│
+└──────────────────────────────────────────────────────────
+   Genesis           Custom            Product          Commodity
+```
+
+**Strategic implications:**
+- **Defensive moat is at the top** — Emotional Context + Adaptive UI is genesis-stage. No competitor does this. This is where IP and differentiation live.
+- **Don't over-invest at the bottom** — Use commodity components for infrastructure. Don't build custom sync, custom DB, custom hosting.
+- **Insight Engine is a lever** — Custom-built but movable toward product over time. Start rule-based, add ML as training data accumulates.
+- **Capture and habits are table stakes** — Must be excellent but won't differentiate alone. The context layer is what makes them stick.
+
+### SWOT Analysis
+
+| | Positive | Negative |
+|--|----------|----------|
+| **Internal** | **Strengths** | **Weaknesses** |
+| | Building for self first — deep domain knowledge of the problem. AuDHD creator = authentic user testing. Clean slate = no technical debt. Emotional context system is genuinely novel. Offline-first + privacy-by-design builds trust. | Solo developer (for now). ADHD-driven development — risk of hyperfocus on interesting features over boring-but-critical ones. No existing user base. Mobile-first is the right call but doubles platform complexity. AI costs are unpredictable at scale. |
+| **External** | **Opportunities** | **Threats** |
+| | Neurodivergent awareness is at an all-time high. ADHD diagnoses up 30% since 2020. "Executive prosthetic" category is empty — no dominant player. Apple Health / Health Connect APIs keep improving. On-device ML keeps getting cheaper. Agentic SDLC workflows let a small team ship like a large one. | Big tech (Apple, Google) could add emotional context features to existing apps. Privacy regulations could constrain cloud AI features. Neurodivergent space is sensitive — one misstep harms reputation. AI hallucination in health-adjacent context is a liability. User churn is the industry norm for this space. |
+
+**Key insight from SWOT:** The biggest threat (big tech adding context features) is mitigated by the biggest strength (authentic neurodivergent perspective). Apple will never build for AuDHD users specifically because their market is everyone. We win by being *for us, not adapted to us*.
+
 ---
 
 ## Constraints
