@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { notificationAsync } from '../../lib/haptics';
+import { NotificationFeedbackType } from 'expo-haptics';
 
 interface Habit {
   id: string;
@@ -34,7 +35,7 @@ export function HabitTracker({ habits, on_complete }: HabitTrackerProps) {
           style={[styles.habitCard, habit.completedToday && styles.completedCard]}
           onPress={() => {
             if (!habit.completedToday) {
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              notificationAsync(NotificationFeedbackType.Success);
               on_complete(habit.id);
             }
           }}

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { selectionAsync, notificationAsync } from '../../lib/haptics';
+import { NotificationFeedbackType } from 'expo-haptics';
 import type { EmotionalValence } from '@innerscape/shared';
 import { useEmotionalStore } from '../../stores/emotional';
 
@@ -26,25 +27,25 @@ export function QuickCheckIn({ on_complete }: QuickCheckInProps) {
   const setCheckIn = useEmotionalStore((s) => s.setCheckIn);
 
   const handleEnergySelect = (level: number) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    selectionAsync();
     setEnergyLevel(level);
     setStep('valence');
   };
 
   const handleValenceSelect = (v: EmotionalValence) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    selectionAsync();
     setValence(v);
     setStep('feeling');
   };
 
   const handleFeelingSelect = (feeling: string) => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    notificationAsync(NotificationFeedbackType.Success);
     setCheckIn({ energyLevel, valence: valence!, feelingLabel: feeling });
     on_complete?.();
   };
 
   const handleSkipFeeling = () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    notificationAsync(NotificationFeedbackType.Success);
     setCheckIn({ energyLevel, valence: valence! });
     on_complete?.();
   };

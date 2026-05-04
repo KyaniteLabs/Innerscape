@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { notificationAsync, selectionAsync } from '../../lib/haptics';
+import { NotificationFeedbackType } from 'expo-haptics';
 
 const QUALITY_LABELS = ['Poor', 'Fair', 'OK', 'Good', 'Great'];
 
@@ -13,7 +14,7 @@ export function SleepLogger({ on_save }: SleepLoggerProps) {
   const [quality, setQuality] = useState(3);
 
   const handleSave = () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    notificationAsync(NotificationFeedbackType.Success);
     on_save({ durationHours: hours, qualityScore: quality });
   };
 
@@ -47,7 +48,7 @@ export function SleepLogger({ on_save }: SleepLoggerProps) {
             <TouchableOpacity
               key={label}
               style={[styles.qualityDot, quality === i + 1 && styles.qualityDotActive]}
-              onPress={() => { setQuality(i + 1); Haptics.selectionAsync(); }}
+              onPress={() => { setQuality(i + 1); selectionAsync(); }}
             >
               <Text style={[styles.qualityEmoji, quality === i + 1 && styles.qualityEmojiActive]}>
                 {['😫', '😟', '😐', '😊', '😴'][i]}

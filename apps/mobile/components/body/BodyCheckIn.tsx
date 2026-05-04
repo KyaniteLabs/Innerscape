@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { selectionAsync, notificationAsync } from '../../lib/haptics';
+import { NotificationFeedbackType } from 'expo-haptics';
 
 interface BodyRegion {
   id: string;
@@ -39,12 +40,12 @@ export function BodyCheckIn({ on_complete }: BodyCheckInProps) {
       setSelectedRegions(next);
     } else {
       setSelectedRegions((prev) => ({ ...prev, [region.id]: 'aware' }));
-      Haptics.selectionAsync();
+      selectionAsync();
     }
   };
 
   const handleValence = (valence: string) => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    notificationAsync(NotificationFeedbackType.Success);
     on_complete({
       bodyScan: selectedRegions,
       emotionWheelFeeling: feeling || 'neutral',
@@ -89,7 +90,7 @@ export function BodyCheckIn({ on_complete }: BodyCheckInProps) {
             <TouchableOpacity
               key={s}
               style={[styles.feelingChip, feeling === s && styles.feelingChipActive]}
-              onPress={() => { setFeeling(s); Haptics.selectionAsync(); }}
+              onPress={() => { setFeeling(s); selectionAsync(); }}
             >
               <Text style={[styles.feelingText, feeling === s && styles.feelingTextActive]}>
                 {s}

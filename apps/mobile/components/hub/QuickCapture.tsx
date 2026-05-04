@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { selectionAsync } from '../../lib/haptics';
 
 interface QuickCaptureProps {
   on_capture: (data: { content: string; tags: string[] }) => void;
@@ -12,7 +12,7 @@ export function QuickCapture({ on_capture }: QuickCaptureProps) {
 
   const handleCapture = () => {
     if (!content.trim()) return;
-    Haptics.selectionAsync();
+    selectionAsync();
     const tags = tagInput.split(',').map((t) => t.trim()).filter(Boolean);
     on_capture({ content: content.trim(), tags });
     setContent('');
