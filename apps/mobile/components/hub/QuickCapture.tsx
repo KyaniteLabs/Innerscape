@@ -2,15 +2,6 @@ import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import * as Haptics from 'expo-haptics';
 
-interface CaptureItem {
-  id: string;
-  content: string;
-  contentType: string;
-  tags: string[];
-  capturedAt: string;
-  classificationStatus: string;
-}
-
 interface QuickCaptureProps {
   on_capture: (data: { content: string; tags: string[] }) => void;
 }

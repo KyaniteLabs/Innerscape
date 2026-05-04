@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import * as Haptics from 'expo-haptics';
 
-const HOURS = Array.from({ length: 13 }, (_, i) => i + 3);
 const QUALITY_LABELS = ['Poor', 'Fair', 'OK', 'Good', 'Great'];
 
 interface SleepLoggerProps {

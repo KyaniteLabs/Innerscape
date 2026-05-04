@@ -6,8 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  SegmentControlIOS,
-  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { HabitTracker } from '../../components/habits/HabitTracker';

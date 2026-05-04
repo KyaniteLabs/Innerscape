@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { View, Animated, Text, StyleSheet } from 'react-native';
+import { Animated, Text, StyleSheet } from 'react-native';
 
 interface CelebrationProps {
   trigger: boolean;

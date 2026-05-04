@@ -13,14 +13,6 @@ interface CaptureItem {
   classificationStatus: string;
 }
 
-interface Project {
-  id: string;
-  name: string;
-  area: string;
-  status: string;
-  deadline: string;
-}
-
 type HubMode = 'inbox' | 'projects' | 'knowledge' | 'review';
 
 export default function HubScreen() {

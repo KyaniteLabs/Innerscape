@@ -17,7 +17,7 @@ export default function BodyScreen() {
   const [mode, setMode] = useState<BodyMode | null>(null);
   const [recentSleep, setRecentSleep] = useState<SleepEntry[]>([]);
 
-  const handleBodyCheckIn = (data: {
+  const handleBodyCheckIn = (_data: {
     bodyScan: Record<string, string>;
     emotionWheelFeeling: string;
     emotionWheelValence: string;
