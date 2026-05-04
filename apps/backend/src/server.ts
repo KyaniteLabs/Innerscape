@@ -6,6 +6,12 @@ import { authRoutes } from './routes/auth.js';
 import { emotionalRoutes } from './routes/emotional.js';
 import { journalRoutes, insightRoutes } from './routes/journal.js';
 import { habitRoutes, goalRoutes, dopamineRoutes } from './routes/flow.js';
+import {
+  bodyCheckInRoutes,
+  somaticRoutes,
+  sleepRoutes,
+  spaceRoutes,
+} from './routes/body.js';
 
 export const prisma = new PrismaClient();
 
@@ -32,6 +38,10 @@ await app.register(insightRoutes);
 await app.register(habitRoutes);
 await app.register(goalRoutes);
 await app.register(dopamineRoutes);
+await app.register(bodyCheckInRoutes);
+await app.register(somaticRoutes);
+await app.register(sleepRoutes);
+await app.register(spaceRoutes);
 
 try {
   const port = Number(process.env.PORT) || 3001;

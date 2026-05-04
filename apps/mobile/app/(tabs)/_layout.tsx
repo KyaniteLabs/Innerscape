@@ -40,6 +40,13 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => <Ionicons name="flash" size={size} color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="body"
+        options={{
+          title: 'Body',
+          tabBarIcon: ({ color, size }) => <Ionicons name="body" size={size} color={color} />,
+        }}
+      />
     </Tabs>
   );
 }
