@@ -69,8 +69,11 @@ dist/
 **/*.pem
 **/*.key
 
-# Design system build output (regenerate with npm run build)
-lifeos-design-system/build/
+# Design system build output
+packages/*/build/
 
 # OpenSpec
 .qwen/
+
+# OMC state
+.omc/
