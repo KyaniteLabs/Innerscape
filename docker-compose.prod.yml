@@ -1,0 +1,76 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-innerscape}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-innerscape}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-innerscape}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-innerscape}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-innerscape}
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
+      PORT: 3001
+      NODE_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.innerscape-api.rule=Host(`${DOMAIN:?Set DOMAIN}`)"
+      - "traefik.http.routers.innerscape-api.entrypoints=websecure"
+      - "traefik.http.routers.innerscape-api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.innerscape-api.loadbalancer.server.port=3001"
+    networks:
+      - default
+      - traefik
+
+  web:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ./apps/mobile/dist:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.innerscape-web.rule=Host(`${DOMAIN:?Set DOMAIN}`)"
+      - "traefik.http.routers.innerscape-web.entrypoints=websecure"
+      - "traefik.http.routers.innerscape-web.tls.certresolver=letsencrypt"
+      - "traefik.http.services.innerscape-web.loadbalancer.server.port=80"
+    networks:
+      - default
+      - traefik
+
+volumes:
+  pgdata:
+  redisdata:
+
+networks:
+  traefik:
+    external: true
