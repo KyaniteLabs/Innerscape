@@ -1,4 +1,4 @@
-import { prisma } from '../server.js';
+import { prisma } from '../db.js';
 import type { EmotionalCheckIn, SleepLog, Habit } from '@prisma/client';
 
 interface InsightCandidate {
