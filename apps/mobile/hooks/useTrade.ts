@@ -69,6 +69,7 @@ export function useCreateMatch() {
 }
 
 export function useCreateReview() {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: {
       trade_match_id: string;
@@ -77,6 +78,7 @@ export function useCreateReview() {
       tags?: string[];
       comment?: string;
     }) => api.post('/api/v1/trade/reviews', data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['trade'] }),
   });
 }
 
