@@ -1,15 +1,15 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import Fastify from 'fastify';
 import { signToken } from '../../src/services/auth.js';
-import { habitRoutes } from '../../src/routes/flow.js';
-import { goalRoutes } from '../../src/routes/flow.js';
-import { dopamineRoutes } from '../../src/routes/flow.js';
+import { habitRoutes, goalRoutes, dopamineRoutes } from '../../src/routes/flow.js';
 import { prisma } from '../../src/db.js';
 
 let app: Fastify.FastifyInstance;
 let token: string;
 let userId: string;
 let habitId = '';
+let taskId = '';
+let dopamineId = '';
 
 function authHeaders(extra: Record<string, string> = {}) {
   return { Authorization: `Bearer ${token}`, ...extra };
@@ -190,6 +190,134 @@ describe('GET /api/v1/dopamine-menu', () => {
     expect(body[0]).toHaveProperty('id');
     expect(body[0]).toHaveProperty('name');
     expect(body[0]).toHaveProperty('category');
+    dopamineId = body[0].id;
+  });
+});
+
+// --- Tasks ---
+
+describe('POST /api/v1/tasks', () => {
+  it('creates a task', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/tasks',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      payload: {
+        title: 'Write integration tests',
+        estimatedDuration: 30,
+      },
+    });
+    expect(res.statusCode).toBe(201);
+    const body = res.json();
+    expect(body).toHaveProperty('id');
+    expect(body).toHaveProperty('title', 'Write integration tests');
+    expect(body).toHaveProperty('completed', false);
+    taskId = body.id;
+  });
+
+  it('rejects missing title', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/tasks',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      payload: { estimatedDuration: 25 },
+    });
+    expect(res.statusCode).toBe(400);
+  });
+});
+
+describe('GET /api/v1/tasks', () => {
+  it('returns list of tasks', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/tasks',
+      headers: authHeaders(),
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(Array.isArray(body)).toBe(true);
+    expect(body.length).toBeGreaterThan(0);
+    expect(body[0]).toHaveProperty('id');
+    expect(body[0]).toHaveProperty('title');
+    expect(body[0]).toHaveProperty('completed');
+  });
+});
+
+describe('POST /api/v1/tasks/:id/complete', () => {
+  it('completes a task', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/tasks/${taskId}/complete`,
+      headers: authHeaders(),
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.completed).toBe(true);
+    expect(body).toHaveProperty('completedAt');
+  });
+
+  it('rejects double completion', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/tasks/${taskId}/complete`,
+      headers: authHeaders(),
+    });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('returns 404 for non-existent task', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/tasks/00000000-0000-0000-0000-000000000000/complete',
+      headers: authHeaders(),
+    });
+    expect(res.statusCode).toBe(404);
+  });
+});
+
+// --- DELETE Habit ---
+
+describe('DELETE /api/v1/habits/:id', () => {
+  it('deletes a habit', async () => {
+    const res = await app.inject({
+      method: 'DELETE',
+      url: `/api/v1/habits/${habitId}`,
+      headers: authHeaders(),
+    });
+    expect(res.statusCode).toBe(204);
+  });
+
+  it('returns 404 for non-existent habit', async () => {
+    const res = await app.inject({
+      method: 'DELETE',
+      url: '/api/v1/habits/00000000-0000-0000-0000-000000000000',
+      headers: authHeaders(),
+    });
+    expect(res.statusCode).toBe(404);
+  });
+});
+
+// --- Dopamine Menu Use ---
+
+describe('POST /api/v1/dopamine-menu/:id/use', () => {
+  it('marks a dopamine menu item as used', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/dopamine-menu/${dopamineId}/use`,
+      headers: authHeaders(),
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body).toHaveProperty('lastUsedAt');
+  });
+
+  it('returns 404 for non-existent item', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/dopamine-menu/00000000-0000-0000-0000-000000000000/use',
+      headers: authHeaders(),
+    });
+    expect(res.statusCode).toBe(404);
   });
 });
 
