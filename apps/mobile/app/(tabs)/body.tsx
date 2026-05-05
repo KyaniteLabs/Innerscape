@@ -1,20 +1,26 @@
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BodyCheckIn } from '../../components/body/BodyCheckIn';
 import { SleepLogger } from '../../components/body/SleepLogger';
 import { DeclutterSpaces } from '../../components/declutter/DeclutterSpaces';
 import { useCreateBodyCheckin } from '../../hooks/useBodyCheckins';
 import { useSleep, useCreateSleepLog } from '../../hooks/useSleep';
+import { useSomatic, useCreateSomatic } from '../../hooks/useSomatic';
 
-type BodyMode = 'checkin' | 'sleep' | 'spaces';
+type BodyMode = 'checkin' | 'sleep' | 'spaces' | 'somatic';
 
 export default function BodyScreen() {
   const [mode, setMode] = useState<BodyMode | null>(null);
 
+  const [somaticEmotion, setSomaticEmotion] = useState('');
+  const [somaticConfidence, setSomaticConfidence] = useState('0.5');
+
   const createCheckin = useCreateBodyCheckin();
   const createSleepLog = useCreateSleepLog();
   const { data: sleepData, isLoading: sleepLoading } = useSleep(7);
+  const { data: somaticData, isLoading: somaticLoading } = useSomatic();
+  const createSomatic = useCreateSomatic();
 
   const handleBodyCheckIn = (data: {
     bodyScan: Record<string, string>;
@@ -37,10 +43,40 @@ export default function BodyScreen() {
     );
   };
 
+  const handleSomaticSubmit = () => {
+    if (!somaticEmotion.trim()) {
+      Alert.alert('Validation', 'Please enter a predicted emotion.');
+      return;
+    }
+    const confidence = parseFloat(somaticConfidence);
+    if (isNaN(confidence) || confidence < 0 || confidence > 1) {
+      Alert.alert('Validation', 'Confidence must be a number between 0 and 1.');
+      return;
+    }
+    createSomatic.mutate(
+      {
+        sensationPattern: {},
+        predictedEmotion: somaticEmotion.trim(),
+        confidence,
+      },
+      {
+        onSuccess: () => {
+          setSomaticEmotion('');
+          setSomaticConfidence('0.5');
+          setMode(null);
+        },
+        onError: () => Alert.alert('Error', 'Failed to save somatic mapping. Please try again.'),
+      },
+    );
+  };
+
+  const somaticMappings = somaticData ?? [];
+
   const modes: { key: BodyMode; emoji: string; title: string; desc: string }[] = [
     { key: 'checkin', emoji: '🫀', title: 'Body Scan', desc: 'Tune into physical sensations' },
     { key: 'sleep', emoji: '🌙', title: 'Sleep Log', desc: 'Track last night\'s rest' },
     { key: 'spaces', emoji: '🏠', title: 'Spaces', desc: 'Scan & declutter your environment' },
+    { key: 'somatic', emoji: '🧠', title: 'Somatic', desc: 'Map sensations to emotions' },
   ];
 
   const sleepLogs = sleepData?.logs ?? [];
@@ -57,6 +93,41 @@ export default function BodyScreen() {
           <SleepLogger on_save={handleSleepSave} />
         ) : mode === 'spaces' ? (
           <DeclutterSpaces onBack={() => setMode(null)} />
+        ) : mode === 'somatic' ? (
+          <View style={styles.somaticForm}>
+            <TouchableOpacity onPress={() => setMode(null)} activeOpacity={0.7}>
+              <Text style={styles.backText}>Back</Text>
+            </TouchableOpacity>
+            <Text style={styles.formTitle}>New Somatic Mapping</Text>
+            <Text style={styles.formLabel}>Predicted Emotion</Text>
+            <TextInput
+              style={styles.formInput}
+              value={somaticEmotion}
+              onChangeText={setSomaticEmotion}
+              placeholder="e.g. anxiety, calm, joy"
+              placeholderTextColor={COLORS.muted}
+            />
+            <Text style={styles.formLabel}>Confidence (0 - 1)</Text>
+            <TextInput
+              style={styles.formInput}
+              value={somaticConfidence}
+              onChangeText={setSomaticConfidence}
+              keyboardType="decimal-pad"
+              placeholderTextColor={COLORS.muted}
+            />
+            <TouchableOpacity
+              style={styles.submitBtn}
+              onPress={handleSomaticSubmit}
+              disabled={createSomatic.isPending}
+              activeOpacity={0.7}
+            >
+              {createSomatic.isPending ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.submitBtnText}>Save Mapping</Text>
+              )}
+            </TouchableOpacity>
+          </View>
         ) : (
           <>
             <View style={styles.modesGrid}>
@@ -113,7 +184,24 @@ export default function BodyScreen() {
               </View>
             )}
 
-            {sleepLoading && (
+            {somaticMappings.length > 0 && (
+              <View style={styles.historySection}>
+                <Text style={styles.sectionTitle}>Somatic Mappings</Text>
+                {somaticMappings.slice(0, 5).map((entry) => (
+                  <View key={entry.id} style={styles.sleepRow}>
+                    <Text style={styles.somaticEmotion} numberOfLines={1}>
+                      {entry.predictedEmotion}
+                    </Text>
+                    <Text style={styles.somaticConfidence}>
+                      {(entry.confidence * 100).toFixed(0)}%
+                    </Text>
+                    <Text style={styles.somaticOccurrences}>x{entry.occurrences}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {(sleepLoading || somaticLoading) && (
               <ActivityIndicator color="#6c63ff" style={{ marginTop: 20 }} />
             )}
           </>
@@ -179,4 +267,26 @@ const styles = StyleSheet.create({
   sleepDate: { color: COLORS.muted, fontSize: 13, width: 40 },
   sleepDuration: { color: COLORS.text, fontSize: 16, fontWeight: '600', flex: 1 },
   sleepQuality: { fontSize: 20 },
+  somaticForm: { paddingHorizontal: 16, gap: 12 },
+  backText: { color: COLORS.accent, fontSize: 14, marginBottom: 8 },
+  formTitle: { color: COLORS.text, fontSize: 20, fontWeight: '700', marginBottom: 4 },
+  formLabel: { color: COLORS.muted, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 },
+  formInput: {
+    backgroundColor: COLORS.card,
+    borderRadius: 10,
+    padding: 14,
+    color: COLORS.text,
+    fontSize: 16,
+  },
+  submitBtn: {
+    backgroundColor: COLORS.accent,
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  submitBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  somaticEmotion: { color: COLORS.text, fontSize: 14, fontWeight: '500', flex: 1 },
+  somaticConfidence: { color: COLORS.accent, fontSize: 14, fontWeight: '600', width: 44, textAlign: 'right' },
+  somaticOccurrences: { color: COLORS.muted, fontSize: 13, width: 36, textAlign: 'right' },
 });

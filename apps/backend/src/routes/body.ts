@@ -145,6 +145,16 @@ const scanSchema = z.object({
   beforePhotoUri: z.string().min(1),
 });
 
+const completeScanSchema = z.object({
+  afterPhotoUri: z.string().optional(),
+  durationSeconds: z.number().positive().optional(),
+});
+
+const decideItemSchema = z.object({
+  decision: z.enum(['keep', 'donate', 'sell', 'recycle', 'trash']),
+  notes: z.string().optional(),
+});
+
 const detectedItemSchema = z.object({
   label: z.string().min(1),
   confidence: z.number().min(0).max(1),
@@ -198,7 +208,10 @@ export async function spaceRoutes(app: FastifyInstance) {
 
   app.post('/api/v1/scans/:scanId/complete', { preHandler: authMiddleware }, async (request, reply) => {
     const { scanId } = request.params as { scanId: string };
-    const { afterPhotoUri, durationSeconds } = request.body as { afterPhotoUri?: string; durationSeconds?: number };
+    const parsed = completeScanSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.status(400).send({ error: parsed.error.flatten().fieldErrors });
+    }
 
     const scan = await prisma.spaceScan.findFirst({ where: { id: scanId, userId: request.userId } });
     if (!scan) return reply.status(404).send({ error: 'Scan not found' });
@@ -208,8 +221,8 @@ export async function spaceRoutes(app: FastifyInstance) {
       data: {
         status: 'completed',
         completedAt: new Date(),
-        ...(afterPhotoUri ? { afterPhotoUri } : {}),
-        ...(durationSeconds ? { durationSeconds } : {}),
+        ...(parsed.data.afterPhotoUri ? { afterPhotoUri: parsed.data.afterPhotoUri } : {}),
+        ...(parsed.data.durationSeconds ? { durationSeconds: parsed.data.durationSeconds } : {}),
       },
     });
   });
@@ -234,10 +247,9 @@ export async function spaceRoutes(app: FastifyInstance) {
 
   app.post('/api/v1/items/:itemId/decide', { preHandler: authMiddleware }, async (request, reply) => {
     const { itemId } = request.params as { itemId: string };
-    const { decision } = request.body as { decision: string };
-
-    if (!['keep', 'donate', 'trash', 'sell', 'relocate'].includes(decision)) {
-      return reply.status(400).send({ error: 'Invalid decision' });
+    const parsed = decideItemSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.status(400).send({ error: parsed.error.flatten().fieldErrors });
     }
 
     const item = await prisma.detectedItem.findFirst({
@@ -250,7 +262,7 @@ export async function spaceRoutes(app: FastifyInstance) {
 
     return prisma.detectedItem.update({
       where: { id: itemId },
-      data: { decision, decidedAt: new Date() },
+      data: { decision: parsed.data.decision, decidedAt: new Date() },
     });
   });
 }

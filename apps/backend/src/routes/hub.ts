@@ -12,6 +12,12 @@ const captureSchema = z.object({
   tags: z.array(z.string()).default([]),
 });
 
+const classifySchema = z.object({
+  module: z.string(),
+  type: z.string(),
+  confidence: z.number().min(0).max(1),
+});
+
 export async function captureRoutes(app: FastifyInstance) {
   app.post('/api/v1/capture', { preHandler: authMiddleware }, async (request, reply) => {
     const parsed = captureSchema.safeParse(request.body);
@@ -40,11 +46,10 @@ export async function captureRoutes(app: FastifyInstance) {
 
   app.post('/api/v1/capture/:id/classify', { preHandler: authMiddleware }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const { module, type, confidence } = request.body as {
-      module: string;
-      type: string;
-      confidence?: number;
-    };
+    const parsed = classifySchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.status(400).send({ error: parsed.error.flatten().fieldErrors });
+    }
 
     const item = await prisma.captureItem.findFirst({ where: { id, userId: request.userId } });
     if (!item) return reply.status(404).send({ error: 'Capture item not found' });
@@ -53,9 +58,9 @@ export async function captureRoutes(app: FastifyInstance) {
       where: { id },
       data: {
         classificationStatus: 'classified',
-        classifiedModule: module,
-        classifiedType: type,
-        classifiedConfidence: confidence ?? null,
+        classifiedModule: parsed.data.module,
+        classifiedType: parsed.data.type,
+        classifiedConfidence: parsed.data.confidence ?? null,
       },
     });
   });
