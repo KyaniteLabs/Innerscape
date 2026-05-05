@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { prisma } from '../db.js';
 import { authMiddleware } from '../middleware/auth.js';
+import { sendError } from '../utils/send-error.js';
 
 // ── Trade Listings ─────────────────────────────────────────────────────────
 
@@ -52,17 +53,18 @@ export async function tradeRoutes(app: FastifyInstance) {
   });
 
   app.get('/api/v1/trade/listings', { preHandler: authMiddleware }, async (request) => {
-    const { status = 'available', limit = '20', offset = '0' } = request.query as {
-      status?: string;
-      limit?: string;
-      offset?: string;
-    };
+    const querySchema = z.object({
+      status: z.string().default('available'),
+      limit: z.coerce.number().int().min(1).max(100).default(20),
+      offset: z.coerce.number().int().min(0).default(0),
+    });
+    const { status, limit, offset } = querySchema.parse(request.query);
 
     const listings = await prisma.tradeListing.findMany({
       where: { status, userId: { not: request.userId } },
       orderBy: { createdAt: 'desc' },
-      take: Number(limit),
-      skip: Number(offset),
+      take: limit,
+      skip: offset,
     });
 
     return {
@@ -118,8 +120,8 @@ export async function tradeRoutes(app: FastifyInstance) {
     if (!parsed.success) return reply.status(400).send({ error: parsed.error.flatten().fieldErrors });
 
     const listing = await prisma.tradeListing.findUnique({ where: { id: parsed.data.listing_id } });
-    if (!listing) return reply.status(404).send({ error: 'Listing not found' });
-    if (listing.userId === request.userId) return reply.status(400).send({ error: 'Cannot match with own listing' });
+    if (!listing) return sendError(reply, 404, 'Listing not found');
+    if (listing.userId === request.userId) return sendError(reply, 400, 'Cannot match with own listing');
 
     const match = await prisma.tradeMatch.create({
       data: {

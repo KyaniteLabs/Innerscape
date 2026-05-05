@@ -89,7 +89,7 @@ function parseItems(raw: string): DetectedItem[] {
   const parsed = JSON.parse(jsonStr);
   const rawItems = Array.isArray(parsed?.items) ? parsed.items : [];
 
-  return rawItems.slice(0, 8).map((item: any) => ({
+  return rawItems.slice(0, 8).map((item: Record<string, unknown>) => ({
     label: String(item.label || 'unknown item').slice(0, 80),
     confidence: Math.max(0, Math.min(1, Number(item.confidence) || 0.5)),
     estimated_value_usd: Math.max(0, Math.min(50000, Number(item.estimated_value_usd) || 0)),

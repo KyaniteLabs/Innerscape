@@ -3,15 +3,19 @@ import { z } from 'zod';
 import { prisma } from '../db.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { runAnalysis } from '../services/vision-analysis.js';
+import type { ValuationJson, ListingDraftJson } from '../types/valuation.js';
+import { sendError } from '../utils/send-error.js';
 
 const DECISION_VALUES = ['keep', 'donate', 'trash', 'recycle', 'relocate', 'maybe', 'sell'] as const;
 
-function computeMoneyOnTable(items: { valuationJson: any; decision?: { decision: string } | null }[]) {
+const sessionIdSchema = z.object({ sessionId: z.string().min(1) });
+
+function computeMoneyOnTable(items: { valuationJson: unknown; decision?: { decision: string } | null }[]): { money_on_table_low_usd: number; money_on_table_high_usd: number } {
   let low = 0;
   let high = 0;
   for (const item of items) {
     if (item.decision && ['donate', 'trash', 'recycle'].includes(item.decision.decision)) continue;
-    const v = item.valuationJson as { estimated_low_usd?: number; estimated_high_usd?: number };
+    const v = item.valuationJson as ValuationJson | null;
     if (v?.estimated_low_usd) low += v.estimated_low_usd;
     if (v?.estimated_high_usd) high += v.estimated_high_usd;
   }
@@ -65,12 +69,12 @@ export async function declutterSessionRoutes(app: FastifyInstance) {
   });
 
   app.get('/api/v1/declutter/sessions/:sessionId', { preHandler: authMiddleware }, async (request, reply) => {
-    const { sessionId } = request.params as { sessionId: string };
+    const { sessionId } = sessionIdSchema.parse(request.params);
     const session = await prisma.declutterSession.findFirst({
       where: { id: sessionId, userId: request.userId },
       include: { items: { include: { decision: true } } },
     });
-    if (!session) return reply.status(404).send({ error: 'Session not found' });
+    if (!session) return sendError(reply, 404, 'Session not found');
 
     const { money_on_table_low_usd, money_on_table_high_usd } = computeMoneyOnTable(session.items);
     return {
@@ -96,7 +100,7 @@ export async function declutterSessionRoutes(app: FastifyInstance) {
   // ── Session Items ──────────────────────────────────────────────────────────
 
   app.post('/api/v1/declutter/sessions/:sessionId/items', { preHandler: authMiddleware }, async (request, reply) => {
-    const { sessionId } = request.params as { sessionId: string };
+    const { sessionId } = sessionIdSchema.parse(request.params);
     const schema = z.object({
       label: z.string().min(1).max(120),
       condition: z.string().default('unknown'),
@@ -107,7 +111,7 @@ export async function declutterSessionRoutes(app: FastifyInstance) {
     const session = await prisma.declutterSession.findFirst({
       where: { id: sessionId, userId: request.userId },
     });
-    if (!session) return reply.status(404).send({ error: 'Session not found' });
+    if (!session) return sendError(reply, 404, 'Session not found');
 
     const { label, condition } = parsed.data;
     const valuation = estimateValuationStub(label, condition);
@@ -118,8 +122,8 @@ export async function declutterSessionRoutes(app: FastifyInstance) {
         sessionId,
         label,
         condition,
-        valuationJson: valuation,
-        listingDraftJson: listingDraft,
+        valuationJson: valuation as any,
+        listingDraftJson: listingDraft as any,
       },
     });
 
@@ -137,7 +141,7 @@ export async function declutterSessionRoutes(app: FastifyInstance) {
   // ── Decisions ──────────────────────────────────────────────────────────────
 
   app.post('/api/v1/declutter/sessions/:sessionId/decisions', { preHandler: authMiddleware }, async (request, reply) => {
-    const { sessionId } = request.params as { sessionId: string };
+    const { sessionId } = sessionIdSchema.parse(request.params);
     const schema = z.object({
       item_id: z.string().min(1),
       decision: z.enum(DECISION_VALUES),
@@ -149,7 +153,7 @@ export async function declutterSessionRoutes(app: FastifyInstance) {
     const item = await prisma.declutterItem.findFirst({
       where: { id: parsed.data.item_id, session: { id: sessionId, userId: request.userId } },
     });
-    if (!item) return reply.status(404).send({ error: 'Item not found' });
+    if (!item) return sendError(reply, 404, 'Item not found');
 
     const decision = await prisma.declutterDecision.upsert({
       where: { itemId: item.id },
@@ -173,7 +177,7 @@ export async function declutterSessionRoutes(app: FastifyInstance) {
   // ── Session Summary ────────────────────────────────────────────────────────
 
   app.get('/api/v1/declutter/sessions/:sessionId/summary', { preHandler: authMiddleware }, async (request, reply) => {
-    const { sessionId } = request.params as { sessionId: string };
+    const { sessionId } = sessionIdSchema.parse(request.params);
     const session = await prisma.declutterSession.findFirst({
       where: { id: sessionId, userId: request.userId },
       include: {
@@ -181,14 +185,14 @@ export async function declutterSessionRoutes(app: FastifyInstance) {
         publicListings: true,
       },
     });
-    if (!session) return reply.status(404).send({ error: 'Session not found' });
+    if (!session) return sendError(reply, 404, 'Session not found');
 
     const decisionCounts: Record<string, number> = {};
     let totalLow = 0;
     let totalHigh = 0;
 
     for (const item of session.items) {
-      const v = item.valuationJson as { estimated_low_usd?: number; estimated_high_usd?: number };
+      const v = item.valuationJson as ValuationJson;
       if (v?.estimated_low_usd) totalLow += v.estimated_low_usd;
       if (v?.estimated_high_usd) totalHigh += v.estimated_high_usd;
 
@@ -284,7 +288,7 @@ export async function declutterValuationRoutes(app: FastifyInstance) {
 
 // ── Stub helpers (replaced by real ML in Phase 1.4) ─────────────────────────
 
-function estimateValuationStub(label: string, _condition: string) {
+function estimateValuationStub(label: string, _condition: string): ValuationJson {
   const hash = label.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
   const base = 5 + (hash % 45);
   const spread = 2 + (hash % 8);
@@ -292,14 +296,16 @@ function estimateValuationStub(label: string, _condition: string) {
     label,
     estimated_low_usd: base,
     estimated_high_usd: base + spread,
-    confidence: 'low' as const,
+    confidence: 'low',
     comp_count: 6,
     source: 'stub-estimation',
   };
 }
 
-function generateListingDraftStub(label: string, condition: string, valuation: { estimated_low_usd: number; estimated_high_usd: number }) {
-  const mid = Math.round((valuation.estimated_low_usd + valuation.estimated_high_usd) / 2 * 100) / 100;
+function generateListingDraftStub(label: string, condition: string, valuation: ValuationJson): ListingDraftJson {
+  const low = valuation.estimated_low_usd ?? 0;
+  const high = valuation.estimated_high_usd ?? 0;
+  const mid = Math.round((low + high) / 2 * 100) / 100;
   return {
     title: `${label.charAt(0).toUpperCase() + label.slice(1)} - ${condition.charAt(0).toUpperCase() + condition.slice(1)}`,
     description: `${label} in ${condition} condition. Priced based on market comparables.`,
@@ -328,7 +334,7 @@ export async function declutterAnalysisRoutes(app: FastifyInstance) {
     const session = await prisma.declutterSession.findFirst({
       where: { id: parsed.data.session_id, userId: request.userId },
     });
-    if (!session) return reply.status(404).send({ error: 'Session not found' });
+    if (!session) return sendError(reply, 404, 'Session not found');
 
     const result = await runAnalysis(parsed.data.image_storage_key);
 
@@ -349,8 +355,8 @@ export async function declutterAnalysisRoutes(app: FastifyInstance) {
             confidence: valuation.confidence,
             comp_count: valuation.comp_count,
             source: valuation.source,
-          },
-          listingDraftJson: listingDraft,
+          } as any,
+          listingDraftJson: listingDraft as any,
         },
       });
       items.push(item);
