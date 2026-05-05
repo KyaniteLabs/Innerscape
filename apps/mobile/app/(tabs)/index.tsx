@@ -50,7 +50,7 @@ export default function HomeScreen() {
             <Text style={styles.stateValue}>
               {(context?.emotionalState || computedState || '')
                 .replace(/_/g, ' ')
-                .replace(/\b\w/g, (c) => c.toUpperCase())}
+                .replace(/\b\w/g, (c: string) => c.toUpperCase())}
             </Text>
           </View>
         )}
