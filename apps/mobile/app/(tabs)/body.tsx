@@ -1,41 +1,34 @@
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BodyCheckIn } from '../../components/body/BodyCheckIn';
 import { SleepLogger } from '../../components/body/SleepLogger';
 import { DeclutterSpaces } from '../../components/declutter/DeclutterSpaces';
+import { useCreateBodyCheckin } from '../../hooks/useBodyCheckins';
+import { useSleep, useCreateSleepLog } from '../../hooks/useSleep';
 
 type BodyMode = 'checkin' | 'sleep' | 'spaces';
 
-interface SleepEntry {
-  id: string;
-  durationHours: number;
-  qualityScore: number;
-  date: string;
-}
-
 export default function BodyScreen() {
   const [mode, setMode] = useState<BodyMode | null>(null);
-  const [recentSleep, setRecentSleep] = useState<SleepEntry[]>([]);
 
-  const handleBodyCheckIn = (_data: {
+  const createCheckin = useCreateBodyCheckin();
+  const createSleepLog = useCreateSleepLog();
+  const { data: sleepData, isLoading: sleepLoading } = useSleep(7);
+
+  const handleBodyCheckIn = (data: {
     bodyScan: Record<string, string>;
     emotionWheelFeeling: string;
     emotionWheelValence: string;
   }) => {
-    // TODO: wire to API
-    setMode(null);
+    createCheckin.mutate(data, { onSuccess: () => setMode(null) });
   };
 
   const handleSleepSave = (data: { durationHours: number; qualityScore: number }) => {
-    const entry: SleepEntry = {
-      id: `local-${Date.now()}`,
-      durationHours: data.durationHours,
-      qualityScore: data.qualityScore,
-      date: new Date().toISOString(),
-    };
-    setRecentSleep((prev) => [entry, ...prev]);
-    setMode(null);
+    createSleepLog.mutate(
+      { date: new Date().toISOString(), durationHours: data.durationHours, qualityScore: data.qualityScore },
+      { onSuccess: () => setMode(null) },
+    );
   };
 
   const modes: { key: BodyMode; emoji: string; title: string; desc: string }[] = [
@@ -43,6 +36,9 @@ export default function BodyScreen() {
     { key: 'sleep', emoji: '🌙', title: 'Sleep Log', desc: 'Track last night\'s rest' },
     { key: 'spaces', emoji: '🏠', title: 'Spaces', desc: 'Scan & declutter your environment' },
   ];
+
+  const sleepLogs = sleepData?.logs ?? [];
+  const sleepSummary = sleepData?.summary;
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -72,11 +68,36 @@ export default function BodyScreen() {
               ))}
             </View>
 
-            {recentSleep.length > 0 && (
+            {sleepSummary && sleepSummary.nights > 0 && (
+              <View style={styles.summaryCard}>
+                <Text style={styles.sectionTitle}>Sleep Summary (7 days)</Text>
+                <View style={styles.summaryRow}>
+                  <View style={styles.summaryItem}>
+                    <Text style={styles.summaryValue}>{sleepSummary.avgDuration}h</Text>
+                    <Text style={styles.summaryLabel}>Avg Duration</Text>
+                  </View>
+                  <View style={styles.summaryItem}>
+                    <Text style={styles.summaryValue}>
+                      {['', '😫', '😟', '😐', '😊', '😴'][Math.round(sleepSummary.avgQuality)]}
+                    </Text>
+                    <Text style={styles.summaryLabel}>Avg Quality</Text>
+                  </View>
+                  <View style={styles.summaryItem}>
+                    <Text style={styles.summaryValue}>{sleepSummary.nights}</Text>
+                    <Text style={styles.summaryLabel}>Nights Logged</Text>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {sleepLogs.length > 0 && (
               <View style={styles.historySection}>
                 <Text style={styles.sectionTitle}>Recent Sleep</Text>
-                {recentSleep.slice(0, 5).map((entry) => (
+                {sleepLogs.slice(0, 5).map((entry) => (
                   <View key={entry.id} style={styles.sleepRow}>
+                    <Text style={styles.sleepDate}>
+                      {new Date(entry.date).toLocaleDateString('en-US', { weekday: 'short' })}
+                    </Text>
                     <Text style={styles.sleepDuration}>{entry.durationHours}h</Text>
                     <Text style={styles.sleepQuality}>
                       {['', '😫', '😟', '😐', '😊', '😴'][entry.qualityScore]}
@@ -85,6 +106,10 @@ export default function BodyScreen() {
                 ))}
               </View>
             )}
+
+            {sleepLoading && (
+              <ActivityIndicator color="#6c63ff" style={{ marginTop: 20 }} />
+            )}
           </>
         )}
       </ScrollView>
@@ -92,19 +117,22 @@ export default function BodyScreen() {
   );
 }
 
+const COLORS = {
+  bg: '#0f0f23',
+  card: '#16213e',
+  cardBorder: '#1a1a3e',
+  text: '#e0e0e0',
+  muted: '#666',
+  accent: '#6c63ff',
+};
+
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#0f0f23' },
+  screen: { flex: 1, backgroundColor: COLORS.bg },
   content: { paddingVertical: 16 },
-  pageTitle: {
-    color: '#e0e0e0',
-    fontSize: 24,
-    fontWeight: '700',
-    paddingHorizontal: 16,
-    marginBottom: 20,
-  },
+  pageTitle: { color: COLORS.text, fontSize: 24, fontWeight: '700', paddingHorizontal: 16, marginBottom: 20 },
   modesGrid: { paddingHorizontal: 16, gap: 12 },
   modeCard: {
-    backgroundColor: '#16213e',
+    backgroundColor: COLORS.card,
     borderRadius: 16,
     padding: 20,
     flexDirection: 'row',
@@ -112,28 +140,37 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   modeEmoji: { fontSize: 36 },
-  modeTitle: { color: '#e0e0e0', fontSize: 17, fontWeight: '600' },
-  modeDesc: { color: '#666', fontSize: 13, marginTop: 2 },
-  historySection: {
+  modeTitle: { color: COLORS.text, fontSize: 17, fontWeight: '600' },
+  modeDesc: { color: COLORS.muted, fontSize: 13, marginTop: 2 },
+  summaryCard: {
+    backgroundColor: COLORS.card,
+    borderRadius: 16,
+    padding: 16,
+    marginHorizontal: 16,
     marginTop: 24,
-    paddingHorizontal: 16,
   },
+  summaryRow: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 12 },
+  summaryItem: { alignItems: 'center' },
+  summaryValue: { color: COLORS.accent, fontSize: 20, fontWeight: '700' },
+  summaryLabel: { color: COLORS.muted, fontSize: 11, marginTop: 4 },
   sectionTitle: {
-    color: '#888',
+    color: COLORS.muted,
     fontSize: 12,
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: 8,
   },
+  historySection: { marginTop: 24, paddingHorizontal: 16 },
   sleepRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#16213e',
+    backgroundColor: COLORS.card,
     borderRadius: 10,
     padding: 14,
     marginBottom: 6,
   },
-  sleepDuration: { color: '#e0e0e0', fontSize: 16, fontWeight: '600' },
+  sleepDate: { color: COLORS.muted, fontSize: 13, width: 40 },
+  sleepDuration: { color: COLORS.text, fontSize: 16, fontWeight: '600', flex: 1 },
   sleepQuality: { fontSize: 20 },
 });

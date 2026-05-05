@@ -11,7 +11,7 @@ export interface JournalEntry {
 export function useJournal() {
   return useQuery({
     queryKey: ['journal'],
-    queryFn: () => api.get<JournalEntry[]>('/api/v1/journal'),
+    queryFn: () => api.get<JournalEntry[]>('/api/v1/journal/entries'),
   });
 }
 
@@ -19,7 +19,7 @@ export function useCreateEntry() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: { content: string; tags?: string[] }) =>
-      api.post<JournalEntry>('/api/v1/journal', data),
+      api.post<JournalEntry>('/api/v1/journal/entries', data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['journal'] }),
   });
 }
@@ -27,7 +27,7 @@ export function useCreateEntry() {
 export function useDeleteEntry() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => api.del(`/api/v1/journal/${id}`),
+    mutationFn: (id: string) => api.del(`/api/v1/journal/entries/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['journal'] }),
   });
 }

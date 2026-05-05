@@ -8,7 +8,7 @@ interface Habit {
   frequency: string;
   streak: number;
   longestStreak: number;
-  lastCompletedAt?: string;
+  lastCompletedAt?: string | null;
   completedToday: boolean;
 }
 

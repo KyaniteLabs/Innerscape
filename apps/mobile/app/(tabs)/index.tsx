@@ -4,11 +4,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ContextGreeting } from '../../components/ContextGreeting';
 import { QuickCheckIn } from '../../components/checkin/QuickCheckIn';
 import { useEmotionalStore } from '../../stores/emotional';
+import { useCurrentContext } from '../../hooks/useCheckins';
+import { useDailySummary } from '../../hooks/useReview';
 
 export default function HomeScreen() {
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [checkInComplete, setCheckInComplete] = useState(false);
   const computedState = useEmotionalStore((s) => s.computedState);
+  const { data: context } = useCurrentContext();
+  const { data: dailySummary } = useDailySummary();
 
   const handleCheckInComplete = () => {
     setCheckInComplete(true);
@@ -39,20 +43,48 @@ export default function HomeScreen() {
           </TouchableOpacity>
         )}
 
-        {computedState && (
+        {(computedState || context?.emotionalState) && (
           <View style={styles.stateCard}>
             <Text style={styles.stateLabel}>Current state</Text>
             <Text style={styles.stateValue}>
-              {computedState.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+              {(context?.emotionalState || computedState || '')
+                .replace(/_/g, ' ')
+                .replace(/\b\w/g, (c) => c.toUpperCase())}
             </Text>
           </View>
         )}
 
+        {dailySummary && dailySummary.totalActivity > 0 && (
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryTitle}>Today</Text>
+            <View style={styles.summaryRow}>
+              {[
+                { label: 'Check-ins', value: dailySummary.emotionalCheckIns, emoji: '🫀' },
+                { label: 'Habits', value: dailySummary.habitsCompleted, emoji: '✅' },
+                { label: 'Tasks', value: dailySummary.tasksCompleted, emoji: '🎯' },
+                { label: 'Captures', value: dailySummary.itemsCaptured, emoji: '📥' },
+              ].map((stat) => (
+                <View key={stat.label} style={styles.summaryItem}>
+                  <Text style={styles.summaryEmoji}>{stat.emoji}</Text>
+                  <Text style={styles.summaryValue}>{stat.value}</Text>
+                  <Text style={styles.summaryLabel}>{stat.label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
         <View style={styles.moduleGrid}>
-          {['Mind', 'Flow', 'Body', 'Hub'].map((module) => (
-            <View key={module} style={styles.moduleCard}>
-              <Text style={styles.moduleName}>{module}</Text>
-              <Text style={styles.moduleStatus}>Active</Text>
+          {[
+            { name: 'Mind', emoji: '🧠', desc: 'Journal & Insights' },
+            { name: 'Flow', emoji: '⚡', desc: 'Habits & Goals' },
+            { name: 'Body', emoji: '🫀', desc: 'Scan & Sleep' },
+            { name: 'Hub', emoji: '📥', desc: 'Capture & Review' },
+          ].map((module) => (
+            <View key={module.name} style={styles.moduleCard}>
+              <Text style={styles.moduleEmoji}>{module.emoji}</Text>
+              <Text style={styles.moduleName}>{module.name}</Text>
+              <Text style={styles.moduleDesc}>{module.desc}</Text>
             </View>
           ))}
         </View>
@@ -61,11 +93,20 @@ export default function HomeScreen() {
   );
 }
 
+const COLORS = {
+  bg: '#0f0f23',
+  card: '#16213e',
+  cardBorder: '#1a1a3e',
+  text: '#e0e0e0',
+  muted: '#666',
+  accent: '#6c63ff',
+};
+
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#0f0f23' },
+  screen: { flex: 1, backgroundColor: COLORS.bg },
   content: { paddingVertical: 16 },
   checkInButton: {
-    backgroundColor: '#6c63ff',
+    backgroundColor: COLORS.accent,
     borderRadius: 16,
     paddingVertical: 18,
     marginHorizontal: 16,
@@ -83,15 +124,34 @@ const styles = StyleSheet.create({
   },
   confirmationText: { color: '#4caf50', fontSize: 20, fontWeight: '600' },
   stateCard: {
-    backgroundColor: '#16213e',
+    backgroundColor: COLORS.card,
     borderRadius: 12,
     padding: 16,
     marginHorizontal: 16,
     marginTop: 16,
     alignItems: 'center',
   },
-  stateLabel: { fontSize: 12, color: '#666', textTransform: 'uppercase', letterSpacing: 1 },
-  stateValue: { fontSize: 16, color: '#e0e0e0', fontWeight: '500', marginTop: 4 },
+  stateLabel: { fontSize: 12, color: COLORS.muted, textTransform: 'uppercase', letterSpacing: 1 },
+  stateValue: { fontSize: 16, color: COLORS.text, fontWeight: '500', marginTop: 4 },
+  summaryCard: {
+    backgroundColor: COLORS.card,
+    borderRadius: 12,
+    padding: 16,
+    marginHorizontal: 16,
+    marginTop: 16,
+  },
+  summaryTitle: {
+    color: COLORS.muted,
+    fontSize: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 12,
+  },
+  summaryRow: { flexDirection: 'row', justifyContent: 'space-around' },
+  summaryItem: { alignItems: 'center' },
+  summaryEmoji: { fontSize: 18 },
+  summaryValue: { color: COLORS.accent, fontSize: 18, fontWeight: '700', marginTop: 4 },
+  summaryLabel: { color: COLORS.muted, fontSize: 10, marginTop: 2 },
   moduleGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -101,12 +161,13 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   moduleCard: {
-    backgroundColor: '#16213e',
+    backgroundColor: COLORS.card,
     borderRadius: 12,
-    padding: 20,
+    padding: 16,
     width: '48%',
     alignItems: 'center',
   },
-  moduleName: { fontSize: 16, fontWeight: '600', color: '#e0e0e0' },
-  moduleStatus: { fontSize: 12, color: '#555', marginTop: 4 },
+  moduleEmoji: { fontSize: 24 },
+  moduleName: { fontSize: 16, fontWeight: '600', color: COLORS.text, marginTop: 6 },
+  moduleDesc: { fontSize: 11, color: COLORS.muted, marginTop: 2 },
 });
