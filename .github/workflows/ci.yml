@@ -37,6 +37,8 @@ jobs:
           cache: npm
       - run: npm ci
         working-directory: .
+      - run: npm run build:shared
+        working-directory: .
       - run: npx prisma generate
       - run: npx prisma db push --skip-generate
       - run: npx tsc --noEmit
@@ -54,5 +56,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+        working-directory: .
+      - run: npm run build:shared
         working-directory: .
       - run: npx tsc --noEmit
