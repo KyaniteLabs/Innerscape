@@ -18,24 +18,27 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
-    "@innerscape/shared": "*",
-    "@prisma/client": "^6.0.0",
-    "fastify": "^5.0.0",
+    "@ai-sdk/anthropic": "^3.0.74",
+    "@ai-sdk/openai": "^3.0.60",
     "@fastify/cors": "^10.0.0",
     "@fastify/jwt": "^9.0.0",
     "@fastify/rate-limit": "^10.0.0",
     "@fastify/websocket": "^11.0.0",
+    "@innerscape/shared": "*",
+    "@prisma/client": "^6.0.0",
+    "ai": "^6.0.175",
     "bcryptjs": "^2.4.3",
-    "jose": "^6.0.0",
-    "zod": "^3.24.0",
     "bullmq": "^5.0.0",
-    "ioredis": "^5.4.0"
+    "fastify": "^5.0.0",
+    "ioredis": "^5.4.0",
+    "jose": "^6.0.0",
+    "zod": "^3.24.0"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "prisma": "^6.0.0",
     "tsx": "^4.7.0",
     "typescript": "^5.7.0",
-    "vitest": "^2.0.0",
-    "@types/bcryptjs": "^2.4.6"
+    "vitest": "^2.0.0"
   }
 }

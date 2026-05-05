@@ -30,6 +30,9 @@ model User {
   captureItems  CaptureItem[]
   projects      Project[]
   knowledgeItems KnowledgeItem[]
+  declutterSessions DeclutterSession[]
+  publicListings PublicListing[]
+  tradeListings TradeListing[]
 
   @@map("users")
 }
@@ -253,6 +256,9 @@ model DetectedItem {
   decidedAt           DateTime?
   estimatedValueCents Int?
   category            String?
+  condition           String   @default("unknown")
+  valuationJson       Json?
+  listingDraftJson    Json?
 
   scan SpaceScan @relation(fields: [scanId], references: [id], onDelete: Cascade)
 
@@ -308,4 +314,206 @@ model KnowledgeItem {
 
   @@index([userId, paraCategory])
   @@map("knowledge_items")
+}
+
+// ── Declutter Bounded Context ────────────────────────────────────────────────
+
+model DeclutterSession {
+  id             String    @id @default(uuid())
+  userId         String
+  imageStorageKey String?
+  createdAt      DateTime  @default(now())
+
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items      DeclutterItem[]
+  publicListings PublicListing[]
+
+  @@index([userId, createdAt])
+  @@map("declutter_sessions")
+}
+
+model DeclutterItem {
+  id              String   @id @default(uuid())
+  sessionId       String
+  label           String
+  condition       String   @default("unknown")
+  valuationJson   Json
+  listingDraftJson Json
+  createdAt       DateTime @default(now())
+
+  session     DeclutterSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  decision    DeclutterDecision?
+
+  @@index([sessionId])
+  @@map("declutter_items")
+}
+
+model DeclutterDecision {
+  id         String   @id @default(uuid())
+  itemId     String   @unique
+  sessionId  String
+  decision   String
+  note       String?
+  decidedAt  DateTime @default(now())
+
+  item DeclutterItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("declutter_decisions")
+}
+
+model PublicListing {
+  id            String   @id @default(uuid())
+  userId        String
+  sessionId     String
+  itemId        String
+  title         String
+  description   String
+  condition     String
+  priceUsd      Float
+  categoryHint  String
+  createdAt     DateTime @default(now())
+
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session DeclutterSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([userId, sessionId])
+  @@index([createdAt])
+  @@map("public_listings")
+}
+
+// ── Price Estimation ─────────────────────────────────────────────────────────
+
+model PriceRange {
+  id               Int      @id @default(autoincrement())
+  label            String
+  normalizedLabel  String   @unique
+  category         String?
+  lowPrice         Float
+  medianPrice      Float
+  highPrice        Float
+  compCount        Int      @default(0)
+  source           String
+  confidence       String
+  updatedAt        DateTime @default(now())
+
+  @@index([normalizedLabel])
+  @@map("price_ranges")
+}
+
+model PriceFeedback {
+  id                Int      @id @default(autoincrement())
+  label             String
+  normalizedLabel   String
+  expectedMedianUsd Float
+  reason            String?
+  source            String   @default("user")
+  createdAt         DateTime @default(now())
+
+  @@index([normalizedLabel])
+  @@map("price_feedback")
+}
+
+model CommunitySale {
+  id              Int      @id @default(autoincrement())
+  label           String
+  normalizedLabel String
+  salePriceUsd    Float
+  condition       String?
+  platform        String?
+  notes           String?
+  soldAt          DateTime @default(now())
+
+  @@index([normalizedLabel])
+  @@map("community_sales")
+}
+
+model PriceHistory {
+  id              Int      @id @default(autoincrement())
+  label           String
+  normalizedLabel String
+  lowPrice        Float
+  medianPrice     Float
+  highPrice       Float
+  source          String
+  changedAt       DateTime @default(now())
+
+  @@index([normalizedLabel])
+  @@map("price_history")
+}
+
+// ── Trade Marketplace ────────────────────────────────────────────────────────
+
+model TradeListing {
+  id                  String   @id @default(uuid())
+  userId              String
+  itemLabel           String
+  description         String?
+  condition           String?
+  valuationMedianUsd  Float?
+  tradeValueCredits   Float?
+  latitude            Float?
+  longitude           Float?
+  images              String[]
+  tags                String[]
+  wantsInReturn       String[]
+  status              String   @default("available")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matches TradeMatch[]
+
+  @@index([status])
+  @@map("trade_listings")
+}
+
+model TradeMatch {
+  id               String   @id @default(uuid())
+  listingId        String
+  requesterId      String
+  ownerId          String
+  offeredListingId String?
+  message          String?
+  useCredits       Boolean  @default(false)
+  creditAmount     Float    @default(0)
+  status           String   @default("pending")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  listing TradeListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  reviews TradeReview[]
+
+  @@index([listingId])
+  @@map("trade_matches")
+}
+
+model TradeReview {
+  id            String   @id @default(uuid())
+  tradeMatchId  String
+  ratedUserId   String
+  raterUserId   String
+  rating        Int
+  tags          String[]
+  comment       String?
+  createdAt     DateTime @default(now())
+
+  match TradeMatch @relation(fields: [tradeMatchId], references: [id], onDelete: Cascade)
+
+  @@index([ratedUserId])
+  @@index([tradeMatchId])
+  @@map("trade_reviews")
+}
+
+model CreditTransaction {
+  id         Int      @id @default(autoincrement())
+  userId     String
+  amount     Float
+  tradeId    String?
+  itemLabel  String
+  direction  String
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@map("credit_transactions")
 }

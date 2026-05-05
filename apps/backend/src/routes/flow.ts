@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { prisma } from '../server.js';
+import { prisma } from '../db.js';
 import { authMiddleware } from '../middleware/auth.js';
 
 // --- Habits ---

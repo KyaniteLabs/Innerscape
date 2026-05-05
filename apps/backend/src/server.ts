@@ -1,7 +1,7 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from './db.js';
 import { authRoutes } from './routes/auth.js';
 import { emotionalRoutes } from './routes/emotional.js';
 import { journalRoutes, insightRoutes } from './routes/journal.js';
@@ -18,8 +18,14 @@ import {
   knowledgeRoutes,
   reviewRoutes,
 } from './routes/hub.js';
+import {
+  declutterSessionRoutes,
+  declutterValuationRoutes,
+  declutterAnalysisRoutes,
+} from './routes/declutter.js';
+import { tradeRoutes } from './routes/trade.js';
 
-export const prisma = new PrismaClient();
+export { prisma };
 
 const app = Fastify({ logger: true });
 
@@ -52,6 +58,10 @@ await app.register(captureRoutes);
 await app.register(projectRoutes);
 await app.register(knowledgeRoutes);
 await app.register(reviewRoutes);
+await app.register(declutterSessionRoutes);
+await app.register(declutterValuationRoutes);
+await app.register(declutterAnalysisRoutes);
+await app.register(tradeRoutes);
 
 try {
   const port = Number(process.env.PORT) || 3001;
