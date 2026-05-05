@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BodyCheckIn } from '../../components/body/BodyCheckIn';
 import { SleepLogger } from '../../components/body/SleepLogger';
+import { DeclutterSpaces } from '../../components/declutter/DeclutterSpaces';
 
 type BodyMode = 'checkin' | 'sleep' | 'spaces';
 
@@ -52,6 +53,8 @@ export default function BodyScreen() {
           <BodyCheckIn on_complete={handleBodyCheckIn} />
         ) : mode === 'sleep' ? (
           <SleepLogger on_save={handleSleepSave} />
+        ) : mode === 'spaces' ? (
+          <DeclutterSpaces onBack={() => setMode(null)} />
         ) : (
           <>
             <View style={styles.modesGrid}>
