@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { QuickCapture } from '../../components/hub/QuickCapture';
@@ -66,7 +67,10 @@ function InboxPanel() {
   const deleteCapture = useDeleteCapture();
 
   const handleCapture = (data: { content: string; tags: string[] }) => {
-    createCapture.mutate({ content: data.content, tags: data.tags });
+    createCapture.mutate(
+      { content: data.content, tags: data.tags },
+      { onError: () => Alert.alert('Error', 'Failed to create capture. Please try again.') },
+    );
   };
 
   if (isLoading) return <ActivityIndicator color="#6c63ff" style={{ marginTop: 40 }} />;
@@ -89,7 +93,7 @@ function InboxPanel() {
                 <Text style={styles.captureTime}>
                   {new Date(item.capturedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                 </Text>
-                <TouchableOpacity onPress={() => deleteCapture.mutate(item.id)}>
+                <TouchableOpacity onPress={() => deleteCapture.mutate(item.id, { onError: () => Alert.alert('Error', 'Failed to delete capture. Please try again.') })}>
                   <Text style={styles.dismissText}>×</Text>
                 </TouchableOpacity>
               </View>
@@ -123,7 +127,10 @@ function ProjectsPanel() {
 
   const handleCreate = () => {
     if (!name.trim()) return;
-    createProject.mutate({ name: name.trim() }, { onSuccess: () => { setName(''); setShowNew(false); } });
+    createProject.mutate(
+      { name: name.trim() },
+      { onSuccess: () => { setName(''); setShowNew(false); }, onError: () => Alert.alert('Error', 'Failed to create project. Please try again.') },
+    );
   };
 
   if (isLoading) return <ActivityIndicator color="#6c63ff" style={{ marginTop: 40 }} />;
@@ -166,7 +173,7 @@ function ProjectsPanel() {
               <Text style={styles.projectMeta}>{p.area} · {p.status}</Text>
             </View>
             {p.status !== 'archived' && (
-              <TouchableOpacity onPress={() => archiveProject.mutate(p.id)}>
+              <TouchableOpacity onPress={() => archiveProject.mutate(p.id, { onError: () => Alert.alert('Error', 'Failed to archive project. Please try again.') })}>
                 <Text style={styles.archiveBtn}>Archive</Text>
               </TouchableOpacity>
             )}
@@ -189,7 +196,7 @@ function KnowledgePanel() {
     if (!title.trim() || !content.trim()) return;
     createKnowledge.mutate(
       { title: title.trim(), content: content.trim() },
-      { onSuccess: () => { setTitle(''); setContent(''); setShowNew(false); } },
+      { onSuccess: () => { setTitle(''); setContent(''); setShowNew(false); }, onError: () => Alert.alert('Error', 'Failed to create knowledge. Please try again.') },
     );
   };
 
@@ -244,7 +251,7 @@ function KnowledgePanel() {
           <View key={item.id} style={styles.knowledgeCard}>
             <View style={styles.knowledgeHeader}>
               <Text style={styles.knowledgeTitle}>{item.title}</Text>
-              <TouchableOpacity onPress={() => deleteKnowledge.mutate(item.id)}>
+              <TouchableOpacity onPress={() => deleteKnowledge.mutate(item.id, { onError: () => Alert.alert('Error', 'Failed to delete knowledge. Please try again.') })}>
                 <Text style={styles.dismissText}>×</Text>
               </TouchableOpacity>
             </View>

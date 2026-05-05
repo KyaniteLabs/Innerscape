@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   ScrollView,
+  Alert,
 } from 'react-native';
 import {
   useListings,
@@ -112,7 +113,10 @@ function BrowseListings() {
         <ListingCard
           key={item.id}
           item={item}
-          onAction={() => createMatch.mutate({ listing_id: item.id, use_credits: true })}
+          onAction={() => createMatch.mutate(
+            { listing_id: item.id, use_credits: true },
+            { onError: () => Alert.alert('Error', 'Failed to offer credits. Please try again.') },
+          )}
           actionLabel="Offer Credits"
         />
       ))}
@@ -177,7 +181,7 @@ function CreateListingView({ onCreated }: { onCreated: () => void }) {
         condition,
         trade_value_credits: credits ? Number(credits) : undefined,
       },
-      { onSuccess: onCreated },
+      { onSuccess: onCreated, onError: () => Alert.alert('Error', 'Failed to list item. Please try again.') },
     );
   };
 

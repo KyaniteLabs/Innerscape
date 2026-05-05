@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { JournalFeed } from '../../components/journal/JournalFeed';
@@ -41,6 +42,9 @@ export default function MindScreen() {
           setContent('');
           setTagInput('');
           setIsComposing(false);
+        },
+        onError: () => {
+          Alert.alert('Error', 'Failed to create entry. Please try again.');
         },
       },
     );
@@ -148,7 +152,11 @@ function InsightsPanel() {
         <Text style={styles.title}>Insights</Text>
         <TouchableOpacity
           style={styles.composeButton}
-          onPress={() => generateInsights.mutate()}
+          onPress={() => generateInsights.mutate(undefined, {
+            onError: () => {
+              Alert.alert('Error', 'Failed to generate insights. Please try again.');
+            },
+          })}
           disabled={generateInsights.isPending}
         >
           <Text style={styles.composeButtonText}>
@@ -176,7 +184,11 @@ function InsightsPanel() {
             <View style={styles.insightActions}>
               <TouchableOpacity
                 style={styles.dismissBtn}
-                onPress={() => dismissInsight.mutate(insight.id)}
+                onPress={() => dismissInsight.mutate(insight.id, {
+                  onError: () => {
+                    Alert.alert('Error', 'Failed to dismiss insight. Please try again.');
+                  },
+                })}
               >
                 <Text style={styles.dismissBtnText}>Dismiss</Text>
               </TouchableOpacity>

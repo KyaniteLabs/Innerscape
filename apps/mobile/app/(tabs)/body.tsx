@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BodyCheckIn } from '../../components/body/BodyCheckIn';
 import { SleepLogger } from '../../components/body/SleepLogger';
@@ -21,13 +21,19 @@ export default function BodyScreen() {
     emotionWheelFeeling: string;
     emotionWheelValence: string;
   }) => {
-    createCheckin.mutate(data, { onSuccess: () => setMode(null) });
+    createCheckin.mutate(data, {
+      onSuccess: () => setMode(null),
+      onError: () => Alert.alert('Error', 'Failed to save check-in. Please try again.'),
+    });
   };
 
   const handleSleepSave = (data: { durationHours: number; qualityScore: number }) => {
     createSleepLog.mutate(
       { date: new Date().toISOString(), durationHours: data.durationHours, qualityScore: data.qualityScore },
-      { onSuccess: () => setMode(null) },
+      {
+        onSuccess: () => setMode(null),
+        onError: () => Alert.alert('Error', 'Failed to log sleep. Please try again.'),
+      },
     );
   };
 

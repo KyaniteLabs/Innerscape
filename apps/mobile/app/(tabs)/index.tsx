@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import { ContextGreeting } from '../../components/ContextGreeting';
 import { QuickCheckIn } from '../../components/checkin/QuickCheckIn';
 import { useEmotionalStore } from '../../stores/emotional';
@@ -76,16 +77,16 @@ export default function HomeScreen() {
 
         <View style={styles.moduleGrid}>
           {[
-            { name: 'Mind', emoji: '🧠', desc: 'Journal & Insights' },
-            { name: 'Flow', emoji: '⚡', desc: 'Habits & Goals' },
-            { name: 'Body', emoji: '🫀', desc: 'Scan & Sleep' },
-            { name: 'Hub', emoji: '📥', desc: 'Capture & Review' },
+            { name: 'Mind', emoji: '🧠', desc: 'Journal & Insights', tab: '/(tabs)/mind' },
+            { name: 'Flow', emoji: '⚡', desc: 'Habits & Goals', tab: '/(tabs)/flow' },
+            { name: 'Body', emoji: '🫀', desc: 'Scan & Sleep', tab: '/(tabs)/body' },
+            { name: 'Hub', emoji: '📥', desc: 'Capture & Review', tab: '/(tabs)/hub' },
           ].map((module) => (
-            <View key={module.name} style={styles.moduleCard}>
+            <TouchableOpacity key={module.name} style={styles.moduleCard} onPress={() => router.push(module.tab as Parameters<typeof router.push>[0])}>
               <Text style={styles.moduleEmoji}>{module.emoji}</Text>
               <Text style={styles.moduleName}>{module.name}</Text>
               <Text style={styles.moduleDesc}>{module.desc}</Text>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
       </ScrollView>

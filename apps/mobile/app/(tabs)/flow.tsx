@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { HabitTracker } from '../../components/habits/HabitTracker';
@@ -64,7 +65,10 @@ function HabitsPanel() {
     if (!newName.trim()) return;
     createHabit.mutate(
       { name: newName.trim() },
-      { onSuccess: () => { setNewName(''); setIsAdding(false); } },
+      {
+        onSuccess: () => { setNewName(''); setIsAdding(false); },
+        onError: () => Alert.alert('Error', 'Failed to create habit. Please try again.'),
+      },
     );
   };
 
@@ -76,6 +80,7 @@ function HabitsPanel() {
           setCelebration(true);
         }
       },
+      onError: () => Alert.alert('Error', 'Failed to complete habit. Please try again.'),
     });
   };
 
@@ -130,7 +135,10 @@ function GoalsPanel() {
     if (!goalTitle.trim()) return;
     createGoal.mutate(
       { title: goalTitle.trim() },
-      { onSuccess: () => { setGoalTitle(''); setShowNewGoal(false); } },
+      {
+        onSuccess: () => { setGoalTitle(''); setShowNewGoal(false); },
+        onError: () => Alert.alert('Error', 'Failed to create goal. Please try again.'),
+      },
     );
   };
 
