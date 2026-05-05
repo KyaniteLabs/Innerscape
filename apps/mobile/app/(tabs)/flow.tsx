@@ -195,7 +195,10 @@ function GoalCard({ goalId, title, status }: { goalId: string; title: string; st
     if (!newTask.trim()) return;
     createTask.mutate(
       { title: newTask.trim(), goalId },
-      { onSuccess: () => { setNewTask(''); setShowAddTask(false); } },
+      {
+        onSuccess: () => { setNewTask(''); setShowAddTask(false); },
+        onError: () => Alert.alert('Error', 'Failed to create task. Please try again.'),
+      },
     );
   };
 
@@ -232,7 +235,7 @@ function GoalCard({ goalId, title, status }: { goalId: string; title: string; st
         <TouchableOpacity
           key={task.id}
           style={styles.taskRow}
-          onPress={() => !task.completed && completeTask.mutate(task.id)}
+          onPress={() => !task.completed && completeTask.mutate(task.id, { onError: () => Alert.alert('Error', 'Failed to complete task. Please try again.') })}
           activeOpacity={0.7}
         >
           <Text style={[styles.taskCheck, task.completed && styles.taskCheckDone]}>
@@ -266,7 +269,10 @@ function DopaminePanel() {
     if (!itemName.trim()) return;
     createItem.mutate(
       { category: itemCategory, name: itemName.trim(), instructions: [] },
-      { onSuccess: () => { setItemName(''); setShowCreate(false); } },
+      {
+        onSuccess: () => { setItemName(''); setShowCreate(false); },
+        onError: () => Alert.alert('Error', 'Failed to create activity. Please try again.'),
+      },
     );
   };
 
@@ -324,7 +330,7 @@ function DopaminePanel() {
               <TouchableOpacity
                 key={item.id}
                 style={styles.dopamineItem}
-                onPress={() => markUsed.mutate(item.id)}
+                onPress={() => markUsed.mutate(item.id, { onError: () => Alert.alert('Error', 'Failed to mark activity used. Please try again.') })}
                 activeOpacity={0.7}
               >
                 <View style={styles.dopamineItemInfo}>
