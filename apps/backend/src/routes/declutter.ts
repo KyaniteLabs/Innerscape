@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '../db.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { runAnalysis } from '../services/vision-analysis.js';
+import type { Prisma } from '@prisma/client';
 import type { ValuationJson, ListingDraftJson } from '../types/valuation.js';
 import { sendError } from '../utils/send-error.js';
 
@@ -122,8 +123,8 @@ export async function declutterSessionRoutes(app: FastifyInstance) {
         sessionId,
         label,
         condition,
-        valuationJson: valuation as any,
-        listingDraftJson: listingDraft as any,
+        valuationJson: valuation as unknown as Prisma.InputJsonValue,
+        listingDraftJson: listingDraft as unknown as Prisma.InputJsonValue,
       },
     });
 
@@ -355,8 +356,8 @@ export async function declutterAnalysisRoutes(app: FastifyInstance) {
             confidence: valuation.confidence,
             comp_count: valuation.comp_count,
             source: valuation.source,
-          } as any,
-          listingDraftJson: listingDraft as any,
+          } as unknown as Prisma.InputJsonValue,
+          listingDraftJson: listingDraft as unknown as Prisma.InputJsonValue,
         },
       });
       items.push(item);
