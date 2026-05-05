@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Activi
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BodyCheckIn } from '../../components/body/BodyCheckIn';
 import { SleepLogger } from '../../components/body/SleepLogger';
-import { DeclutterSpaces } from '../../components/declutter/DeclutterSpaces';
+import { SpacesPanel } from '../../components/spaces/SpacesPanel';
 import { useCreateBodyCheckin } from '../../hooks/useBodyCheckins';
 import { useSleep, useCreateSleepLog } from '../../hooks/useSleep';
 import { useSomatic, useCreateSomatic } from '../../hooks/useSomatic';
@@ -92,7 +92,7 @@ export default function BodyScreen() {
         ) : mode === 'sleep' ? (
           <SleepLogger on_save={handleSleepSave} />
         ) : mode === 'spaces' ? (
-          <DeclutterSpaces onBack={() => setMode(null)} />
+          <SpacesPanel onBack={() => setMode(null)} />
         ) : mode === 'somatic' ? (
           <View style={styles.somaticForm}>
             <TouchableOpacity onPress={() => setMode(null)} activeOpacity={0.7}>
