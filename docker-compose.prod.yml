@@ -14,17 +14,6 @@ services:
       timeout: 5s
       retries: 5
 
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    volumes:
-      - redisdata:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   api:
     build:
       context: .
@@ -32,14 +21,11 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-innerscape}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-innerscape}
-      REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
       PORT: 3001
       NODE_ENV: production
     depends_on:
       db:
-        condition: service_healthy
-      redis:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
@@ -69,7 +55,6 @@ services:
 
 volumes:
   pgdata:
-  redisdata:
 
 networks:
   traefik:

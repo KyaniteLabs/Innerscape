@@ -14,24 +14,12 @@ services:
       timeout: 5s
       retries: 5
 
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    volumes:
-      - redisdata:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   migrate:
     build:
       context: .
       dockerfile: Dockerfile
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-innerscape}:${POSTGRES_PASSWORD:-Inn3rSc4p3Pr0d2026}@db:5432/${POSTGRES_DB:-innerscape}
-      REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET:-ch4ng3-m3-t0-4-r4nd0m-64-ch4r-str1ng}
       PORT: 3001
       NODE_ENV: production
@@ -48,14 +36,11 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-innerscape}:${POSTGRES_PASSWORD:-Inn3rSc4p3Pr0d2026}@db:5432/${POSTGRES_DB:-innerscape}
-      REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET:-ch4ng3-m3-t0-4-r4nd0m-64-ch4r-str1ng}
       PORT: 3001
       NODE_ENV: production
     depends_on:
       db:
-        condition: service_healthy
-      redis:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
@@ -88,7 +73,6 @@ services:
 
 volumes:
   pgdata:
-  redisdata:
 
 networks:
   proxy-net:
