@@ -14,8 +14,9 @@ import { useCaptures, useCreateCapture, useDeleteCapture } from '../../hooks/use
 import { useProjects, useCreateProject, useArchiveProject } from '../../hooks/useProjects';
 import { useKnowledge, useCreateKnowledge, useDeleteKnowledge } from '../../hooks/useKnowledge';
 import { useDailySummary, useWeeklyReview } from '../../hooks/useReview';
+import { TradeMarketplace } from '../../components/trade/TradeMarketplace';
 
-type HubMode = 'inbox' | 'projects' | 'knowledge' | 'review';
+type HubMode = 'inbox' | 'projects' | 'knowledge' | 'review' | 'trade';
 
 export default function HubScreen() {
   const [mode, setMode] = useState<HubMode>('inbox');
@@ -27,6 +28,7 @@ export default function HubScreen() {
     { key: 'projects', label: 'Projects', icon: '📁' },
     { key: 'knowledge', label: 'Knowledge', icon: '📚' },
     { key: 'review', label: 'Review', icon: '📊' },
+    { key: 'trade', label: 'Trade', icon: '🔄' },
   ];
 
   return (
@@ -52,6 +54,7 @@ export default function HubScreen() {
         {mode === 'projects' && <ProjectsPanel />}
         {mode === 'knowledge' && <KnowledgePanel />}
         {mode === 'review' && <ReviewPanel />}
+        {mode === 'trade' && <TradeMarketplace onBack={() => setMode('inbox')} />}
       </ScrollView>
     </SafeAreaView>
   );

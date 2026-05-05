@@ -1,7 +1,0 @@
-# Business Logic
-#
-# Subfolders:
-# - api/ — API client for backend
-# - sync/ — PowerSync integration
-# - health/ — HealthKit/Google Fit
-# - voice/ — Whisper/Deepgram

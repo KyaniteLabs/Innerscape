@@ -1,8 +1,0 @@
-# Shared Components
-# 
-# Key components:
-# - EmotionalContextBanner.tsx — Shows current mood from Soma
-# - VoiceRecorder.tsx — Reusable voice input
-# - HabitCard.tsx — Habit display with check-off
-# - InsightCard.tsx — Cross-app insight display
-# - CaptureModal.tsx — Quick capture overlay

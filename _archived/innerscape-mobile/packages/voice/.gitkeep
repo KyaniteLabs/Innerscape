@@ -1,9 +1,0 @@
-# Voice Package
-# Speech-to-text integration with Whisper and Deepgram
-#
-# Exports:
-# - useVoiceRecording() hook
-# - transcribeAudio()
-# - VoiceRecorder component
-# - On-device Whisper model loading
-# - Cloud Deepgram fallback

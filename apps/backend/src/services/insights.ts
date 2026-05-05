@@ -1,4 +1,5 @@
 import { prisma } from '../server.js';
+import type { EmotionalCheckIn, SleepLog, Habit } from '@prisma/client';
 
 interface InsightCandidate {
   type: string;
@@ -75,7 +76,7 @@ export async function generateInsights(userId: string): Promise<InsightCandidate
   return insights.sort((a, b) => b.confidence - a.confidence).slice(0, 10);
 }
 
-function detectEnergyPatterns(checkIns: any[]): InsightCandidate[] {
+function detectEnergyPatterns(checkIns: EmotionalCheckIn[]): InsightCandidate[] {
   const insights: InsightCandidate[] = [];
   if (checkIns.length < 3) return insights;
 
@@ -143,7 +144,7 @@ function detectEnergyPatterns(checkIns: any[]): InsightCandidate[] {
   return insights;
 }
 
-function detectSleepEnergyCorrelation(checkIns: any[], sleepLogs: any[]): InsightCandidate[] {
+function detectSleepEnergyCorrelation(checkIns: EmotionalCheckIn[], sleepLogs: SleepLog[]): InsightCandidate[] {
   const insights: InsightCandidate[] = [];
   if (sleepLogs.length < 3 || checkIns.length < 3) return insights;
 
@@ -176,7 +177,7 @@ function detectSleepEnergyCorrelation(checkIns: any[], sleepLogs: any[]): Insigh
   return insights;
 }
 
-function detectHabitInsights(habits: any[]): InsightCandidate[] {
+function detectHabitInsights(habits: Habit[]): InsightCandidate[] {
   const insights: InsightCandidate[] = [];
   if (habits.length === 0) return insights;
 
@@ -227,7 +228,7 @@ function detectHabitInsights(habits: any[]): InsightCandidate[] {
   return insights;
 }
 
-function detectValencePatterns(checkIns: any[]): InsightCandidate[] {
+function detectValencePatterns(checkIns: EmotionalCheckIn[]): InsightCandidate[] {
   const insights: InsightCandidate[] = [];
   if (checkIns.length < 5) return insights;
 

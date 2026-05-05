@@ -39,8 +39,9 @@ app.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOStrin
 
 app.setErrorHandler((error, _request, reply) => {
   app.log.error(error);
-  const statusCode = (error as any).statusCode ?? 500;
-  const message = statusCode >= 500 ? 'Internal server error' : (error as Error).message;
+  const err = error as Error & { statusCode?: number };
+  const statusCode = err.statusCode ?? 500;
+  const message = statusCode >= 500 ? 'Internal server error' : err.message;
   reply.status(statusCode).send({ error: message });
 });
 
