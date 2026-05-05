@@ -37,6 +37,17 @@ await app.register(rateLimit, {
 
 app.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
 
+app.setErrorHandler((error, _request, reply) => {
+  app.log.error(error);
+  const statusCode = (error as any).statusCode ?? 500;
+  const message = statusCode >= 500 ? 'Internal server error' : (error as Error).message;
+  reply.status(statusCode).send({ error: message });
+});
+
+app.setNotFoundHandler((_request, reply) => {
+  reply.status(404).send({ error: 'Not found' });
+});
+
 app.get('/api/v1', async () => ({
   name: 'Innerscape API',
   version: '0.1.0',
