@@ -1,29 +1,95 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    ports:
-      - "5432:5432"
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: innerscape
-      POSTGRES_PASSWORD: innerscape
-      POSTGRES_DB: innerscape
+      POSTGRES_USER: ${POSTGRES_USER:-innerscape}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Inn3rSc4p3Pr0d2026}
+      POSTGRES_DB: ${POSTGRES_DB:-innerscape}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U innerscape"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-innerscape}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    restart: unless-stopped
+    volumes:
+      - redisdata:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
 
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-innerscape}:${POSTGRES_PASSWORD:-Inn3rSc4p3Pr0d2026}@db:5432/${POSTGRES_DB:-innerscape}
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-ch4ng3-m3-t0-4-r4nd0m-64-ch4r-str1ng}
+      PORT: 3001
+      NODE_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["npx", "prisma", "migrate", "deploy"]
+    restart: "no"
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-innerscape}:${POSTGRES_PASSWORD:-Inn3rSc4p3Pr0d2026}@db:5432/${POSTGRES_DB:-innerscape}
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-ch4ng3-m3-t0-4-r4nd0m-64-ch4r-str1ng}
+      PORT: 3001
+      NODE_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - default
+      - proxy-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.innerscape.rule=Host(`${DOMAIN:-innerscape.srv1542844.hstgr.cloud}`)"
+      - "traefik.http.routers.innerscape.entrypoints=websecure"
+      - "traefik.http.routers.innerscape.tls=true"
+      - "traefik.http.routers.innerscape.tls.certresolver=letsencrypt"
+      - "traefik.http.services.innerscape.loadbalancer.server.port=3001"
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    restart: unless-stopped
+    networks:
+      - default
+      - proxy-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.innerscape-web.rule=Host(`${DOMAIN:-innerscape.srv1542844.hstgr.cloud}`)"
+      - "traefik.http.routers.innerscape-web.entrypoints=websecure"
+      - "traefik.http.routers.innerscape-web.tls=true"
+      - "traefik.http.routers.innerscape-web.tls.certresolver=letsencrypt"
+      - "traefik.http.services.innerscape-web.loadbalancer.server.port=80"
+
 volumes:
   pgdata:
+  redisdata:
+
+networks:
+  proxy-net:
+    external: true

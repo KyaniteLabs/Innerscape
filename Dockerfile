@@ -6,7 +6,7 @@ COPY packages/shared ./packages/shared
 COPY apps/backend ./apps/backend
 COPY apps/mobile/package.json ./apps/mobile/package.json
 
-RUN npm install --workspaces --omit=dev
+RUN npm install --workspaces
 RUN npm run build:shared
 RUN cd apps/backend && npx prisma generate && npx tsc
 
@@ -20,7 +20,6 @@ RUN addgroup --system --gid 1001 nodejs && \
 COPY --from=builder /build/node_modules ./node_modules
 COPY --from=builder /build/apps/backend/dist ./dist
 COPY --from=builder /build/apps/backend/prisma ./prisma
-COPY --from=builder /build/apps/backend/node_modules ./apps/backend/node_modules
 COPY --from=builder /build/apps/backend/package.json ./
 COPY --from=builder /build/packages/shared/dist ./packages/shared/dist
 
