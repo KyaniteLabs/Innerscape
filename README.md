@@ -1,61 +1,88 @@
-# Innerscape Suite
+# Innerscape
 
-A cohesive 100% TypeScript suite for self-awareness, productivity, and health.
+Personal growth OS — self-awareness, productivity, and well-being in one unified TypeScript suite.
 
-## Repository Structure
+## Stack
 
-- `innerscape-mobile/`: Unified React Native (Expo) app for Mind, Flow, Body (Somatic/Pulse), and Hub.
-- `Second Brain Project/`: Next.js Web Shell for deep analysis, goals, and brain management.
-- `lifeos-backend/`: Hono + Cloudflare Workers API.
-- `lifeos-design-system/`: Style Dictionary based tokens for consistent UI.
-- `lifeos-shared/`: Shared TypeScript types, hooks, and components.
-- `_archived/`: Deprecated projects (including the original standalone Soma app).
-
-## Core Architecture
-
-- **Auth**: Clerk (Unified across all apps)
-- **Database**: Turso (libSQL)
-- **Sync**: PowerSync (Local-first with cloud sync)
-- **Shell**: 
-  - **Mobile**: Unified App with 4-tab structure (Mind, Flow, Body, Hub).
-  - **Web**: Next.js App Shell with full feature parity.
+| Layer | Tech |
+|-------|------|
+| **Backend** | Fastify 5, Prisma 6, PostgreSQL, JWT (jose), Zod |
+| **Mobile** | Expo SDK 53, React Native, TanStack Query v5, Expo Router |
+| **Shared** | TypeScript types across backend + mobile |
+| **Deploy** | Docker Compose, Traefik, Let's Encrypt TLS |
 
 ## Quick Start
 
-### 1. Initial Setup
-Run from the root directory:
+### Prerequisites
+
+- Node.js 22+
+- PostgreSQL 16+
+- Expo CLI
+
+### Backend
+
 ```bash
-npm run install:all
+cd apps/backend
+cp .env.example .env    # Edit with your DB connection
+npm ci
+npx prisma migrate dev
+npm run dev
 ```
 
-### 2. Design System & Shared Library
+### Mobile
+
 ```bash
-npm run build:ds
-npm run build:shared
+cd apps/mobile
+npm ci
+npx expo start
 ```
 
-### 3. Backend
-Setup `.env` in `lifeos-backend/` then:
+### Run Tests
+
 ```bash
-npm run build:backend
+cd apps/backend
+npm test                # 143 integration tests
+npx tsc --noEmit        # Zero errors
 ```
 
-### 4. Mobile App
-```bash
-cd innerscape-mobile
-npm start
+## Repository Structure
+
+```
+apps/
+  backend/          Fastify API — 72 endpoints
+    src/
+      routes/       auth, emotional, journal, flow, body, hub, declutter, trade
+      services/     auth, insights, vision-analysis
+      middleware/    JWT auth
+    tests/
+      integration/  9 test files, 143 tests
+  mobile/           Expo app — 5 tabs (Home, Mind, Flow, Body, Hub)
+    hooks/          16 data hooks (TanStack Query)
+    components/     12 UI components
+packages/
+  shared/           Shared TypeScript types
 ```
 
-### 5. Web App
-Setup `.env` in `Second Brain Project/` then:
-```bash
-npm run dev:web
-```
+## Modules
 
-## APEX Compliance
+| Tab | Features |
+|-----|----------|
+| **Mind** | Journal entries, emotional check-ins, AI insights |
+| **Flow** | Habits (streaks), goals, tasks, dopamine menu |
+| **Body** | Sleep logs, somatic mapping, space scanning |
+| **Hub** | Capture inbox, projects (PARA), knowledge base, reviews, trade marketplace |
 
-This project follows the **APEX Engineering Rules**:
-- **Contract-First**: All core functions documented with inputs/outputs/errors.
-- **Identity**: Clerk unified authentication.
-- **Context-First**: Emotional context shared via Zustand and synced data.
-- **Quality Gates**: Mandatory TypeScript and build verification.
+## API
+
+- Auth: register, login, user preferences
+- Emotional: check-ins, context tracking
+- Journal: CRUD entries, insights CRUD, insight generation
+- Flow: habits, goals, tasks, dopamine menu
+- Body: sleep logs, somatic mappings, space scanning
+- Hub: capture, projects, knowledge, daily/weekly reviews
+- Trade: listings, matches, credits, rules
+- Declutter: sessions, items, valuations, decisions
+
+## License
+
+MIT — KyaniteLabs
