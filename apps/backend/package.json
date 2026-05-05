@@ -15,7 +15,8 @@
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "postinstall": "npm install @rolldown/binding-linux-x64-gnu --save-dev 2>/dev/null || npm install @rolldown/binding --force 2>/dev/null || true"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.74",
