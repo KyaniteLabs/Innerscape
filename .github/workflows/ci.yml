@@ -55,4 +55,6 @@ jobs:
           cache: npm
       - run: npm ci
         working-directory: .
+      - run: npm run build --workspace=packages/shared
+        working-directory: .
       - run: npx tsc --noEmit

@@ -1,0 +1,23 @@
+# Innerscape
+
+> Personal growth OS for journaling, emotional check-ins, habits, goals, body logs, decluttering, and self-awareness workflows.
+
+Innerscape is a TypeScript monorepo with a Fastify backend, Expo mobile app, shared types, PostgreSQL, Prisma, and modules for mind, flow, body, hub, decluttering, and trade workflows.
+
+## Use cases
+- Personal growth operating system
+- Journaling and emotional check-ins
+- Habit, goal, task, and dopamine menu tracking
+- Sleep logs and somatic mapping
+- Decluttering sessions and item decisions
+- PARA-style projects, capture inbox, reviews, and knowledge base
+- Neurodivergent-friendly self-awareness workflows
+
+## Key paths
+- `README.md`: public overview and setup
+- `apps/backend/`: Fastify API, Prisma, auth, route modules
+- `apps/mobile/`: Expo app with Home, Mind, Flow, Body, and Hub tabs
+- `packages/shared/`: shared TypeScript types
+
+## Keywords
+personal growth OS, life OS, journaling app, emotional check-in app, habit tracker, goal tracker, neurodivergent productivity, ADHD-friendly planning, decluttering app, Expo app, Fastify API, Prisma PostgreSQL, TypeScript wellness app.

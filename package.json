@@ -2,6 +2,34 @@
   "name": "innerscape",
   "version": "0.1.0",
   "private": true,
+  "description": "Personal growth OS in TypeScript: journaling, emotional check-ins, habits, goals, tasks, sleep logs, decluttering, and self-awareness workflows.",
+  "keywords": [
+    "personal-growth",
+    "life-os",
+    "journaling",
+    "habits",
+    "goals",
+    "productivity",
+    "well-being",
+    "mental-health",
+    "self-awareness",
+    "neurodivergent",
+    "expo",
+    "react-native",
+    "fastify",
+    "prisma",
+    "postgresql",
+    "typescript"
+  ],
+  "homepage": "https://kyanitelabs.tech",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KyaniteLabs/Innerscape.git"
+  },
+  "bugs": {
+    "url": "https://github.com/KyaniteLabs/Innerscape/issues"
+  },
+  "license": "MIT",
   "workspaces": [
     "apps/*",
     "packages/*"
