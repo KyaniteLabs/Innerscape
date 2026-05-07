@@ -9,21 +9,20 @@ const config: ExpoConfig = {
   userInterfaceStyle: 'dark',
   platforms: ['ios', 'android', 'web'],
   web: {
-    favicon: './assets/favicon.png',
     name: 'Innerscape',
     shortName: 'Innerscape',
-    description: 'Executive prosthetic for neurodivergent minds',
-    backgroundColor: '#0f0f23',
-    themeColor: '#6c63ff',
+    description: 'A neurodivergent-first sanctuary OS for fluctuating capacity, sensory needs, memory, body signal, and next action',
+    backgroundColor: '#08110E',
+    themeColor: '#A8F0C6',
     startUrl: '/',
     display: 'standalone',
     orientation: 'portrait',
     bundler: 'metro',
   },
-  plugins: ['expo-router'],
+  plugins: ['expo-router', 'expo-secure-store'],
   experiments: {
     typedRoutes: true,
   },
-};
+} satisfies ExpoConfig;
 
-export default config;
+export default { ...config, newArchEnabled: true };

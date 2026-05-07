@@ -6,11 +6,25 @@
     "jsx": "react-jsx",
     "moduleResolution": "bundler",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     }
   },
-  "include": ["app", "components", "hooks", "stores", "lib", "**/*.ts", "**/*.tsx"],
+  "include": [
+    "app",
+    "components",
+    "hooks",
+    "stores",
+    "lib",
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ],
   "references": [
-    { "path": "../../packages/shared" }
+    {
+      "path": "../../packages/shared"
+    }
   ]
 }

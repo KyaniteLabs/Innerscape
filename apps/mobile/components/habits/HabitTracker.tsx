@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { notificationAsync } from '../../lib/haptics';
 import { NotificationFeedbackType } from 'expo-haptics';
+import { COLORS, SPACING, RADIUS, FONT } from '../../lib/theme';
 
 interface Habit {
   id: string;
@@ -73,37 +74,37 @@ export function HabitTracker({ habits, on_complete }: HabitTrackerProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 8 },
-  emptyContainer: { alignItems: 'center', padding: 32 },
-  emptyText: { color: '#888', fontSize: 16, fontWeight: '500' },
-  emptyHint: { color: '#555', fontSize: 13, marginTop: 4 },
+  container: { gap: SPACING[2] },
+  emptyContainer: { alignItems: 'center', padding: SPACING[8] },
+  emptyText: { color: COLORS.text.muted, fontSize: FONT.size.base, fontWeight: FONT.weight.medium },
+  emptyHint: { color: COLORS.text.muted, fontSize: FONT.size.sm - 1, marginTop: SPACING[1] },
   habitCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#16213e',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: COLORS.dark.card,
+    borderRadius: RADIUS.lg,
+    padding: SPACING[4],
     justifyContent: 'space-between',
   },
   completedCard: { backgroundColor: '#1a2e1a' },
-  habitLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  habitLeft: { flexDirection: 'row', alignItems: 'center', gap: SPACING[3], flex: 1 },
   checkCircle: {
     width: 28,
     height: 28,
     borderRadius: 14,
     borderWidth: 2,
-    borderColor: '#444',
+    borderColor: COLORS.text.muted,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  checkCircleDone: { backgroundColor: '#4caf50', borderColor: '#4caf50' },
-  checkMark: { color: '#fff', fontSize: 14, fontWeight: '700' },
-  habitName: { color: '#e0e0e0', fontSize: 15, fontWeight: '500' },
-  habitNameDone: { color: '#888' },
+  checkCircleDone: { backgroundColor: COLORS.success, borderColor: COLORS.success },
+  checkMark: { color: COLORS.text.inverse, fontSize: FONT.size.sm, fontWeight: FONT.weight.bold },
+  habitName: { color: COLORS.text.primary, fontSize: FONT.size.base - 1, fontWeight: FONT.weight.medium },
+  habitNameDone: { color: COLORS.text.muted },
   streakContainer: { alignItems: 'center' },
-  streakCount: { color: '#6c63ff', fontSize: 20, fontWeight: '700' },
-  streakLabel: { color: '#555', fontSize: 10 },
+  streakCount: { color: COLORS.primary, fontSize: FONT.size.xl, fontWeight: FONT.weight.bold },
+  streakLabel: { color: COLORS.text.muted, fontSize: FONT.size.xs - 2 },
   fireBadge: { position: 'absolute', top: -4, right: -4 },
-  fireEmoji: { fontSize: 16 },
-  recordLabel: { color: '#ffd700', fontSize: 10, fontWeight: '600' },
+  fireEmoji: { fontSize: FONT.size.base },
+  recordLabel: { color: '#ffd700', fontSize: FONT.size.xs - 2, fontWeight: FONT.weight.semibold },
 });

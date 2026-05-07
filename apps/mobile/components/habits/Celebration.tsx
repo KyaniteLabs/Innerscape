@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Text, StyleSheet } from 'react-native';
+import { COLORS, SPACING, RADIUS, FONT } from '../../lib/theme';
 
 interface CelebrationProps {
   trigger: boolean;
@@ -49,12 +50,12 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#1a2e1a',
-    borderRadius: 20,
-    padding: 24,
+    borderRadius: RADIUS.xl + 4,
+    padding: SPACING[6],
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#4caf50',
+    borderColor: COLORS.success,
   },
-  emoji: { fontSize: 48 },
-  message: { color: '#4caf50', fontSize: 18, fontWeight: '600', marginTop: 8 },
+  emoji: { fontSize: FONT.size['5xl'] },
+  message: { color: COLORS.success, fontSize: FONT.size.lg, fontWeight: FONT.weight.semibold, marginTop: SPACING[2] },
 });

@@ -38,7 +38,7 @@ jobs:
       - run: npm ci
         working-directory: .
       - run: npx prisma generate
-      - run: npx prisma db push --skip-generate
+      - run: npx prisma db push
       - run: npx tsc --noEmit
       - run: npm test
 

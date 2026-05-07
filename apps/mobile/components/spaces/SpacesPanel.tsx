@@ -16,17 +16,7 @@ import {
   useCompleteScan,
   useAddDetectedItem,
 } from '../../hooks/useSpaces';
-
-const COLORS = {
-  bg: '#0f0f23',
-  card: '#16213e',
-  cardBorder: '#1a1a3e',
-  text: '#e0e0e0',
-  muted: '#666',
-  accent: '#6c63ff',
-  success: '#51cf66',
-  warning: '#ffd43b',
-};
+import { COLORS, RADIUS, FONT, SPACING } from '../../lib/theme';
 
 const SCAN_STATUS_LABELS: Record<string, string> = {
   pending: 'In Progress',
@@ -80,7 +70,7 @@ function SpaceList({ onSelect }: { onSelect: (id: string) => void }) {
   const { data: spaces, isLoading } = useSpaces();
 
   if (isLoading) {
-    return <ActivityIndicator color={COLORS.accent} style={{ marginTop: 40 }} />;
+    return <ActivityIndicator color={COLORS.primary} style={{ marginTop: SPACING[10] }} />;
   }
 
   if (!spaces || spaces.length === 0) {
@@ -94,7 +84,7 @@ function SpaceList({ onSelect }: { onSelect: (id: string) => void }) {
   }
 
   return (
-    <ScrollView style={styles.list} contentContainerStyle={{ paddingBottom: 80 }}>
+    <ScrollView style={styles.list} contentContainerStyle={{ paddingBottom: SPACING[6] }}>
       {spaces.map((space) => {
         const latestScan = space.scans?.[0];
         return (
@@ -152,7 +142,7 @@ function SpaceDetail({ spaceId }: { spaceId: string }) {
   };
 
   return (
-    <ScrollView style={styles.list} contentContainerStyle={{ paddingBottom: 24 }}>
+    <ScrollView style={styles.list} contentContainerStyle={{ paddingBottom: SPACING[6] }}>
       <Text style={styles.sectionTitle}>{space.name}</Text>
 
       {!activeScanId && (
@@ -270,7 +260,7 @@ function AddItemOverlay({ scanId, onDone }: { scanId: string; onDone: () => void
         <TextInput
           style={styles.input}
           placeholder="Item label (e.g. old jacket)"
-          placeholderTextColor={COLORS.muted}
+          placeholderTextColor={COLORS.text.muted}
           value={label}
           onChangeText={setLabel}
           autoFocus
@@ -278,7 +268,7 @@ function AddItemOverlay({ scanId, onDone }: { scanId: string; onDone: () => void
         <TextInput
           style={styles.input}
           placeholder="Category (optional)"
-          placeholderTextColor={COLORS.muted}
+          placeholderTextColor={COLORS.text.muted}
           value={category}
           onChangeText={setCategory}
         />
@@ -329,7 +319,7 @@ function NewSpaceOverlay({ onDone }: { onDone: () => void }) {
         <TextInput
           style={styles.input}
           placeholder="Space name (e.g. Garage, Closet)"
-          placeholderTextColor={COLORS.muted}
+          placeholderTextColor={COLORS.text.muted}
           value={name}
           onChangeText={setName}
           autoFocus
@@ -357,118 +347,118 @@ function NewSpaceOverlay({ onDone }: { onDone: () => void }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.bg },
+  container: { flex: 1, backgroundColor: COLORS.dark.background },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: SPACING[4],
+    paddingVertical: SPACING[3],
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.cardBorder,
+    borderBottomColor: COLORS.dark.elevated,
   },
-  backBtn: { padding: 8 },
-  backText: { color: COLORS.accent, fontSize: 16 },
-  headerTitle: { color: COLORS.text, fontSize: 18, fontWeight: '700' },
-  list: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
+  backBtn: { padding: SPACING[2] },
+  backText: { color: COLORS.primary, fontSize: FONT.size.base },
+  headerTitle: { color: COLORS.text.primary, fontSize: FONT.size.lg, fontWeight: FONT.weight.bold },
+  list: { flex: 1, paddingHorizontal: SPACING[4], paddingTop: SPACING[4] },
   spaceCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: COLORS.dark.card,
+    borderRadius: RADIUS.lg,
+    padding: SPACING[4],
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: SPACING[2],
   },
   spaceInfo: { flex: 1 },
-  spaceName: { color: COLORS.text, fontSize: 16, fontWeight: '600' },
-  spaceDate: { color: COLORS.muted, fontSize: 12, marginTop: 4 },
+  spaceName: { color: COLORS.text.primary, fontSize: FONT.size.base, fontWeight: FONT.weight.semibold },
+  spaceDate: { color: COLORS.text.muted, fontSize: FONT.size.xs, marginTop: SPACING[1] },
   scanBadge: {
-    backgroundColor: '#1a2744',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    backgroundColor: COLORS.dark.elevated,
+    borderRadius: RADIUS.md,
+    paddingHorizontal: SPACING[2] + 2,
+    paddingVertical: SPACING[1],
   },
-  scanBadgeText: { color: COLORS.accent, fontSize: 12, fontWeight: '600' },
+  scanBadgeText: { color: COLORS.primary, fontSize: FONT.size.xs, fontWeight: FONT.weight.semibold },
   sectionTitle: {
-    color: COLORS.muted,
-    fontSize: 12,
+    color: COLORS.text.muted,
+    fontSize: FONT.size.xs,
     textTransform: 'uppercase',
     letterSpacing: 1,
-    marginBottom: 12,
+    marginBottom: SPACING[3],
   },
   primaryBtn: {
-    backgroundColor: COLORS.accent,
-    borderRadius: 12,
+    backgroundColor: COLORS.primary,
+    borderRadius: RADIUS.lg,
     paddingVertical: 14,
     alignItems: 'center',
   },
-  primaryBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  primaryBtnText: { color: '#fff', fontSize: FONT.size.base, fontWeight: FONT.weight.semibold },
   secondaryBtn: {
     borderWidth: 1,
-    borderColor: COLORS.accent,
+    borderColor: COLORS.primary,
     borderStyle: 'dashed',
-    borderRadius: 12,
+    borderRadius: RADIUS.lg,
     paddingVertical: 14,
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: SPACING[3],
   },
-  secondaryBtnText: { color: COLORS.accent, fontSize: 15, fontWeight: '600' },
+  secondaryBtnText: { color: COLORS.primary, fontSize: 15, fontWeight: FONT.weight.semibold },
   completeBtn: {
     backgroundColor: COLORS.success,
-    borderRadius: 12,
+    borderRadius: RADIUS.lg,
     paddingVertical: 14,
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: SPACING[3],
   },
-  completeBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  activeScanSection: { marginTop: 12 },
-  activeScanTitle: { color: COLORS.warning, fontSize: 14, fontWeight: '600', marginBottom: 8 },
+  completeBtnText: { color: '#fff', fontSize: FONT.size.base, fontWeight: FONT.weight.semibold },
+  activeScanSection: { marginTop: SPACING[3] },
+  activeScanTitle: { color: COLORS.warning, fontSize: FONT.size.sm, fontWeight: FONT.weight.semibold, marginBottom: SPACING[2] },
   scanCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 16,
+    backgroundColor: COLORS.dark.card,
+    borderRadius: RADIUS.lg,
+    padding: SPACING[4],
+    marginTop: SPACING[4],
   },
-  scanCardLabel: { color: COLORS.muted, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 },
-  scanCardStatus: { color: COLORS.text, fontSize: 16, fontWeight: '600', marginTop: 4 },
-  scanCardDate: { color: COLORS.muted, fontSize: 12, marginTop: 4 },
+  scanCardLabel: { color: COLORS.text.muted, fontSize: FONT.size.xs, textTransform: 'uppercase', letterSpacing: 1 },
+  scanCardStatus: { color: COLORS.text.primary, fontSize: FONT.size.base, fontWeight: FONT.weight.semibold, marginTop: SPACING[1] },
+  scanCardDate: { color: COLORS.text.muted, fontSize: FONT.size.xs, marginTop: SPACING[1] },
   fab: {
     position: 'absolute',
-    bottom: 24,
-    left: 16,
-    right: 16,
-    backgroundColor: COLORS.accent,
-    borderRadius: 16,
-    paddingVertical: 16,
+    bottom: SPACING[6],
+    left: SPACING[4],
+    right: SPACING[4],
+    backgroundColor: COLORS.primary,
+    borderRadius: RADIUS.xl,
+    paddingVertical: SPACING[4],
     alignItems: 'center',
   },
-  fabText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  fabText: { color: '#fff', fontSize: FONT.size.base, fontWeight: FONT.weight.bold },
   emptyState: { alignItems: 'center', marginTop: 60 },
-  emptyEmoji: { fontSize: 48, marginBottom: 12 },
-  emptyText: { color: COLORS.text, fontSize: 16, fontWeight: '600' },
-  emptyHint: { color: COLORS.muted, fontSize: 13, marginTop: 4 },
+  emptyEmoji: { fontSize: FONT.size['5xl'], marginBottom: SPACING[3] },
+  emptyText: { color: COLORS.text.primary, fontSize: FONT.size.base, fontWeight: FONT.weight.semibold },
+  emptyHint: { color: COLORS.text.muted, fontSize: 13, marginTop: SPACING[1] },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center',
-    padding: 24,
+    padding: SPACING[6],
   },
   overlayCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: COLORS.dark.card,
+    borderRadius: RADIUS.xl,
+    padding: SPACING[5],
   },
-  overlayTitle: { color: COLORS.text, fontSize: 18, fontWeight: '700', marginBottom: 16 },
+  overlayTitle: { color: COLORS.text.primary, fontSize: FONT.size.lg, fontWeight: FONT.weight.bold, marginBottom: SPACING[4] },
   input: {
-    backgroundColor: '#0d1b36',
+    backgroundColor: COLORS.dark.background,
     borderRadius: 10,
     padding: 14,
-    color: COLORS.text,
-    fontSize: 16,
-    marginBottom: 8,
+    color: COLORS.text.primary,
+    fontSize: FONT.size.base,
+    marginBottom: SPACING[2],
   },
-  overlayActions: { flexDirection: 'row', gap: 12, marginTop: 8 },
+  overlayActions: { flexDirection: 'row', gap: SPACING[3], marginTop: SPACING[2] },
   cancelBtn: { flex: 1, paddingVertical: 14, alignItems: 'center' },
-  cancelBtnText: { color: COLORS.muted, fontSize: 16 },
+  cancelBtnText: { color: COLORS.text.muted, fontSize: FONT.size.base },
 });

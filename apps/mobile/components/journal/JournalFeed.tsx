@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
+import { COLORS, SPACING, RADIUS, FONT } from '../../lib/theme';
 
 interface JournalEntry {
   id: string;
@@ -46,28 +47,28 @@ export function JournalFeed({ entries }: JournalFeedProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 8 },
-  empty: { alignItems: 'center', padding: 24 },
-  emptyText: { color: '#555', fontSize: 14 },
+  container: { gap: SPACING[2] },
+  empty: { alignItems: 'center', padding: SPACING[6] },
+  emptyText: { color: COLORS.text.muted, fontSize: FONT.size.sm },
   entryCard: {
-    backgroundColor: '#16213e',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: COLORS.dark.card,
+    borderRadius: RADIUS.lg,
+    padding: SPACING[4],
   },
-  content: { color: '#e0e0e0', fontSize: 14, lineHeight: 20 },
+  content: { color: COLORS.text.primary, fontSize: FONT.size.sm, lineHeight: FONT.size.xl },
   meta: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: SPACING[2],
   },
-  date: { color: '#555', fontSize: 12 },
-  tagRow: { flexDirection: 'row', gap: 4 },
+  date: { color: COLORS.text.muted, fontSize: FONT.size.xs },
+  tagRow: { flexDirection: 'row', gap: SPACING[1] },
   tag: {
-    backgroundColor: '#1a1a3e',
-    borderRadius: 8,
-    paddingHorizontal: 8,
+    backgroundColor: COLORS.dark.elevated,
+    borderRadius: RADIUS.md,
+    paddingHorizontal: SPACING[2],
     paddingVertical: 2,
   },
-  tagText: { color: '#6c63ff', fontSize: 11 },
+  tagText: { color: COLORS.primary, fontSize: FONT.size.xs - 1 },
 });

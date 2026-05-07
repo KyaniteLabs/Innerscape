@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-import * as SecureStore from 'expo-secure-store';
-import { getToken } from '../lib/api';
+import { clearToken } from '../lib/api';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -22,10 +21,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   hydrated: false,
 
   hydrate: async () => {
-    const token = await getToken();
-    if (token) {
-      set({ isAuthenticated: true, hydrated: true });
-    } else {
+    try {
+      const { getToken } = await import('../lib/api');
+      const token = await getToken();
+      set({ isAuthenticated: !!token, hydrated: true });
+    } catch {
       set({ isAuthenticated: false, hydrated: true });
     }
   },
@@ -39,7 +39,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     }),
 
   logout: async () => {
-    await SecureStore.deleteItemAsync('auth_token');
+    await clearToken();
     set({
       isAuthenticated: false,
       userId: null,
