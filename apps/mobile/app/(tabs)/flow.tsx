@@ -15,6 +15,7 @@ import { Celebration } from '../../components/habits/Celebration';
 import { useHabits, useCreateHabit, useCompleteHabit } from '../../hooks/useHabits';
 import { useGoals, useCreateGoal, useTasks, useCreateTask, useCompleteTask } from '../../hooks/useGoals';
 import { useDopamineMenu, useCreateDopamineItem, useMarkDopamineUsed } from '../../hooks/useDopamine';
+import { COLORS, SPACING, RADIUS, MODULE, FONT } from '../../lib/theme';
 
 type FlowTab = 'habits' | 'goals' | 'dopamine';
 
@@ -29,6 +30,12 @@ export default function FlowScreen() {
 
   return (
     <SafeAreaView style={styles.screen}>
+      <View style={styles.flowIntro}>
+        <Text style={styles.flowKicker}>Momentum engine</Text>
+        <Text style={styles.flowTitle}>One visible next action.</Text>
+        <Text style={styles.flowSubtitle}>Flow exists to remove initiation drag. Keep the next step small enough to start now.</Text>
+      </View>
+
       <View style={styles.tabBar}>
         {tabs.map((tab) => (
           <TouchableOpacity
@@ -84,7 +91,7 @@ function HabitsPanel() {
     });
   };
 
-  if (isLoading) return <ActivityIndicator color="#6c63ff" style={{ marginTop: 40 }} />;
+  if (isLoading) return <ActivityIndicator color={MODULE.flow.color} style={{ marginTop: 40 }} />;
 
   const habitList = habits ?? [];
 
@@ -104,7 +111,7 @@ function HabitsPanel() {
           <TextInput
             style={styles.addInput}
             placeholder="Habit name..."
-            placeholderTextColor="#555"
+            placeholderTextColor={COLORS.text.muted}
             value={newName}
             onChangeText={setNewName}
             autoFocus
@@ -116,10 +123,15 @@ function HabitsPanel() {
       {habitList.length > 0 ? (
         <HabitTracker habits={habitList} on_complete={handleComplete} />
       ) : (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyEmoji}>🌱</Text>
-          <Text style={styles.emptyText}>No habits yet. Add your first one!</Text>
-        </View>
+        <EmptyActionSet
+          title="No habit has to become a lifestyle today."
+          caption="Start with one repeatable two-minute behavior."
+          actions={[
+            'Drink water before opening feeds',
+            'Write one sentence after work',
+            'Put shoes by the door tonight',
+          ]}
+        />
       )}
     </>
   );
@@ -142,7 +154,7 @@ function GoalsPanel() {
     );
   };
 
-  if (goalsLoading) return <ActivityIndicator color="#6c63ff" style={{ marginTop: 40 }} />;
+  if (goalsLoading) return <ActivityIndicator color={MODULE.flow.color} style={{ marginTop: 40 }} />;
 
   const goalList = goals ?? [];
 
@@ -160,7 +172,7 @@ function GoalsPanel() {
           <TextInput
             style={styles.addInput}
             placeholder="Goal title..."
-            placeholderTextColor="#555"
+            placeholderTextColor={COLORS.text.muted}
             value={goalTitle}
             onChangeText={setGoalTitle}
             autoFocus
@@ -170,10 +182,15 @@ function GoalsPanel() {
       )}
 
       {goalList.length === 0 ? (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyEmoji}>🎯</Text>
-          <Text style={styles.emptyText}>Break big goals into small, actionable tasks</Text>
-        </View>
+        <EmptyActionSet
+          title="Goals need a first rung, not a master plan."
+          caption="Create one outcome, then attach a next action that can be done in one sitting."
+          actions={[
+            'Define the smallest finish line',
+            'Name the blocker',
+            "Choose tomorrow's first action",
+          ]}
+        />
       ) : (
         goalList.map((goal) => <GoalCard key={goal.id} goalId={goal.id} title={goal.title} status={goal.status} />)
       )}
@@ -219,7 +236,7 @@ function GoalCard({ goalId, title, status }: { goalId: string; title: string; st
           <TextInput
             style={styles.addTaskInput}
             placeholder="Task title..."
-            placeholderTextColor="#555"
+            placeholderTextColor={COLORS.text.muted}
             value={newTask}
             onChangeText={setNewTask}
             autoFocus
@@ -276,7 +293,7 @@ function DopaminePanel() {
     );
   };
 
-  if (isLoading) return <ActivityIndicator color="#6c63ff" style={{ marginTop: 40 }} />;
+  if (isLoading) return <ActivityIndicator color={MODULE.flow.color} style={{ marginTop: 40 }} />;
 
   const items = menuItems ?? [];
 
@@ -294,7 +311,7 @@ function DopaminePanel() {
           <TextInput
             style={styles.addInput}
             placeholder="Activity name..."
-            placeholderTextColor="#555"
+            placeholderTextColor={COLORS.text.muted}
             value={itemName}
             onChangeText={setItemName}
             autoFocus
@@ -347,74 +364,113 @@ function DopaminePanel() {
       })}
 
       {items.length === 0 && (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyEmoji}>⚡</Text>
-          <Text style={styles.emptyText}>Build your dopamine menu with pre-planned activities</Text>
-        </View>
+        <EmptyActionSet
+          title="Pre-plan dopamine before the crash."
+          caption="A menu turns regulation into recognition, not improvisation."
+          actions={[
+            'Warm up: 5-minute reset playlist',
+            'Support: message an accountability person',
+            'Rest: lights down, phone across room',
+          ]}
+        />
       )}
     </>
   );
 }
 
-const COLORS = {
-  bg: '#0f0f23',
-  card: '#16213e',
-  cardBorder: '#1a1a3e',
-  text: '#e0e0e0',
-  muted: '#666',
-  accent: '#6c63ff',
-};
+function EmptyActionSet({ title, caption, actions }: { title: string; caption: string; actions: string[] }) {
+  return (
+    <View style={styles.emptyState}>
+      <Text style={styles.emptyKicker}>Suggested scaffold</Text>
+      <Text style={styles.emptyTitle}>{title}</Text>
+      <Text style={styles.emptyText}>{caption}</Text>
+      <View style={styles.emptyActions}>
+        {actions.map((action, index) => (
+          <View key={action} style={styles.emptyAction}>
+            <Text style={styles.emptyActionIndex}>{index + 1}</Text>
+            <Text style={styles.emptyActionText}>{action}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: COLORS.bg },
+  screen: { flex: 1, backgroundColor: COLORS.dark.background },
+  flowIntro: {
+    marginHorizontal: SPACING[4],
+    marginTop: SPACING[3],
+    marginBottom: SPACING[4],
+    backgroundColor: COLORS.dark.card,
+    borderRadius: RADIUS['2xl'],
+    borderWidth: 1,
+    borderColor: MODULE.flow.border,
+    padding: SPACING[5],
+  },
+  flowKicker: { color: MODULE.flow.color, fontSize: FONT.size.xs, fontWeight: FONT.weight.bold, textTransform: 'uppercase', letterSpacing: 1.3 },
+  flowTitle: { color: COLORS.text.primary, fontSize: FONT.size['2xl'], lineHeight: 31, fontWeight: FONT.weight.black, marginTop: SPACING[2], letterSpacing: -0.6 },
+  flowSubtitle: { color: COLORS.text.muted, fontSize: FONT.size.sm, lineHeight: 20, marginTop: SPACING[2] },
   tabBar: {
     flexDirection: 'row',
-    marginHorizontal: 16,
-    marginTop: 8,
-    marginBottom: 16,
-    backgroundColor: COLORS.card,
-    borderRadius: 10,
+    marginHorizontal: SPACING[4],
+    marginTop: SPACING[2],
+    marginBottom: SPACING[4],
+    backgroundColor: COLORS.dark.card,
+    borderRadius: RADIUS.lg,
     padding: 3,
   },
-  tab: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8 },
-  tabActive: { backgroundColor: COLORS.accent },
-  tabText: { color: COLORS.muted, fontSize: 13, fontWeight: '500' },
-  tabTextActive: { color: '#fff' },
-  content: { paddingHorizontal: 16, paddingBottom: 32 },
+  tab: { flex: 1, paddingVertical: SPACING[2], alignItems: 'center', borderRadius: RADIUS.md },
+  tabActive: { backgroundColor: MODULE.flow.color },
+  tabText: { color: COLORS.text.secondary, fontSize: 13, fontWeight: '500' },
+  tabTextActive: { color: '#FFFFFF' },
+  content: { paddingHorizontal: SPACING[4], paddingBottom: SPACING[8] },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: SPACING[3],
   },
-  sectionTitle: { color: COLORS.text, fontSize: 18, fontWeight: '600' },
-  addButton: { paddingHorizontal: 12, paddingVertical: 6 },
-  addButtonText: { color: COLORS.accent, fontSize: 14, fontWeight: '600' },
+  sectionTitle: { color: COLORS.text.primary, fontSize: 18, fontWeight: '600' },
+  addButton: { paddingHorizontal: SPACING[3], paddingVertical: 6 },
+  addButtonText: { color: MODULE.flow.color, fontSize: 14, fontWeight: '600' },
   addCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 12,
+    backgroundColor: COLORS.dark.card,
+    borderRadius: RADIUS.lg,
+    padding: SPACING[3],
+    marginBottom: SPACING[3],
   },
-  addInput: { color: COLORS.text, fontSize: 15 },
+  addInput: { color: COLORS.text.primary, fontSize: 15 },
   saveBtn: {
-    backgroundColor: COLORS.accent,
-    borderRadius: 8,
+    backgroundColor: MODULE.flow.color,
+    borderRadius: RADIUS.md,
     paddingVertical: 10,
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: SPACING[2],
   },
   saveBtnDisabled: { opacity: 0.4 },
-  saveBtnText: { color: '#fff', fontSize: 14, fontWeight: '600' },
-  emptyState: { alignItems: 'center', paddingTop: 48 },
-  emptyEmoji: { fontSize: 48 },
-  emptyText: { color: COLORS.muted, fontSize: 14, textAlign: 'center', marginTop: 12, maxWidth: 240 },
+  saveBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
+  emptyState: {
+    backgroundColor: COLORS.dark.card,
+    borderWidth: 1,
+    borderColor: MODULE.flow.border,
+    borderRadius: RADIUS['2xl'],
+    padding: SPACING[5],
+    marginTop: SPACING[2],
+  },
+  emptyKicker: { color: MODULE.flow.color, fontSize: FONT.size.xs, fontWeight: FONT.weight.bold, textTransform: 'uppercase', letterSpacing: 1.2 },
+  emptyTitle: { color: COLORS.text.primary, fontSize: FONT.size.xl, lineHeight: 27, fontWeight: FONT.weight.black, marginTop: SPACING[2] },
+  emptyText: { color: COLORS.text.muted, fontSize: FONT.size.sm, lineHeight: 20, marginTop: SPACING[2] },
+  emptyActions: { gap: SPACING[2], marginTop: SPACING[4] },
+  emptyAction: { flexDirection: 'row', alignItems: 'center', gap: SPACING[3], backgroundColor: COLORS.dark.elevated, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.dark.border, padding: SPACING[3] },
+  emptyActionIndex: { width: 24, height: 24, borderRadius: RADIUS.full, textAlign: 'center', lineHeight: 24, backgroundColor: MODULE.flow.color, color: COLORS.text.inverse, fontSize: FONT.size.xs, fontWeight: FONT.weight.black },
+  emptyActionText: { flex: 1, color: COLORS.text.secondary, fontSize: FONT.size.sm, fontWeight: FONT.weight.semibold },
   // Goals
   goalCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
+    backgroundColor: COLORS.dark.card,
+    borderRadius: RADIUS.lg,
     padding: 14,
-    marginBottom: 8,
+    marginBottom: SPACING[2],
   },
   goalHeader: {
     flexDirection: 'row',
@@ -422,76 +478,76 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   goalInfo: { flex: 1 },
-  goalTitle: { color: COLORS.text, fontSize: 15, fontWeight: '600' },
-  goalStatus: { color: COLORS.muted, fontSize: 12, marginTop: 2 },
+  goalTitle: { color: COLORS.text.primary, fontSize: 15, fontWeight: '600' },
+  goalStatus: { color: COLORS.text.secondary, fontSize: 12, marginTop: 2 },
   addTaskRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: SPACING[2],
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: COLORS.cardBorder,
+    borderTopColor: COLORS.dark.border,
   },
   addTaskInput: {
     flex: 1,
-    color: COLORS.text,
+    color: COLORS.text.primary,
     fontSize: 14,
-    backgroundColor: '#0d1b36',
-    borderRadius: 8,
+    backgroundColor: COLORS.dark.background,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingVertical: SPACING[2],
   },
   addTaskBtn: {
-    backgroundColor: COLORS.accent,
-    borderRadius: 8,
+    backgroundColor: MODULE.flow.color,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 14,
     justifyContent: 'center',
   },
-  addTaskBtnText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+  addTaskBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '600' },
   taskRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: SPACING[2],
     marginTop: 6,
   },
-  taskCheck: { color: COLORS.muted, fontSize: 16 },
-  taskCheckDone: { color: '#51cf66' },
-  taskTitle: { color: COLORS.text, fontSize: 14 },
-  taskTitleDone: { color: COLORS.muted, textDecorationLine: 'line-through' },
+  taskCheck: { color: COLORS.text.muted, fontSize: 16 },
+  taskCheckDone: { color: COLORS.success },
+  taskTitle: { color: COLORS.text.primary, fontSize: 14 },
+  taskTitleDone: { color: COLORS.text.muted, textDecorationLine: 'line-through' },
   // Dopamine
   categoryRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: SPACING[2],
     marginTop: 10,
   },
   catBtn: {
-    backgroundColor: '#0d1b36',
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    backgroundColor: COLORS.dark.background,
+    borderRadius: RADIUS.md,
+    paddingVertical: SPACING[2],
+    paddingHorizontal: SPACING[3],
     alignItems: 'center',
   },
-  catBtnActive: { backgroundColor: COLORS.accent },
+  catBtnActive: { backgroundColor: MODULE.flow.color },
   catEmoji: { fontSize: 18 },
-  dopamineCategory: { marginBottom: 16 },
+  dopamineCategory: { marginBottom: SPACING[4] },
   catLabel: {
-    color: COLORS.muted,
+    color: COLORS.text.secondary,
     fontSize: 12,
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: 6,
   },
   dopamineItem: {
-    backgroundColor: COLORS.card,
-    borderRadius: 10,
-    padding: 12,
+    backgroundColor: COLORS.dark.card,
+    borderRadius: RADIUS.lg,
+    padding: SPACING[3],
     marginBottom: 6,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   dopamineItemInfo: { flex: 1 },
-  dopamineItemName: { color: COLORS.text, fontSize: 14, fontWeight: '500' },
-  dopamineItemDuration: { color: COLORS.muted, fontSize: 11, marginTop: 2 },
-  dopamineItemUse: { color: COLORS.accent, fontSize: 13, fontWeight: '600' },
+  dopamineItemName: { color: COLORS.text.primary, fontSize: 14, fontWeight: '500' },
+  dopamineItemDuration: { color: COLORS.text.muted, fontSize: 11, marginTop: 2 },
+  dopamineItemUse: { color: MODULE.flow.color, fontSize: 13, fontWeight: '600' },
 });

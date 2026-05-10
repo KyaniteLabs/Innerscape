@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { notificationAsync, selectionAsync } from '../../lib/haptics';
 import { NotificationFeedbackType } from 'expo-haptics';
+import { COLORS, SPACING, RADIUS, FONT } from '../../lib/theme';
 
 const QUALITY_LABELS = ['Poor', 'Fair', 'OK', 'Good', 'Great'];
 
@@ -70,38 +71,38 @@ export function SleepLogger({ on_save }: SleepLoggerProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#16213e',
-    borderRadius: 16,
-    padding: 20,
-    marginHorizontal: 16,
+    backgroundColor: COLORS.dark.card,
+    borderRadius: RADIUS.xl,
+    padding: SPACING[5],
+    marginHorizontal: SPACING[4],
   },
-  title: { color: '#e0e0e0', fontSize: 20, fontWeight: '600', textAlign: 'center', marginBottom: 20 },
-  section: { marginBottom: 20 },
-  label: { color: '#888', fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 },
-  hourRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 24 },
+  title: { color: COLORS.text.primary, fontSize: FONT.size.xl, fontWeight: FONT.weight.semibold, textAlign: 'center', marginBottom: SPACING[5] },
+  section: { marginBottom: SPACING[5] },
+  label: { color: COLORS.text.muted, fontSize: FONT.size.xs, textTransform: 'uppercase', letterSpacing: 1, marginBottom: SPACING[2] },
+  hourRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING[6] },
   adjustButton: {
-    backgroundColor: '#1a1a3e',
+    backgroundColor: COLORS.dark.elevated,
     borderRadius: 20,
     width: 40,
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  adjustText: { color: '#6c63ff', fontSize: 24, fontWeight: '300' },
-  hourValue: { color: '#e0e0e0', fontSize: 36, fontWeight: '700' },
+  adjustText: { color: COLORS.primary, fontSize: 24, fontWeight: '300' },
+  hourValue: { color: COLORS.text.primary, fontSize: 36, fontWeight: FONT.weight.bold },
   qualityRow: { flexDirection: 'row', justifyContent: 'space-around' },
   qualityDot: { alignItems: 'center', opacity: 0.4 },
   qualityDotActive: { opacity: 1 },
   qualityEmoji: { fontSize: 28 },
   qualityEmojiActive: {},
-  qualityLabel: { color: '#666', fontSize: 10, marginTop: 4 },
-  qualityLabelActive: { color: '#e0e0e0' },
+  qualityLabel: { color: COLORS.text.secondary, fontSize: 10, marginTop: SPACING[1] },
+  qualityLabelActive: { color: COLORS.text.primary },
   saveButton: {
-    backgroundColor: '#6c63ff',
+    backgroundColor: COLORS.primary,
     borderRadius: 10,
-    paddingVertical: 12,
+    paddingVertical: SPACING[3],
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: SPACING[1],
   },
-  saveButtonText: { color: '#fff', fontSize: 15, fontWeight: '600' },
+  saveButtonText: { color: '#fff', fontSize: 15, fontWeight: FONT.weight.semibold },
 });

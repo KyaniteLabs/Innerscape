@@ -4,16 +4,22 @@ import { selectionAsync, notificationAsync } from '../../lib/haptics';
 import { NotificationFeedbackType } from 'expo-haptics';
 import type { EmotionalValence } from '@innerscape/shared';
 import { useEmotionalStore } from '../../stores/emotional';
+import { COLORS, FONT, RADIUS, SPACING } from '../../lib/theme';
+import { CTA, Surface } from '../design/System';
 
-const VALENCE_OPTIONS: { value: EmotionalValence; label: string; emoji: string }[] = [
-  { value: 'pleasant', label: 'Good', emoji: '☀️' },
-  { value: 'neutral', label: 'Okay', emoji: '⛅' },
-  { value: 'unpleasant', label: 'Rough', emoji: '🌪️' },
+const VALENCE_OPTIONS: { value: EmotionalValence; label: string; detail: string; signal: string }[] = [
+  { value: 'pleasant', label: 'Clear', detail: 'safe / open', signal: COLORS.pleasant },
+  { value: 'neutral', label: 'Mixed', detail: 'observing', signal: COLORS.neutral },
+  { value: 'unpleasant', label: 'Loaded', detail: 'support needed', signal: COLORS.unpleasant },
 ];
 
-const FEELING_LABELS = [
-  'calm', 'focused', 'anxious', 'tired', 'restless',
-  'happy', 'overwhelmed', 'bored', 'creative', 'foggy',
+const FEELING_LABELS = ['calm', 'focused', 'anxious', 'tired', 'restless', 'happy', 'overwhelmed', 'bored', 'creative', 'foggy'];
+const ENERGY_LEVELS = [
+  { value: 0, label: 'Empty' },
+  { value: 25, label: 'Low' },
+  { value: 50, label: 'Usable' },
+  { value: 75, label: 'High' },
+  { value: 100, label: 'Full' },
 ];
 
 interface QuickCheckInProps {
@@ -38,165 +44,81 @@ export function QuickCheckIn({ on_complete }: QuickCheckInProps) {
     setStep('feeling');
   };
 
-  const handleFeelingSelect = (feeling: string) => {
+  const complete = (feelingLabel?: string) => {
     notificationAsync(NotificationFeedbackType.Success);
-    setCheckIn({ energyLevel, valence: valence!, feelingLabel: feeling });
+    setCheckIn({ energyLevel, valence: valence!, feelingLabel });
     on_complete?.();
   };
-
-  const handleSkipFeeling = () => {
-    notificationAsync(NotificationFeedbackType.Success);
-    setCheckIn({ energyLevel, valence: valence! });
-    on_complete?.();
-  };
-
-  if (step === 'energy') {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.prompt}>How is your energy right now?</Text>
-        <View style={styles.energyRow}>
-          {[0, 25, 50, 75, 100].map((level) => (
-            <TouchableOpacity
-              key={level}
-              style={styles.energyButton}
-              onPress={() => handleEnergySelect(level)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.energyLabel}>
-                {level === 0 ? 'Empty' : level === 25 ? 'Low' : level === 50 ? 'Mid' : level === 75 ? 'High' : 'Full'}
-              </Text>
-              <View style={[styles.energyBar, { height: `${level || 10}%` }]} />
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-    );
-  }
-
-  if (step === 'valence') {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.prompt}>How does it feel?</Text>
-        <View style={styles.valenceRow}>
-          {VALENCE_OPTIONS.map((opt) => (
-            <TouchableOpacity
-              key={opt.value}
-              style={styles.valenceButton}
-              onPress={() => handleValenceSelect(opt.value)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.valenceEmoji}>{opt.emoji}</Text>
-              <Text style={styles.valenceLabel}>{opt.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-    );
-  }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.prompt}>Any specific feeling? (optional)</Text>
-      <View style={styles.feelingGrid}>
-        {FEELING_LABELS.map((feeling) => (
-          <TouchableOpacity
-            key={feeling}
-            style={styles.feelingChip}
-            onPress={() => handleFeelingSelect(feeling)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.feelingText}>{feeling}</Text>
-          </TouchableOpacity>
-        ))}
+    <Surface tone={step === 'energy' ? COLORS.primary : step === 'valence' ? COLORS.hub : COLORS.mind} style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.kicker}>Capacity scan</Text>
+        <Text style={styles.step}>{step === 'energy' ? '1/3' : step === 'valence' ? '2/3' : '3/3'}</Text>
       </View>
-      <TouchableOpacity onPress={handleSkipFeeling} style={styles.skipButton}>
-        <Text style={styles.skipText}>Skip</Text>
-      </TouchableOpacity>
-    </View>
+
+      {step === 'energy' ? (
+        <>
+          <Text style={styles.prompt}>How much battery is available?</Text>
+          <View style={styles.energyRow}>
+            {ENERGY_LEVELS.map((level) => (
+              <TouchableOpacity key={level.value} style={styles.energyButton} onPress={() => handleEnergySelect(level.value)} activeOpacity={0.82}>
+                <View style={styles.energyTrack}>
+                  <View style={[styles.energyFill, { height: `${Math.max(level.value, 8)}%` }]} />
+                </View>
+                <Text style={styles.energyLabel}>{level.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </>
+      ) : step === 'valence' ? (
+        <>
+          <Text style={styles.prompt}>What is the emotional weather?</Text>
+          <View style={styles.valenceRow}>
+            {VALENCE_OPTIONS.map((opt) => (
+              <TouchableOpacity key={opt.value} style={[styles.valenceButton, { borderColor: opt.signal }]} onPress={() => handleValenceSelect(opt.value)} activeOpacity={0.82}>
+                <View style={[styles.signalDot, { backgroundColor: opt.signal }]} />
+                <Text style={styles.valenceLabel}>{opt.label}</Text>
+                <Text style={styles.valenceDetail}>{opt.detail}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </>
+      ) : (
+        <>
+          <Text style={styles.prompt}>Name it if naming helps.</Text>
+          <View style={styles.feelingGrid}>
+            {FEELING_LABELS.map((feeling) => (
+              <TouchableOpacity key={feeling} style={styles.feelingChip} onPress={() => complete(feeling)} activeOpacity={0.82}>
+                <Text style={styles.feelingText}>{feeling}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <CTA variant="quiet" onPress={() => complete()} style={styles.skipButton}>Skip naming</CTA>
+        </>
+      )}
+    </Surface>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    backgroundColor: '#1a1a2e',
-    borderRadius: 16,
-    marginHorizontal: 16,
-  },
-  prompt: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#e0e0e0',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  energyRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  energyButton: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    backgroundColor: '#16213e',
-    borderRadius: 12,
-    paddingVertical: 12,
-    minHeight: 100,
-  },
-  energyLabel: {
-    fontSize: 12,
-    color: '#888',
-    marginBottom: 4,
-  },
-  energyBar: {
-    width: '60%',
-    backgroundColor: '#6c63ff',
-    borderRadius: 4,
-    minHeight: 4,
-  },
-  valenceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  valenceButton: {
-    alignItems: 'center',
-    backgroundColor: '#16213e',
-    borderRadius: 16,
-    padding: 20,
-    minWidth: 90,
-  },
-  valenceEmoji: {
-    fontSize: 32,
-    marginBottom: 8,
-  },
-  valenceLabel: {
-    fontSize: 14,
-    color: '#e0e0e0',
-    fontWeight: '500',
-  },
-  feelingGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  feelingChip: {
-    backgroundColor: '#16213e',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
-  feelingText: {
-    color: '#e0e0e0',
-    fontSize: 14,
-  },
-  skipButton: {
-    marginTop: 16,
-    alignSelf: 'center',
-  },
-  skipText: {
-    color: '#666',
-    fontSize: 14,
-  },
+  container: { marginBottom: SPACING[4] },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING[3] },
+  kicker: { color: COLORS.primary, fontSize: FONT.size.xs, fontWeight: FONT.weight.bold, letterSpacing: 1.4, textTransform: 'uppercase' },
+  step: { color: COLORS.text.dim, fontSize: FONT.size.xs, fontWeight: FONT.weight.bold },
+  prompt: { fontSize: FONT.size.xl, lineHeight: 27, fontWeight: FONT.weight.black, color: COLORS.text.primary, marginBottom: SPACING[5] },
+  energyRow: { flexDirection: 'row', gap: SPACING[2] },
+  energyButton: { flex: 1, alignItems: 'center', gap: SPACING[2] },
+  energyTrack: { height: 112, width: '100%', justifyContent: 'flex-end', backgroundColor: COLORS.dark.elevated, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.dark.border, overflow: 'hidden' },
+  energyFill: { width: '100%', backgroundColor: COLORS.primary, borderRadius: RADIUS.full },
+  energyLabel: { fontSize: FONT.size.xs, color: COLORS.text.muted, fontWeight: FONT.weight.bold },
+  valenceRow: { gap: SPACING[3] },
+  valenceButton: { borderWidth: 1, backgroundColor: COLORS.dark.elevated, borderRadius: RADIUS.xl, padding: SPACING[4] },
+  signalDot: { width: 10, height: 10, borderRadius: RADIUS.full, marginBottom: SPACING[2] },
+  valenceLabel: { fontSize: FONT.size.lg, color: COLORS.text.primary, fontWeight: FONT.weight.black },
+  valenceDetail: { fontSize: FONT.size.sm, color: COLORS.text.muted, marginTop: 2 },
+  feelingGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING[2] },
+  feelingChip: { backgroundColor: COLORS.dark.elevated, borderWidth: 1, borderColor: COLORS.dark.border, borderRadius: RADIUS.full, paddingHorizontal: SPACING[4], paddingVertical: 12 },
+  feelingText: { color: COLORS.text.secondary, fontSize: FONT.size.sm, fontWeight: FONT.weight.semibold },
+  skipButton: { marginTop: SPACING[4] },
 });

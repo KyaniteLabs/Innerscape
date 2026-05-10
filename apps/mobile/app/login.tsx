@@ -1,18 +1,10 @@
 import { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { login, register } from '../lib/auth';
 import { useAuthStore } from '../stores/auth';
+import { AppScreen, CTA, Hero, Surface } from '../components/design/System';
+import { COLORS, FONT, RADIUS, SPACING } from '../lib/theme';
 
 export default function LoginScreen() {
   const [isRegister, setIsRegister] = useState(false);
@@ -38,90 +30,42 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <AppScreen scroll={false}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.flex}>
-        <View style={styles.container}>
-          <Text style={styles.title}>{isRegister ? 'Create Account' : 'Welcome Back'}</Text>
-          <Text style={styles.subtitle}>
-            {isRegister ? 'Start your Innerscape journey' : 'Sign in to continue'}
-          </Text>
+        <Hero
+          eyebrow="Secure sync"
+          title={isRegister ? 'Build your cognitive environment.' : 'Return to your field.'}
+          subtitle={isRegister ? 'Your patterns, captures, and body signals stay connected across devices.' : 'Sign in to restore memory, context, and continuity.'}
+        />
 
+        <Surface style={styles.card}>
           {isRegister && (
-            <TextInput
-              style={styles.input}
-              placeholder="Name"
-              placeholderTextColor="#555"
-              value={name}
-              onChangeText={setName}
-              autoCapitalize="words"
-            />
+            <TextInput style={styles.input} placeholder="Name" placeholderTextColor={COLORS.text.dim} value={name} onChangeText={setName} autoCapitalize="words" />
           )}
+          <TextInput style={styles.input} placeholder="Email" placeholderTextColor={COLORS.text.dim} value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
+          <TextInput style={styles.input} placeholder="Password" placeholderTextColor={COLORS.text.dim} value={password} onChangeText={setPassword} secureTextEntry />
+          <CTA onPress={handleSubmit} disabled={loading || !email || !password} style={styles.button}>
+            {loading ? 'Opening field…' : isRegister ? 'Create account' : 'Sign in'}
+          </CTA>
+        </Surface>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor="#555"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor="#555"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleSubmit}
-            disabled={loading || !email || !password}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? 'Please wait...' : isRegister ? 'Create Account' : 'Sign In'}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => setIsRegister(!isRegister)} style={styles.switchRow}>
-            <Text style={styles.switchText}>
-              {isRegister ? 'Already have an account? ' : "Don't have an account? "}
-              <Text style={styles.switchLink}>{isRegister ? 'Sign In' : 'Sign Up'}</Text>
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity onPress={() => setIsRegister(!isRegister)} style={styles.switchRow} activeOpacity={0.82}>
+          <Text style={styles.switchText}>
+            {isRegister ? 'Already have continuity? ' : 'New here? '}
+            <Text style={styles.switchLink}>{isRegister ? 'Sign in' : 'Create an account'}</Text>
+          </Text>
+        </TouchableOpacity>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#0f0f23' },
-  flex: { flex: 1 },
-  container: { paddingHorizontal: 24, paddingTop: 32 },
-  title: { color: '#e0e0e0', fontSize: 28, fontWeight: '700' },
-  subtitle: { color: '#666', fontSize: 15, marginTop: 4, marginBottom: 32 },
-  input: {
-    backgroundColor: '#16213e',
-    borderRadius: 10,
-    padding: 14,
-    color: '#e0e0e0',
-    fontSize: 15,
-    marginBottom: 12,
-  },
-  button: {
-    backgroundColor: '#6c63ff',
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  buttonDisabled: { opacity: 0.5 },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  switchRow: { marginTop: 24, alignItems: 'center' },
-  switchText: { color: '#666', fontSize: 14 },
-  switchLink: { color: '#6c63ff', fontWeight: '600' },
+  flex: { flex: 1, justifyContent: 'center' },
+  card: { gap: SPACING[3] },
+  input: { backgroundColor: COLORS.dark.elevated, borderWidth: 1, borderColor: COLORS.dark.border, borderRadius: RADIUS.lg, padding: 15, color: COLORS.text.primary, fontSize: FONT.size.base },
+  button: { marginTop: SPACING[2] },
+  switchRow: { marginTop: SPACING[6], alignItems: 'center' },
+  switchText: { color: COLORS.text.muted, fontSize: FONT.size.sm },
+  switchLink: { color: COLORS.primary, fontWeight: FONT.weight.bold },
 });

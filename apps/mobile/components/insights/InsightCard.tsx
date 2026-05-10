@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { COLORS, SPACING, RADIUS, FONT } from '../../lib/theme';
 
 interface Insight {
   id: string;
@@ -61,23 +62,23 @@ export function InsightCard({ insight, on_dismiss, on_act }: InsightCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#16213e',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: COLORS.dark.card,
+    borderRadius: RADIUS.lg,
+    padding: SPACING[4],
     borderLeftWidth: 3,
-    borderLeftColor: '#6c63ff',
+    borderLeftColor: COLORS.primary,
   },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  icon: { fontSize: 20 },
-  title: { color: '#e0e0e0', fontSize: 15, fontWeight: '600', flex: 1 },
-  description: { color: '#aaa', fontSize: 13, lineHeight: 19 },
-  actions: { flexDirection: 'row', gap: 16, marginTop: 12 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: SPACING[2], marginBottom: SPACING[2] },
+  icon: { fontSize: FONT.size.xl },
+  title: { color: COLORS.text.primary, fontSize: FONT.size.base - 1, fontWeight: FONT.weight.semibold, flex: 1 },
+  description: { color: COLORS.text.secondary, fontSize: FONT.size.sm - 1, lineHeight: 19 },
+  actions: { flexDirection: 'row', gap: SPACING[4], marginTop: SPACING[3] },
   actButton: {
-    backgroundColor: '#6c63ff',
+    backgroundColor: COLORS.primary,
     borderRadius: 6,
-    paddingHorizontal: 12,
+    paddingHorizontal: SPACING[3],
     paddingVertical: 6,
   },
-  actText: { color: '#fff', fontSize: 12, fontWeight: '600' },
-  dismissText: { color: '#555', fontSize: 12, paddingVertical: 6 },
+  actText: { color: COLORS.text.inverse, fontSize: FONT.size.xs, fontWeight: FONT.weight.semibold },
+  dismissText: { color: COLORS.text.muted, fontSize: FONT.size.xs, paddingVertical: 6 },
 });

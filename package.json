@@ -45,11 +45,20 @@
     "clean": "rm -rf apps/mobile/.expo apps/mobile/node_modules/.cache apps/backend/dist"
   },
   "devDependencies": {
-    "typescript": "^5.7.0",
+    "@eslint/js": "^9.39.4",
+    "eslint": "^9.0.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^16.5.0",
     "prettier": "^3.4.0",
-    "eslint": "^9.0.0"
+    "typescript": "~5.9.2",
+    "typescript-eslint": "^8.59.2"
   },
   "engines": {
     "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "expo": "^55.0.23",
+    "react": "19.2.0",
+    "react-native": "0.83.6"
   }
 }

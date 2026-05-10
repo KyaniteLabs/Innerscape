@@ -16,6 +16,7 @@ import { useProjects, useCreateProject, useArchiveProject } from '../../hooks/us
 import { useKnowledge, useCreateKnowledge, useDeleteKnowledge } from '../../hooks/useKnowledge';
 import { useDailySummary, useWeeklyReview } from '../../hooks/useReview';
 import { TradeMarketplace } from '../../components/trade/TradeMarketplace';
+import { COLORS, SPACING, RADIUS, MODULE } from '../../lib/theme';
 
 type HubMode = 'inbox' | 'projects' | 'knowledge' | 'review' | 'trade';
 
@@ -73,7 +74,7 @@ function InboxPanel() {
     );
   };
 
-  if (isLoading) return <ActivityIndicator color="#6c63ff" style={{ marginTop: 40 }} />;
+  if (isLoading) return <ActivityIndicator color={MODULE.hub.color} style={{ marginTop: 40 }} />;
 
   const items = captures ?? [];
 
@@ -83,8 +84,9 @@ function InboxPanel() {
       <View style={styles.feedContainer}>
         {items.length === 0 ? (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyEmoji}>📥</Text>
-            <Text style={styles.emptyText}>Inbox is clear. Capture a thought!</Text>
+            <Text style={styles.emptyKicker}>Capture field</Text>
+            <Text style={styles.emptyTitle}>No open loops in the inbox.</Text>
+            <Text style={styles.emptyText}>When something appears in working memory, capture it before it decays.</Text>
           </View>
         ) : (
           items.map((item) => (
@@ -133,7 +135,7 @@ function ProjectsPanel() {
     );
   };
 
-  if (isLoading) return <ActivityIndicator color="#6c63ff" style={{ marginTop: 40 }} />;
+  if (isLoading) return <ActivityIndicator color={MODULE.hub.color} style={{ marginTop: 40 }} />;
 
   const projectList = projects ?? [];
 
@@ -151,7 +153,7 @@ function ProjectsPanel() {
           <TextInput
             style={styles.addInput}
             placeholder="Project name..."
-            placeholderTextColor="#555"
+            placeholderTextColor={COLORS.text.muted}
             value={name}
             onChangeText={setName}
             autoFocus
@@ -162,8 +164,9 @@ function ProjectsPanel() {
 
       {projectList.length === 0 ? (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyEmoji}>📁</Text>
-          <Text style={styles.emptyText}>Organize by Projects, Areas, Resources, Archives</Text>
+          <Text style={styles.emptyKicker}>Projects</Text>
+          <Text style={styles.emptyTitle}>No active containers yet.</Text>
+          <Text style={styles.emptyText}>Create a project only when there is a real finish line.</Text>
         </View>
       ) : (
         projectList.map((p) => (
@@ -200,7 +203,7 @@ function KnowledgePanel() {
     );
   };
 
-  if (isLoading) return <ActivityIndicator color="#6c63ff" style={{ marginTop: 40 }} />;
+  if (isLoading) return <ActivityIndicator color={MODULE.hub.color} style={{ marginTop: 40 }} />;
 
   const knowledgeItems = items ?? [];
 
@@ -218,7 +221,7 @@ function KnowledgePanel() {
           <TextInput
             style={styles.addInput}
             placeholder="Title..."
-            placeholderTextColor="#555"
+            placeholderTextColor={COLORS.text.muted}
             value={title}
             onChangeText={setTitle}
             autoFocus
@@ -226,7 +229,7 @@ function KnowledgePanel() {
           <TextInput
             style={[styles.addInput, { minHeight: 60, marginTop: 8 }]}
             placeholder="Content..."
-            placeholderTextColor="#555"
+            placeholderTextColor={COLORS.text.muted}
             value={content}
             onChangeText={setContent}
             multiline
@@ -243,8 +246,9 @@ function KnowledgePanel() {
 
       {knowledgeItems.length === 0 ? (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyEmoji}>📚</Text>
-          <Text style={styles.emptyText}>Notes, references, and insights organized by PARA</Text>
+          <Text style={styles.emptyKicker}>Knowledge</Text>
+          <Text style={styles.emptyTitle}>Nothing archived for resurfacing yet.</Text>
+          <Text style={styles.emptyText}>Store references here when they should return later without recall.</Text>
         </View>
       ) : (
         knowledgeItems.map((item) => (
@@ -277,7 +281,7 @@ function ReviewPanel() {
   const { data: daily, isLoading: dailyLoading } = useDailySummary();
   const { data: weekly, isLoading: weeklyLoading } = useWeeklyReview();
 
-  if (dailyLoading || weeklyLoading) return <ActivityIndicator color="#6c63ff" style={{ marginTop: 40 }} />;
+  if (dailyLoading || weeklyLoading) return <ActivityIndicator color={MODULE.hub.color} style={{ marginTop: 40 }} />;
 
   return (
     <>
@@ -349,70 +353,62 @@ function ReviewPanel() {
   );
 }
 
-const COLORS = {
-  bg: '#0f0f23',
-  card: '#16213e',
-  cardBorder: '#1a1a3e',
-  text: '#e0e0e0',
-  muted: '#666',
-  accent: '#6c63ff',
-};
-
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: COLORS.bg },
-  pageTitle: { color: COLORS.text, fontSize: 24, fontWeight: '700', paddingHorizontal: 16, marginBottom: 12 },
-  modeBar: { flexDirection: 'row', paddingHorizontal: 16, marginBottom: 16, gap: 16 },
+  screen: { flex: 1, backgroundColor: COLORS.dark.background },
+  pageTitle: { color: COLORS.text.primary, fontSize: 24, fontWeight: '700', paddingHorizontal: SPACING[4], marginBottom: SPACING[3] },
+  modeBar: { flexDirection: 'row', paddingHorizontal: SPACING[4], marginBottom: SPACING[4], gap: SPACING[4] },
   modeWrapper: { position: 'relative' },
-  modeLabel: { color: '#555', fontSize: 14, fontWeight: '500', paddingBottom: 4 },
-  modeLabelActive: { color: COLORS.accent, textDecorationLine: 'underline' },
-  badge: { position: 'absolute', top: -6, right: -12, backgroundColor: COLORS.accent, borderRadius: 8, paddingHorizontal: 5, paddingVertical: 1, minWidth: 16, alignItems: 'center' },
+  modeLabel: { color: COLORS.text.muted, fontSize: 14, fontWeight: '500', paddingBottom: 4 },
+  modeLabelActive: { color: MODULE.hub.color, textDecorationLine: 'underline' },
+  badge: { position: 'absolute', top: -6, right: -12, backgroundColor: MODULE.hub.color, borderRadius: RADIUS.md, paddingHorizontal: 5, paddingVertical: 1, minWidth: SPACING[4], alignItems: 'center' },
   badgeText: { color: '#fff', fontSize: 9, fontWeight: '700' },
-  content: { paddingBottom: 32 },
+  content: { paddingBottom: SPACING[8] },
   // Shared
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, paddingHorizontal: 16 },
-  sectionTitle: { color: COLORS.text, fontSize: 18, fontWeight: '600' },
-  addBtnText: { color: COLORS.accent, fontSize: 14, fontWeight: '600' },
-  addCard: { backgroundColor: COLORS.card, borderRadius: 10, padding: 12, marginBottom: 12, marginHorizontal: 16 },
-  addInput: { color: COLORS.text, fontSize: 15 },
-  saveBtn: { backgroundColor: COLORS.accent, borderRadius: 8, paddingVertical: 10, alignItems: 'center', marginTop: 8 },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING[3], paddingHorizontal: SPACING[4] },
+  sectionTitle: { color: COLORS.text.primary, fontSize: 18, fontWeight: '600' },
+  addBtnText: { color: MODULE.hub.color, fontSize: 14, fontWeight: '600' },
+  addCard: { backgroundColor: COLORS.dark.card, borderRadius: RADIUS.lg, padding: SPACING[3], marginBottom: SPACING[3], marginHorizontal: SPACING[4] },
+  addInput: { color: COLORS.text.primary, fontSize: 15 },
+  saveBtn: { backgroundColor: MODULE.hub.color, borderRadius: RADIUS.md, paddingVertical: 10, alignItems: 'center', marginTop: SPACING[2] },
   saveBtnDisabled: { opacity: 0.4 },
   saveBtnText: { color: '#fff', fontSize: 14, fontWeight: '600' },
-  emptyState: { alignItems: 'center', paddingTop: 48 },
-  emptyEmoji: { fontSize: 48 },
-  emptyText: { color: COLORS.muted, fontSize: 14, textAlign: 'center', marginTop: 12, maxWidth: 240 },
+  emptyState: { backgroundColor: COLORS.dark.card, borderWidth: 1, borderColor: MODULE.hub.border, borderRadius: RADIUS['2xl'], padding: SPACING[5], marginTop: SPACING[3] },
+  emptyKicker: { color: MODULE.hub.color, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1.2 },
+  emptyTitle: { color: COLORS.text.primary, fontSize: 20, fontWeight: '800', marginTop: SPACING[2] },
+  emptyText: { color: COLORS.text.secondary, fontSize: 14, lineHeight: 20, marginTop: SPACING[2] },
   // Inbox
-  feedContainer: { paddingHorizontal: 16 },
-  captureCard: { backgroundColor: COLORS.card, borderRadius: 12, padding: 14, marginBottom: 8 },
+  feedContainer: { paddingHorizontal: SPACING[4] },
+  captureCard: { backgroundColor: COLORS.dark.card, borderRadius: RADIUS.lg, padding: 14, marginBottom: SPACING[2] },
   captureHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  captureTime: { color: '#444', fontSize: 11 },
-  dismissText: { color: COLORS.accent, fontSize: 16 },
-  captureContent: { color: COLORS.text, fontSize: 14, lineHeight: 20 },
-  tagRow: { flexDirection: 'row', gap: 4, marginTop: 8 },
-  tag: { backgroundColor: '#1a1a3e', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 },
-  tagText: { color: COLORS.accent, fontSize: 11 },
-  pendingLabel: { color: '#555', fontSize: 11, fontStyle: 'italic', marginTop: 6 },
+  captureTime: { color: COLORS.text.muted, fontSize: 11 },
+  dismissText: { color: MODULE.hub.color, fontSize: 16 },
+  captureContent: { color: COLORS.text.primary, fontSize: 14, lineHeight: 20 },
+  tagRow: { flexDirection: 'row', gap: 4, marginTop: SPACING[2] },
+  tag: { backgroundColor: COLORS.dark.border, borderRadius: RADIUS.sm, paddingHorizontal: SPACING[2], paddingVertical: 2 },
+  tagText: { color: MODULE.hub.color, fontSize: 11 },
+  pendingLabel: { color: COLORS.text.muted, fontSize: 11, fontStyle: 'italic', marginTop: 6 },
   // Projects
-  projectCard: { backgroundColor: COLORS.card, borderRadius: 12, padding: 14, marginBottom: 8, marginHorizontal: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  projectCard: { backgroundColor: COLORS.dark.card, borderRadius: RADIUS.lg, padding: 14, marginBottom: SPACING[2], marginHorizontal: SPACING[4], flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   projectInfo: { flex: 1 },
-  projectName: { color: COLORS.text, fontSize: 15, fontWeight: '600' },
-  projectMeta: { color: COLORS.muted, fontSize: 12, marginTop: 2, textTransform: 'capitalize' },
-  archiveBtn: { color: COLORS.muted, fontSize: 12 },
+  projectName: { color: COLORS.text.primary, fontSize: 15, fontWeight: '600' },
+  projectMeta: { color: COLORS.text.secondary, fontSize: 12, marginTop: 2, textTransform: 'capitalize' },
+  archiveBtn: { color: COLORS.text.secondary, fontSize: 12 },
   // Knowledge
-  knowledgeCard: { backgroundColor: COLORS.card, borderRadius: 12, padding: 14, marginBottom: 8, marginHorizontal: 16 },
+  knowledgeCard: { backgroundColor: COLORS.dark.card, borderRadius: RADIUS.lg, padding: 14, marginBottom: SPACING[2], marginHorizontal: SPACING[4] },
   knowledgeHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  knowledgeTitle: { color: COLORS.text, fontSize: 15, fontWeight: '600', flex: 1 },
-  knowledgeContent: { color: COLORS.muted, fontSize: 13, marginTop: 4, lineHeight: 18 },
-  knowledgeCategory: { color: '#444', fontSize: 11, marginTop: 6, textTransform: 'capitalize' },
+  knowledgeTitle: { color: COLORS.text.primary, fontSize: 15, fontWeight: '600', flex: 1 },
+  knowledgeContent: { color: COLORS.text.secondary, fontSize: 13, marginTop: 4, lineHeight: 18 },
+  knowledgeCategory: { color: COLORS.text.muted, fontSize: 11, marginTop: 6, textTransform: 'capitalize' },
   // Review
-  reviewCard: { backgroundColor: COLORS.card, borderRadius: 16, padding: 20, marginHorizontal: 16, marginBottom: 16 },
-  reviewTitle: { color: COLORS.text, fontSize: 18, fontWeight: '600', marginBottom: 16 },
+  reviewCard: { backgroundColor: COLORS.dark.card, borderRadius: RADIUS.xl, padding: SPACING[5], marginHorizontal: SPACING[4], marginBottom: SPACING[4] },
+  reviewTitle: { color: COLORS.text.primary, fontSize: 18, fontWeight: '600', marginBottom: SPACING[4] },
   reviewStats: { flexDirection: 'row', justifyContent: 'space-around' },
   statItem: { alignItems: 'center' },
-  statValue: { color: COLORS.accent, fontSize: 24, fontWeight: '700' },
-  statLabel: { color: COLORS.muted, fontSize: 11, marginTop: 4 },
-  totalActivity: { color: COLORS.muted, fontSize: 12, textAlign: 'center', marginTop: 12 },
+  statValue: { color: MODULE.hub.color, fontSize: 24, fontWeight: '700' },
+  statLabel: { color: COLORS.text.secondary, fontSize: 11, marginTop: 4 },
+  totalActivity: { color: COLORS.text.secondary, fontSize: 12, textAlign: 'center', marginTop: SPACING[3] },
   weeklyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  weeklyLabel: { color: COLORS.muted, fontSize: 13 },
-  weeklyValue: { color: COLORS.text, fontSize: 14, fontWeight: '500' },
-  streakText: { color: COLORS.text, fontSize: 13 },
+  weeklyLabel: { color: COLORS.text.secondary, fontSize: 13 },
+  weeklyValue: { color: COLORS.text.primary, fontSize: 14, fontWeight: '500' },
+  streakText: { color: COLORS.text.primary, fontSize: 13 },
 });

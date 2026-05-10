@@ -16,6 +16,7 @@ import { JournalFeed } from '../../components/journal/JournalFeed';
 import { useJournal, useCreateEntry } from '../../hooks/useJournal';
 import { useInsights, useGenerateInsights, useDismissInsight } from '../../hooks/useInsights';
 import type { JournalEntry } from '../../hooks/useJournal';
+import { COLORS, SPACING, RADIUS, MODULE } from '../../lib/theme';
 
 type MindTab = 'journal' | 'insights';
 
@@ -97,7 +98,7 @@ export default function MindScreen() {
                   <TextInput
                     style={styles.input}
                     placeholder="What's on your mind?"
-                    placeholderTextColor="#555"
+                    placeholderTextColor={COLORS.text.muted}
                     value={content}
                     onChangeText={setContent}
                     multiline
@@ -106,7 +107,7 @@ export default function MindScreen() {
                   <TextInput
                     style={styles.tagInput}
                     placeholder="Tags (comma-separated)"
-                    placeholderTextColor="#555"
+                    placeholderTextColor={COLORS.text.muted}
                     value={tagInput}
                     onChangeText={setTagInput}
                   />
@@ -123,7 +124,7 @@ export default function MindScreen() {
               )}
 
               {entriesLoading ? (
-                <ActivityIndicator color="#6c63ff" style={{ marginTop: 40 }} />
+                <ActivityIndicator color={MODULE.mind.color} style={{ marginTop: SPACING[10] }} />
               ) : (
                 <JournalFeed entries={journalEntries} />
               )}
@@ -142,7 +143,7 @@ function InsightsPanel() {
   const generateInsights = useGenerateInsights();
   const dismissInsight = useDismissInsight();
 
-  if (isLoading) return <ActivityIndicator color="#6c63ff" style={{ marginTop: 40 }} />;
+  if (isLoading) return <ActivityIndicator color={MODULE.mind.color} style={{ marginTop: SPACING[10] }} />;
 
   const items = insights ?? [];
 
@@ -167,8 +168,9 @@ function InsightsPanel() {
 
       {items.length === 0 ? (
         <View style={styles.emptyInsights}>
-          <Text style={styles.emptyEmoji}>💡</Text>
-          <Text style={styles.emptyText}>No insights yet. Keep journaling and checking in!</Text>
+          <Text style={styles.emptyKicker}>Pattern engine</Text>
+          <Text style={styles.emptyTitle}>No pattern has enough signal yet.</Text>
+          <Text style={styles.emptyText}>A few check-ins or entries will give the system something real to correlate.</Text>
         </View>
       ) : (
         items.map((insight) => (
@@ -206,86 +208,77 @@ function InsightsPanel() {
   );
 }
 
-const COLORS = {
-  bg: '#0f0f23',
-  card: '#16213e',
-  cardBorder: '#1a1a3e',
-  text: '#e0e0e0',
-  muted: '#666',
-  accent: '#6c63ff',
-};
-
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: COLORS.bg },
+  screen: { flex: 1, backgroundColor: COLORS.dark.background },
   flex: { flex: 1 },
   tabBar: {
     flexDirection: 'row',
-    marginHorizontal: 16,
-    marginTop: 8,
-    marginBottom: 16,
-    backgroundColor: COLORS.card,
-    borderRadius: 10,
+    marginHorizontal: SPACING[4],
+    marginTop: SPACING[2],
+    marginBottom: SPACING[4],
+    backgroundColor: COLORS.dark.card,
+    borderRadius: RADIUS.lg,
     padding: 3,
   },
   tab: {
     flex: 1,
-    paddingVertical: 8,
+    paddingVertical: SPACING[2],
     alignItems: 'center',
-    borderRadius: 8,
+    borderRadius: RADIUS.md,
   },
-  tabActive: { backgroundColor: COLORS.accent },
-  tabText: { color: COLORS.muted, fontSize: 13, fontWeight: '500' },
-  tabTextActive: { color: '#fff' },
-  content: { paddingHorizontal: 16, paddingBottom: 32 },
+  tabActive: { backgroundColor: MODULE.mind.color },
+  tabText: { color: COLORS.text.secondary, fontSize: 13, fontWeight: '500' },
+  tabTextActive: { color: COLORS.text.primary },
+  content: { paddingHorizontal: SPACING[4], paddingBottom: SPACING[8] },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: SPACING[4],
   },
-  title: { color: COLORS.text, fontSize: 24, fontWeight: '700' },
+  title: { color: COLORS.text.primary, fontSize: 24, fontWeight: '700' },
   composeButton: {
-    backgroundColor: COLORS.accent,
-    borderRadius: 10,
+    backgroundColor: MODULE.mind.color,
+    borderRadius: RADIUS.lg,
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: SPACING[2],
   },
-  composeButtonText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  composeButtonText: { color: COLORS.text.primary, fontSize: 14, fontWeight: '600' },
   composeCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    backgroundColor: COLORS.dark.card,
+    borderRadius: RADIUS.lg,
+    padding: SPACING[4],
+    marginBottom: SPACING[4],
   },
   input: {
-    color: COLORS.text,
+    color: COLORS.text.primary,
     fontSize: 15,
     minHeight: 80,
     textAlignVertical: 'top',
   },
   tagInput: {
-    color: COLORS.text,
+    color: COLORS.text.primary,
     fontSize: 13,
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopColor: COLORS.cardBorder,
+    marginTop: SPACING[2],
+    paddingTop: SPACING[2],
+    borderTopColor: COLORS.dark.border,
     borderTopWidth: 1,
   },
   saveButton: {
-    backgroundColor: COLORS.accent,
-    borderRadius: 8,
+    backgroundColor: MODULE.mind.color,
+    borderRadius: RADIUS.md,
     paddingVertical: 10,
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: SPACING[3],
   },
   saveButtonDisabled: { opacity: 0.4 },
-  saveButtonText: { color: '#fff', fontSize: 14, fontWeight: '600' },
-  insightsSection: { gap: 12 },
+  saveButtonText: { color: COLORS.text.primary, fontSize: 14, fontWeight: '600' },
+  insightsSection: { gap: SPACING[3] },
   insightCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
+    backgroundColor: COLORS.dark.card,
+    borderRadius: RADIUS.lg,
     padding: 14,
-    marginBottom: 8,
+    marginBottom: SPACING[2],
   },
   insightHeader: {
     flexDirection: 'row',
@@ -293,56 +286,49 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   insightType: {
-    color: COLORS.accent,
+    color: MODULE.mind.color,
     fontSize: 11,
     textTransform: 'uppercase',
     fontWeight: '600',
     letterSpacing: 1,
   },
   insightConfidence: {
-    color: COLORS.muted,
+    color: COLORS.text.muted,
     fontSize: 11,
   },
   insightTitle: {
-    color: COLORS.text,
+    color: COLORS.text.primary,
     fontSize: 15,
     fontWeight: '600',
     marginBottom: 4,
   },
   insightDesc: {
-    color: COLORS.muted,
+    color: COLORS.text.secondary,
     fontSize: 13,
     lineHeight: 18,
   },
   insightActions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginTop: 8,
+    marginTop: SPACING[2],
   },
   dismissBtn: {
-    paddingHorizontal: 12,
+    paddingHorizontal: SPACING[3],
     paddingVertical: 4,
   },
   dismissBtnText: {
-    color: COLORS.muted,
+    color: COLORS.text.muted,
     fontSize: 12,
   },
-  emptyInsights: {
-    alignItems: 'center',
-    paddingTop: 48,
-  },
+  emptyInsights: { backgroundColor: COLORS.dark.card, borderRadius: RADIUS['2xl'], borderWidth: 1, borderColor: MODULE.mind.border, padding: SPACING[5], marginTop: SPACING[3] },
   emptyEmoji: { fontSize: 48 },
-  emptyText: {
-    color: COLORS.muted,
-    fontSize: 14,
-    textAlign: 'center',
-    marginTop: 12,
-    maxWidth: 240,
-  },
+  emptyKicker: { color: MODULE.mind.color, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1.2 },
+  emptyTitle: { color: COLORS.text.primary, fontSize: 20, fontWeight: '800', marginTop: SPACING[2] },
+  emptyText: { color: COLORS.text.secondary, fontSize: 14, lineHeight: 20, marginTop: SPACING[2] },
   generatedText: {
-    color: COLORS.muted,
+    color: COLORS.text.muted,
     fontSize: 12,
     textAlign: 'center',
-    marginTop: 8,
+    marginTop: SPACING[2],
   },
 });

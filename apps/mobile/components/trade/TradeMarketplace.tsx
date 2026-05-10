@@ -19,19 +19,9 @@ import {
   useTradeSafety,
 } from '../../hooks/useTrade';
 import type { TradeListing } from '../../hooks/useTrade';
+import { COLORS, RADIUS, FONT, SPACING } from '../../lib/theme';
 
 type TradeView = 'browse' | 'mine' | 'credits' | 'create' | 'rules';
-
-const COLORS = {
-  bg: '#0f0f23',
-  card: '#16213e',
-  cardBorder: '#1a1a3e',
-  text: '#e0e0e0',
-  muted: '#666',
-  accent: '#6c63ff',
-  success: '#51cf66',
-  warning: '#ffd43b',
-};
 
 interface Props {
   onBack: () => void;
@@ -94,15 +84,16 @@ function BrowseListings() {
   const { data, isLoading } = useListings();
   const createMatch = useCreateMatch();
 
-  if (isLoading) return <ActivityIndicator color={COLORS.accent} style={{ marginTop: 40 }} />;
+  if (isLoading) return <ActivityIndicator color={COLORS.primary} style={{ marginTop: SPACING[10] }} />;
 
   const listings = data?.listings ?? [];
 
   if (listings.length === 0) {
     return (
       <View style={styles.emptyState}>
-        <Text style={styles.emptyEmoji}>🛍️</Text>
-        <Text style={styles.emptyText}>No items available right now. Check back later!</Text>
+        <Text style={styles.emptyKicker}>Market signal</Text>
+        <Text style={styles.emptyTitle}>No available trades yet.</Text>
+        <Text style={styles.emptyText}>Use this space to convert clutter into low-friction exchange when listings exist.</Text>
       </View>
     );
   }
@@ -127,15 +118,16 @@ function BrowseListings() {
 function MyListingsView() {
   const { data, isLoading } = useMyListings();
 
-  if (isLoading) return <ActivityIndicator color={COLORS.accent} style={{ marginTop: 40 }} />;
+  if (isLoading) return <ActivityIndicator color={COLORS.primary} style={{ marginTop: SPACING[10] }} />;
 
   const listings = data?.listings ?? [];
 
   if (listings.length === 0) {
     return (
       <View style={styles.emptyState}>
-        <Text style={styles.emptyEmoji}>📦</Text>
-        <Text style={styles.emptyText}>You haven't listed any items yet.</Text>
+        <Text style={styles.emptyKicker}>Your listings</Text>
+        <Text style={styles.emptyTitle}>Nothing listed yet.</Text>
+        <Text style={styles.emptyText}>Start with one object that no longer earns its space.</Text>
       </View>
     );
   }
@@ -192,7 +184,7 @@ function CreateListingView({ onCreated }: { onCreated: () => void }) {
       <TextInput
         style={styles.formInput}
         placeholder="Item name (e.g. bluetooth speaker)"
-        placeholderTextColor={COLORS.muted}
+        placeholderTextColor={COLORS.text.muted}
         value={label}
         onChangeText={setLabel}
         autoFocus
@@ -201,7 +193,7 @@ function CreateListingView({ onCreated }: { onCreated: () => void }) {
       <TextInput
         style={[styles.formInput, { minHeight: 60 }]}
         placeholder="Description (optional)"
-        placeholderTextColor={COLORS.muted}
+        placeholderTextColor={COLORS.text.muted}
         value={description}
         onChangeText={setDescription}
         multiline
@@ -225,7 +217,7 @@ function CreateListingView({ onCreated }: { onCreated: () => void }) {
       <TextInput
         style={styles.formInput}
         placeholder="Credit value (optional)"
-        placeholderTextColor={COLORS.muted}
+        placeholderTextColor={COLORS.text.muted}
         value={credits}
         onChangeText={setCredits}
         keyboardType="number-pad"
@@ -249,7 +241,7 @@ function CreateListingView({ onCreated }: { onCreated: () => void }) {
 function CreditsView() {
   const { data, isLoading } = useCredits();
 
-  if (isLoading) return <ActivityIndicator color={COLORS.accent} style={{ marginTop: 40 }} />;
+  if (isLoading) return <ActivityIndicator color={COLORS.primary} style={{ marginTop: SPACING[10] }} />;
 
   const transactions = data?.transactions ?? [];
 
@@ -261,7 +253,7 @@ function CreditsView() {
       </View>
 
       {transactions.length > 0 ? (
-        <View style={{ marginTop: 16 }}>
+        <View style={{ marginTop: SPACING[4] }}>
           <Text style={styles.sectionLabel}>Transaction History</Text>
           {transactions.map((tx) => (
             <View key={tx.id} style={styles.txRow}>
@@ -278,7 +270,11 @@ function CreditsView() {
           ))}
         </View>
       ) : (
-        <Text style={styles.emptyText}>No transactions yet. List items to earn credits!</Text>
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyKicker}>Credits</Text>
+          <Text style={styles.emptyTitle}>No credit motion yet.</Text>
+          <Text style={styles.emptyText}>Credits become useful once trades start moving.</Text>
+        </View>
       )}
     </View>
   );
@@ -318,7 +314,11 @@ function RulesView() {
       ))}
 
       {rules.length === 0 && checklists.length === 0 && (
-        <Text style={styles.emptyText}>Community guidelines coming soon.</Text>
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyKicker}>Guide</Text>
+          <Text style={styles.emptyTitle}>Trade without cognitive load.</Text>
+          <Text style={styles.emptyText}>Keep exchanges local, explicit, and low-pressure.</Text>
+        </View>
       )}
     </View>
   );
@@ -354,143 +354,145 @@ function ListingCard({ item, onAction, actionLabel }: { item: TradeListing; onAc
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.bg },
+  container: { flex: 1, backgroundColor: COLORS.dark.background },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: SPACING[4],
+    paddingVertical: SPACING[3],
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.cardBorder,
+    borderBottomColor: COLORS.dark.elevated,
   },
-  backBtn: { padding: 8 },
-  backText: { color: COLORS.accent, fontSize: 16 },
-  headerTitle: { color: COLORS.text, fontSize: 18, fontWeight: '700' },
+  backBtn: { padding: SPACING[2] },
+  backText: { color: COLORS.primary, fontSize: FONT.size.base },
+  headerTitle: { color: COLORS.text.primary, fontSize: FONT.size.lg, fontWeight: FONT.weight.bold },
   creditsBadge: {
-    backgroundColor: '#1a2744',
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    backgroundColor: COLORS.dark.elevated,
+    borderRadius: RADIUS.lg,
+    paddingHorizontal: SPACING[2] + 2,
+    paddingVertical: SPACING[1],
   },
-  creditsBadgeText: { color: COLORS.warning, fontSize: 13, fontWeight: '600' },
+  creditsBadgeText: { color: COLORS.warning, fontSize: 13, fontWeight: FONT.weight.semibold },
   tabBar: {
     flexDirection: 'row',
-    gap: 4,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    gap: SPACING[1],
+    paddingHorizontal: SPACING[4],
+    paddingVertical: SPACING[2],
   },
   tab: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: COLORS.card,
+    paddingHorizontal: SPACING[3],
+    paddingVertical: SPACING[1] + 2,
+    borderRadius: RADIUS.xl,
+    backgroundColor: COLORS.dark.card,
   },
-  tabActive: { backgroundColor: COLORS.accent },
-  tabText: { color: COLORS.muted, fontSize: 12, fontWeight: '500' },
+  tabActive: { backgroundColor: COLORS.primary },
+  tabText: { color: COLORS.text.muted, fontSize: FONT.size.xs, fontWeight: FONT.weight.medium },
   tabTextActive: { color: '#fff' },
-  content: { paddingHorizontal: 16, paddingBottom: 32 },
+  content: { paddingHorizontal: SPACING[4], paddingBottom: SPACING[8] },
   // Listings
-  listContainer: { gap: 8 },
+  listContainer: { gap: SPACING[2] },
   listingCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
+    backgroundColor: COLORS.dark.card,
+    borderRadius: RADIUS.lg,
     padding: 14,
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  listingInfo: { flex: 1, marginRight: 12 },
-  listingLabel: { color: COLORS.text, fontSize: 15, fontWeight: '600' },
-  listingCondition: { color: COLORS.muted, fontSize: 12, marginTop: 2, textTransform: 'capitalize' },
-  listingDesc: { color: COLORS.muted, fontSize: 12, marginTop: 4, lineHeight: 16 },
+  listingInfo: { flex: 1, marginRight: SPACING[3] },
+  listingLabel: { color: COLORS.text.primary, fontSize: 15, fontWeight: FONT.weight.semibold },
+  listingCondition: { color: COLORS.text.muted, fontSize: FONT.size.xs, marginTop: 2, textTransform: 'capitalize' },
+  listingDesc: { color: COLORS.text.muted, fontSize: FONT.size.xs, marginTop: SPACING[1], lineHeight: FONT.size.base },
   listingRight: { alignItems: 'flex-end', justifyContent: 'center' },
-  listingCredits: { color: COLORS.success, fontSize: 16, fontWeight: '700' },
-  listingStatus: { color: COLORS.muted, fontSize: 11, marginTop: 2, textTransform: 'capitalize' },
+  listingCredits: { color: COLORS.success, fontSize: FONT.size.base, fontWeight: FONT.weight.bold },
+  listingStatus: { color: COLORS.text.muted, fontSize: 11, marginTop: 2, textTransform: 'capitalize' },
   statusAvailable: { color: COLORS.success },
-  tagRow: { flexDirection: 'row', gap: 4, marginTop: 6, flexWrap: 'wrap' },
-  tag: { backgroundColor: '#1a1a3e', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 },
-  tagText: { color: COLORS.accent, fontSize: 11 },
+  tagRow: { flexDirection: 'row', gap: SPACING[1], marginTop: 6, flexWrap: 'wrap' },
+  tag: { backgroundColor: COLORS.dark.elevated, borderRadius: 6, paddingHorizontal: SPACING[2], paddingVertical: 2 },
+  tagText: { color: COLORS.primary, fontSize: 11 },
   actionBtn: {
-    backgroundColor: COLORS.accent,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    marginTop: 8,
+    backgroundColor: COLORS.primary,
+    borderRadius: RADIUS.md,
+    paddingHorizontal: SPACING[2] + 2,
+    paddingVertical: SPACING[1] + 2,
+    marginTop: SPACING[2],
   },
-  actionBtnText: { color: '#fff', fontSize: 11, fontWeight: '600' },
+  actionBtnText: { color: '#fff', fontSize: 11, fontWeight: FONT.weight.semibold },
   // Form
   formCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: COLORS.dark.card,
+    borderRadius: RADIUS.xl,
+    padding: SPACING[4],
   },
-  formTitle: { color: COLORS.text, fontSize: 18, fontWeight: '700', marginBottom: 16 },
+  formTitle: { color: COLORS.text.primary, fontSize: FONT.size.lg, fontWeight: FONT.weight.bold, marginBottom: SPACING[4] },
   formInput: {
-    backgroundColor: '#0d1b36',
+    backgroundColor: COLORS.dark.background,
     borderRadius: 10,
-    padding: 12,
-    color: COLORS.text,
+    padding: SPACING[3],
+    color: COLORS.text.primary,
     fontSize: 15,
-    marginBottom: 12,
+    marginBottom: SPACING[3],
   },
-  formLabel: { color: COLORS.muted, fontSize: 12, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 },
-  conditionRow: { flexDirection: 'row', gap: 6, marginBottom: 12, flexWrap: 'wrap' },
+  formLabel: { color: COLORS.text.muted, fontSize: FONT.size.xs, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 },
+  conditionRow: { flexDirection: 'row', gap: 6, marginBottom: SPACING[3], flexWrap: 'wrap' },
   conditionBtn: {
-    backgroundColor: '#0d1b36',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    backgroundColor: COLORS.dark.background,
+    borderRadius: RADIUS.md,
+    paddingHorizontal: SPACING[2] + 2,
+    paddingVertical: SPACING[1] + 2,
   },
-  conditionBtnActive: { backgroundColor: COLORS.accent },
-  conditionText: { color: COLORS.muted, fontSize: 12, textTransform: 'capitalize' },
+  conditionBtnActive: { backgroundColor: COLORS.primary },
+  conditionText: { color: COLORS.text.muted, fontSize: FONT.size.xs, textTransform: 'capitalize' },
   conditionTextActive: { color: '#fff' },
   submitBtn: {
-    backgroundColor: COLORS.accent,
+    backgroundColor: COLORS.primary,
     borderRadius: 10,
-    paddingVertical: 12,
+    paddingVertical: SPACING[3],
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: SPACING[1],
   },
   submitBtnDisabled: { opacity: 0.4 },
-  submitBtnText: { color: '#fff', fontSize: 15, fontWeight: '600' },
+  submitBtnText: { color: '#fff', fontSize: 15, fontWeight: FONT.weight.semibold },
   // Credits
   balanceCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: COLORS.dark.card,
+    borderRadius: RADIUS.xl,
+    padding: SPACING[5],
     alignItems: 'center',
   },
-  balanceLabel: { color: COLORS.muted, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 },
-  balanceValue: { color: COLORS.warning, fontSize: 32, fontWeight: '700', marginTop: 4 },
+  balanceLabel: { color: COLORS.text.muted, fontSize: FONT.size.xs, textTransform: 'uppercase', letterSpacing: 1 },
+  balanceValue: { color: COLORS.warning, fontSize: FONT.size['4xl'], fontWeight: FONT.weight.bold, marginTop: SPACING[1] },
   txRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.dark.card,
     borderRadius: 10,
-    padding: 12,
+    padding: SPACING[3],
     marginBottom: 6,
   },
   txInfo: { flex: 1 },
-  txItem: { color: COLORS.text, fontSize: 14 },
-  txDate: { color: COLORS.muted, fontSize: 11, marginTop: 2 },
-  txAmount: { fontSize: 16, fontWeight: '600' },
+  txItem: { color: COLORS.text.primary, fontSize: FONT.size.sm },
+  txDate: { color: COLORS.text.muted, fontSize: 11, marginTop: 2 },
+  txAmount: { fontSize: FONT.size.base, fontWeight: FONT.weight.semibold },
   txCredit: { color: COLORS.success },
-  txDebit: { color: '#ff6b6b' },
+  txDebit: { color: COLORS.error },
   // Rules
-  rulesSection: { marginBottom: 16 },
+  rulesSection: { marginBottom: SPACING[4] },
   sectionLabel: {
-    color: COLORS.muted,
-    fontSize: 12,
+    color: COLORS.text.muted,
+    fontSize: FONT.size.xs,
     textTransform: 'uppercase',
     letterSpacing: 1,
-    marginBottom: 8,
+    marginBottom: SPACING[2],
   },
-  ruleRow: { flexDirection: 'row', gap: 8, marginBottom: 6 },
-  ruleBullet: { color: COLORS.accent, fontSize: 14 },
-  ruleText: { color: COLORS.text, fontSize: 14, flex: 1, lineHeight: 20 },
+  ruleRow: { flexDirection: 'row', gap: SPACING[2], marginBottom: 6 },
+  ruleBullet: { color: COLORS.primary, fontSize: FONT.size.sm },
+  ruleText: { color: COLORS.text.primary, fontSize: FONT.size.sm, flex: 1, lineHeight: 20 },
   // Shared
-  emptyState: { alignItems: 'center', paddingTop: 48 },
-  emptyEmoji: { fontSize: 48 },
-  emptyText: { color: COLORS.muted, fontSize: 14, textAlign: 'center', marginTop: 12, maxWidth: 240 },
+  emptyState: { backgroundColor: COLORS.dark.card, borderWidth: 1, borderColor: COLORS.dark.border, borderRadius: RADIUS['2xl'], padding: SPACING[5], marginTop: SPACING[4] },
+  emptyEmoji: { fontSize: FONT.size['5xl'] },
+  emptyKicker: { color: COLORS.hub, fontSize: FONT.size.xs, fontWeight: FONT.weight.bold, textTransform: 'uppercase', letterSpacing: 1.2 },
+  emptyTitle: { color: COLORS.text.primary, fontSize: FONT.size.xl, fontWeight: FONT.weight.bold, marginTop: SPACING[2] },
+  emptyText: { color: COLORS.text.muted, fontSize: FONT.size.sm, lineHeight: FONT.size.xl, marginTop: SPACING[2] },
 });

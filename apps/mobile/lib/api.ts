@@ -1,19 +1,37 @@
-import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3001';
 
 const TOKEN_KEY = 'auth_token';
 
+const webStorage = {
+  getItem: (key: string) => Promise.resolve(localStorage.getItem(key)),
+  setItem: (key: string, value: string) => { localStorage.setItem(key, value); return Promise.resolve(); },
+  deleteItem: (key: string) => { localStorage.removeItem(key); return Promise.resolve(); },
+  deleteItemAsync: (key: string) => { localStorage.removeItem(key); return Promise.resolve(); },
+};
+
+let secureStore: typeof import('expo-secure-store') | null = null;
+
+async function getStore() {
+  if (Platform.OS === 'web') return webStorage;
+  if (!secureStore) secureStore = await import('expo-secure-store');
+  return secureStore!;
+}
+
 export async function getToken(): Promise<string | null> {
-  return SecureStore.getItemAsync(TOKEN_KEY);
+  const store = await getStore();
+  return store.getItem(TOKEN_KEY);
 }
 
 export async function setToken(token: string): Promise<void> {
-  return SecureStore.setItemAsync(TOKEN_KEY, token);
+  const store = await getStore();
+  return store.setItem(TOKEN_KEY, token);
 }
 
 export async function clearToken(): Promise<void> {
-  return SecureStore.deleteItemAsync(TOKEN_KEY);
+  const store = await getStore();
+  return store.deleteItemAsync(TOKEN_KEY);
 }
 
 export class ApiError extends Error {

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { selectionAsync } from '../../lib/haptics';
+import { COLORS, SPACING, RADIUS, FONT } from '../../lib/theme';
 
 interface QuickCaptureProps {
   on_capture: (data: { content: string; tags: string[] }) => void;
@@ -25,7 +26,7 @@ export function QuickCapture({ on_capture }: QuickCaptureProps) {
         <TextInput
           style={styles.input}
           placeholder="Capture a thought..."
-          placeholderTextColor="#555"
+          placeholderTextColor={COLORS.text.muted}
           value={content}
           onChangeText={setContent}
           onSubmitEditing={handleCapture}
@@ -43,7 +44,7 @@ export function QuickCapture({ on_capture }: QuickCaptureProps) {
       <TextInput
         style={styles.tagInput}
         placeholder="Tags (comma-separated, optional)"
-        placeholderTextColor="#444"
+        placeholderTextColor={COLORS.text.muted}
         value={tagInput}
         onChangeText={setTagInput}
       />
@@ -53,39 +54,39 @@ export function QuickCapture({ on_capture }: QuickCaptureProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#16213e',
-    borderRadius: 12,
-    padding: 12,
-    marginHorizontal: 16,
-    marginBottom: 12,
+    backgroundColor: COLORS.dark.card,
+    borderRadius: RADIUS.lg,
+    padding: SPACING[3],
+    marginHorizontal: SPACING[4],
+    marginBottom: SPACING[3],
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: SPACING[2],
   },
   input: {
     flex: 1,
-    color: '#e0e0e0',
-    fontSize: 15,
-    paddingVertical: 4,
+    color: COLORS.text.primary,
+    fontSize: FONT.size.base - 1,
+    paddingVertical: SPACING[1],
   },
   captureButton: {
-    backgroundColor: '#6c63ff',
-    borderRadius: 8,
+    backgroundColor: COLORS.primary,
+    borderRadius: RADIUS.md,
     width: 36,
     height: 36,
     alignItems: 'center',
     justifyContent: 'center',
   },
   captureButtonDisabled: { opacity: 0.3 },
-  captureButtonText: { color: '#fff', fontSize: 22, fontWeight: '300' },
+  captureButtonText: { color: COLORS.text.inverse, fontSize: FONT.size.xl + 2, fontWeight: '300' },
   tagInput: {
-    color: '#888',
-    fontSize: 12,
+    color: COLORS.text.muted,
+    fontSize: FONT.size.xs,
     marginTop: 6,
     paddingTop: 6,
-    borderTopColor: '#1a1a3e',
+    borderTopColor: COLORS.dark.elevated,
     borderTopWidth: 1,
   },
 });

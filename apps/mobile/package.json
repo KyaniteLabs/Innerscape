@@ -13,28 +13,29 @@
     "test": "jest"
   },
   "dependencies": {
+    "@expo/vector-icons": "^15.1.1",
     "@innerscape/shared": "*",
     "@tanstack/react-query": "^5.60.0",
-    "expo": "~53.0.0",
-    "expo-constants": "~17.0.0",
-    "expo-haptics": "~14.0.0",
-    "expo-router": "~5.0.0",
-    "expo-secure-store": "~14.0.0",
-    "expo-status-bar": "~2.0.0",
-    "nativewind": "^4.1.0",
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
-    "react-native": "0.79.0",
-    "react-native-gesture-handler": "~2.24.0",
-    "react-native-reanimated": "~3.17.0",
-    "react-native-safe-area-context": "~5.0.0",
-    "react-native-screens": "~4.0.0",
-    "react-native-web": "^0.20.0",
+    "expo": "~55.0.23",
+    "expo-constants": "~55.0.16",
+    "expo-haptics": "~55.0.14",
+    "expo-linking": "~55.0.15",
+    "expo-router": "~55.0.14",
+    "expo-secure-store": "~55.0.13",
+    "expo-status-bar": "~55.0.6",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-native": "0.83.6",
+    "react-native-gesture-handler": "~2.30.0",
+    "react-native-reanimated": "4.2.1",
+    "react-native-safe-area-context": "~5.6.2",
+    "react-native-screens": "~4.23.0",
+    "react-native-web": "^0.21.0",
     "zustand": "^5.0.0"
   },
   "devDependencies": {
-    "@types/react": "~19.0.0",
-    "typescript": "^5.7.0",
-    "tailwindcss": "^3.4.0"
+    "@types/react": "~19.2.10",
+    "babel-preset-expo": "^55.0.21",
+    "typescript": "~5.9.2"
   }
 }

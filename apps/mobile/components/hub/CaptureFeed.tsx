@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { COLORS, SPACING, RADIUS, FONT } from '../../lib/theme';
 
 interface CaptureItem {
   id: string;
@@ -70,12 +71,12 @@ export function CaptureFeed({ items, on_dismiss }: CaptureFeedProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 8 },
-  empty: { alignItems: 'center', padding: 24 },
-  emptyText: { color: '#555', fontSize: 14 },
+  container: { gap: SPACING[2] },
+  empty: { alignItems: 'center', padding: SPACING[6] },
+  emptyText: { color: COLORS.text.muted, fontSize: FONT.size.sm },
   card: {
-    backgroundColor: '#16213e',
-    borderRadius: 12,
+    backgroundColor: COLORS.dark.card,
+    borderRadius: RADIUS.lg,
     padding: 14,
   },
   cardHeader: {
@@ -84,26 +85,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 6,
   },
-  typeIcon: { fontSize: 14 },
-  timestamp: { color: '#444', fontSize: 11 },
-  content: { color: '#e0e0e0', fontSize: 14, lineHeight: 20 },
-  tagRow: { flexDirection: 'row', gap: 4, marginTop: 8 },
+  typeIcon: { fontSize: FONT.size.sm },
+  timestamp: { color: COLORS.text.muted, fontSize: FONT.size.xs - 1 },
+  content: { color: COLORS.text.primary, fontSize: FONT.size.sm, lineHeight: FONT.size.xl },
+  tagRow: { flexDirection: 'row', gap: SPACING[1], marginTop: SPACING[2] },
   tag: {
-    backgroundColor: '#1a1a3e',
+    backgroundColor: COLORS.dark.elevated,
     borderRadius: 6,
-    paddingHorizontal: 8,
+    paddingHorizontal: SPACING[2],
     paddingVertical: 2,
   },
-  tagText: { color: '#6c63ff', fontSize: 11 },
+  tagText: { color: COLORS.primary, fontSize: FONT.size.xs - 1 },
   pendingRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopColor: '#1a1a3e',
+    marginTop: SPACING[2],
+    paddingTop: SPACING[2],
+    borderTopColor: COLORS.dark.elevated,
     borderTopWidth: 1,
   },
-  pendingLabel: { color: '#555', fontSize: 11, fontStyle: 'italic' },
-  dismissText: { color: '#6c63ff', fontSize: 12 },
+  pendingLabel: { color: COLORS.text.muted, fontSize: FONT.size.xs - 1, fontStyle: 'italic' },
+  dismissText: { color: COLORS.primary, fontSize: FONT.size.xs },
 });

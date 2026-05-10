@@ -7,6 +7,7 @@ import { SpacesPanel } from '../../components/spaces/SpacesPanel';
 import { useCreateBodyCheckin } from '../../hooks/useBodyCheckins';
 import { useSleep, useCreateSleepLog } from '../../hooks/useSleep';
 import { useSomatic, useCreateSomatic } from '../../hooks/useSomatic';
+import { COLORS, SPACING, RADIUS, MODULE } from '../../lib/theme';
 
 type BodyMode = 'checkin' | 'sleep' | 'spaces' | 'somatic';
 
@@ -105,7 +106,7 @@ export default function BodyScreen() {
               value={somaticEmotion}
               onChangeText={setSomaticEmotion}
               placeholder="e.g. anxiety, calm, joy"
-              placeholderTextColor={COLORS.muted}
+              placeholderTextColor={COLORS.text.secondary}
             />
             <Text style={styles.formLabel}>Confidence (0 - 1)</Text>
             <TextInput
@@ -113,7 +114,7 @@ export default function BodyScreen() {
               value={somaticConfidence}
               onChangeText={setSomaticConfidence}
               keyboardType="decimal-pad"
-              placeholderTextColor={COLORS.muted}
+              placeholderTextColor={COLORS.text.secondary}
             />
             <TouchableOpacity
               style={styles.submitBtn}
@@ -122,7 +123,7 @@ export default function BodyScreen() {
               activeOpacity={0.7}
             >
               {createSomatic.isPending ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={COLORS.text.primary} />
               ) : (
                 <Text style={styles.submitBtnText}>Save Mapping</Text>
               )}
@@ -202,7 +203,7 @@ export default function BodyScreen() {
             )}
 
             {(sleepLoading || somaticLoading) && (
-              <ActivityIndicator color="#6c63ff" style={{ marginTop: 20 }} />
+              <ActivityIndicator color={MODULE.soma.color} style={{ marginTop: SPACING[5] }} />
             )}
           </>
         )}
@@ -211,82 +212,73 @@ export default function BodyScreen() {
   );
 }
 
-const COLORS = {
-  bg: '#0f0f23',
-  card: '#16213e',
-  cardBorder: '#1a1a3e',
-  text: '#e0e0e0',
-  muted: '#666',
-  accent: '#6c63ff',
-};
-
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: COLORS.bg },
-  content: { paddingVertical: 16 },
-  pageTitle: { color: COLORS.text, fontSize: 24, fontWeight: '700', paddingHorizontal: 16, marginBottom: 20 },
-  modesGrid: { paddingHorizontal: 16, gap: 12 },
+  screen: { flex: 1, backgroundColor: COLORS.dark.background },
+  content: { paddingVertical: SPACING[4] },
+  pageTitle: { color: COLORS.text.primary, fontSize: 24, fontWeight: '700', paddingHorizontal: SPACING[4], marginBottom: SPACING[5] },
+  modesGrid: { paddingHorizontal: SPACING[4], gap: SPACING[3] },
   modeCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: COLORS.dark.card,
+    borderRadius: RADIUS.xl,
+    padding: SPACING[5],
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: SPACING[4],
   },
   modeEmoji: { fontSize: 36 },
-  modeTitle: { color: COLORS.text, fontSize: 17, fontWeight: '600' },
-  modeDesc: { color: COLORS.muted, fontSize: 13, marginTop: 2 },
+  modeTitle: { color: COLORS.text.primary, fontSize: 17, fontWeight: '600' },
+  modeDesc: { color: COLORS.text.secondary, fontSize: 13, marginTop: 2 },
   summaryCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 16,
-    padding: 16,
-    marginHorizontal: 16,
-    marginTop: 24,
+    backgroundColor: COLORS.dark.card,
+    borderRadius: RADIUS.xl,
+    padding: SPACING[4],
+    marginHorizontal: SPACING[4],
+    marginTop: SPACING[6],
   },
-  summaryRow: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 12 },
+  summaryRow: { flexDirection: 'row', justifyContent: 'space-around', marginTop: SPACING[3] },
   summaryItem: { alignItems: 'center' },
-  summaryValue: { color: COLORS.accent, fontSize: 20, fontWeight: '700' },
-  summaryLabel: { color: COLORS.muted, fontSize: 11, marginTop: 4 },
+  summaryValue: { color: MODULE.soma.color, fontSize: 20, fontWeight: '700' },
+  summaryLabel: { color: COLORS.text.muted, fontSize: 11, marginTop: SPACING[1] },
   sectionTitle: {
-    color: COLORS.muted,
+    color: COLORS.text.secondary,
     fontSize: 12,
     textTransform: 'uppercase',
     letterSpacing: 1,
-    marginBottom: 8,
+    marginBottom: SPACING[2],
   },
-  historySection: { marginTop: 24, paddingHorizontal: 16 },
+  historySection: { marginTop: SPACING[6], paddingHorizontal: SPACING[4] },
   sleepRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: COLORS.card,
-    borderRadius: 10,
+    backgroundColor: COLORS.dark.card,
+    borderRadius: RADIUS.md,
     padding: 14,
     marginBottom: 6,
   },
-  sleepDate: { color: COLORS.muted, fontSize: 13, width: 40 },
-  sleepDuration: { color: COLORS.text, fontSize: 16, fontWeight: '600', flex: 1 },
+  sleepDate: { color: COLORS.text.secondary, fontSize: 13, width: 40 },
+  sleepDuration: { color: COLORS.text.primary, fontSize: 16, fontWeight: '600', flex: 1 },
   sleepQuality: { fontSize: 20 },
-  somaticForm: { paddingHorizontal: 16, gap: 12 },
-  backText: { color: COLORS.accent, fontSize: 14, marginBottom: 8 },
-  formTitle: { color: COLORS.text, fontSize: 20, fontWeight: '700', marginBottom: 4 },
-  formLabel: { color: COLORS.muted, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 },
+  somaticForm: { paddingHorizontal: SPACING[4], gap: SPACING[3] },
+  backText: { color: MODULE.soma.color, fontSize: 14, marginBottom: SPACING[2] },
+  formTitle: { color: COLORS.text.primary, fontSize: 20, fontWeight: '700', marginBottom: SPACING[1] },
+  formLabel: { color: COLORS.text.secondary, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 },
   formInput: {
-    backgroundColor: COLORS.card,
-    borderRadius: 10,
+    backgroundColor: COLORS.dark.card,
+    borderRadius: RADIUS.md,
     padding: 14,
-    color: COLORS.text,
+    color: COLORS.text.primary,
     fontSize: 16,
   },
   submitBtn: {
-    backgroundColor: COLORS.accent,
-    borderRadius: 12,
-    paddingVertical: 16,
+    backgroundColor: MODULE.soma.color,
+    borderRadius: RADIUS.lg,
+    paddingVertical: SPACING[4],
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: SPACING[1],
   },
-  submitBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  somaticEmotion: { color: COLORS.text, fontSize: 14, fontWeight: '500', flex: 1 },
-  somaticConfidence: { color: COLORS.accent, fontSize: 14, fontWeight: '600', width: 44, textAlign: 'right' },
-  somaticOccurrences: { color: COLORS.muted, fontSize: 13, width: 36, textAlign: 'right' },
+  submitBtnText: { color: COLORS.text.primary, fontSize: 16, fontWeight: '600' },
+  somaticEmotion: { color: COLORS.text.primary, fontSize: 14, fontWeight: '500', flex: 1 },
+  somaticConfidence: { color: MODULE.soma.color, fontSize: 14, fontWeight: '600', width: 44, textAlign: 'right' },
+  somaticOccurrences: { color: COLORS.text.secondary, fontSize: 13, width: 36, textAlign: 'right' },
 });
