@@ -24,10 +24,13 @@ Personal growth OS — self-awareness, productivity, and well-being in one unifi
 ```bash
 cd apps/backend
 cp .env.example .env    # Edit with your DB connection
+# Generate a local JWT secret: openssl rand -base64 32
 npm ci
 npx prisma migrate dev
 npm run dev
 ```
+
+For Docker Compose deployments, set `POSTGRES_PASSWORD` and `JWT_SECRET` in the deployment environment before starting the stack; the compose file intentionally refuses to boot with placeholder production secrets.
 
 ### Mobile
 

@@ -1,0 +1,23 @@
+version: 1
+suppress:
+  - id: Possible secret-like field without credential shape
+    reason: Innerscape intentionally references JWT/database/API credential fields in examples, CI test configuration, Docker Compose variable requirements, runtime env readers, auth middleware, and integration-test fixtures; reviewed sites contain placeholders or env-variable reads rather than committed credentials.
+    files:
+      - .env.example
+      - .github/workflows/ci.yml
+      - apps/backend/.env.example
+      - apps/backend/src/middleware/auth.ts
+      - apps/backend/src/services/auth.ts
+      - apps/backend/src/services/vision-analysis.ts
+      - apps/backend/tests/characterization/declutter-api.test.ts
+      - apps/backend/tests/integration/auth-routes.test.ts
+      - apps/backend/tests/integration/body-routes.test.ts
+      - apps/backend/tests/integration/declutter-routes.test.ts
+      - apps/backend/tests/integration/emotional-routes.test.ts
+      - apps/backend/tests/integration/flow-routes.test.ts
+      - apps/backend/tests/integration/hub-routes.test.ts
+      - apps/backend/tests/integration/journal-routes.test.ts
+      - apps/backend/tests/integration/trade-routes.test.ts
+      - docker-compose.yml
+    reviewed_by: KyaniteLabs
+    reviewed_at: "2026-05-29"
