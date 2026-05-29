@@ -2,7 +2,23 @@ import bcryptjs from 'bcryptjs';
 const { hash, compare } = bcryptjs;
 import { SignJWT, jwtVerify } from 'jose';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'change-me-in-production');
+const INSECURE_PRODUCTION_JWT_SECRETS = new Set([
+  'change-me-in-production',
+  'dev-only-jwt-secret-change-me',
+  'ci-test-secret-do-not-use-in-production',
+]);
+
+function resolveJwtSecret(): Uint8Array {
+  const value = process.env.JWT_SECRET;
+
+  if (process.env.NODE_ENV === 'production' && (!value || INSECURE_PRODUCTION_JWT_SECRETS.has(value))) {
+    throw new Error('JWT_SECRET must be set to a non-placeholder value in production');
+  }
+
+  return new TextEncoder().encode(value || 'innerscape-local-test-jwt-secret');
+}
+
+const JWT_SECRET = resolveJwtSecret();
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
 export async function hashPassword(password: string): Promise<string> {

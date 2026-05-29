@@ -37,7 +37,7 @@
   "scripts": {
     "dev:backend": "npm run dev --workspace=apps/backend",
     "dev:mobile": "npm run dev --workspace=apps/mobile",
-    "build": "npm run build --workspaces",
+    "build": "npm run build --workspaces --if-present",
     "build:shared": "npm run build --workspace=packages/shared",
     "lint": "npm run lint --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
