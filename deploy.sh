@@ -6,8 +6,8 @@ echo "=== Innerscape Deploy ==="
 # Check for .env
 if [ ! -f .env ]; then
   echo "ERROR: No .env file found."
-  echo "Copy .env.production to .env and fill in the values:"
-  echo "  cp .env.production .env"
+  echo "Copy .env.example to .env and fill in production-only values:"
+  echo "  cp .env.example .env"
   echo "  nano .env"
   exit 1
 fi

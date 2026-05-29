@@ -29,6 +29,7 @@ android/app/build/
 .env
 .env.local
 .env.*.local
+.env.production
 *.env
 
 # IDE

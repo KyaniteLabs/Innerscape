@@ -15,8 +15,9 @@
 import { describe, it, expect, beforeAll } from "vitest";
 
 const BASE = "https://declutter.kyanitelabs.tech";
-const TOKEN = "ZH4liX0DjpUrkQYJ84+KmY9KNDZvTrQeCeDerEdefnfLfqUFDjva8cyLzMgXnEHJ";
-const AUTH = { Authorization: `Bearer ${TOKEN}` };
+const TOKEN = process.env.DECLUTTER_API_TOKEN;
+const AUTH = TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {};
+const describeWithToken = TOKEN ? describe : describe.skip;
 
 let sessionId = "";
 let itemId = "";
@@ -48,7 +49,7 @@ describe("GET /health/readiness", () => {
 
 // ── Sessions ────────────────────────────────────────────────────────────────────
 
-describe("POST /sessions", () => {
+describeWithToken("POST /sessions", () => {
   it("creates a new session", async () => {
     const res = await fetch(`${BASE}/sessions`, {
       method: "POST",
@@ -67,7 +68,7 @@ describe("POST /sessions", () => {
   });
 });
 
-describe("GET /sessions", () => {
+describeWithToken("GET /sessions", () => {
   it("lists sessions for the authenticated user", async () => {
     const res = await fetch(`${BASE}/sessions`, { headers: AUTH });
     expect(res.status).toBe(200);
@@ -86,7 +87,7 @@ describe("GET /sessions", () => {
   });
 });
 
-describe("GET /sessions/{session_id}", () => {
+describeWithToken("GET /sessions/{session_id}", () => {
   it("returns a specific session", async () => {
     const res = await fetch(`${BASE}/sessions/${sessionId}`, { headers: AUTH });
     expect(res.status).toBe(200);
@@ -100,7 +101,7 @@ describe("GET /sessions/{session_id}", () => {
 
 // ── Session Items ───────────────────────────────────────────────────────────────
 
-describe("POST /sessions/{id}/items", () => {
+describeWithToken("POST /sessions/{id}/items", () => {
   it("adds an item to a session with valuation", async () => {
     const res = await fetch(`${BASE}/sessions/${sessionId}/items`, {
       method: "POST",
@@ -134,7 +135,7 @@ describe("POST /sessions/{id}/items", () => {
 
 // ── Decisions ───────────────────────────────────────────────────────────────────
 
-describe("POST /sessions/{id}/decisions", () => {
+describeWithToken("POST /sessions/{id}/decisions", () => {
   it("records a keep decision", async () => {
     const res = await fetch(`${BASE}/sessions/${sessionId}/decisions`, {
       method: "POST",
@@ -161,7 +162,7 @@ describe("POST /sessions/{id}/decisions", () => {
 
 // ── Session Summary ─────────────────────────────────────────────────────────────
 
-describe("GET /sessions/{id}/summary", () => {
+describeWithToken("GET /sessions/{id}/summary", () => {
   it("returns session summary with decision counts", async () => {
     const res = await fetch(`${BASE}/sessions/${sessionId}/summary`, { headers: AUTH });
     expect(res.status).toBe(200);
@@ -181,7 +182,7 @@ describe("GET /sessions/{id}/summary", () => {
 
 // ── Valuation ───────────────────────────────────────────────────────────────────
 
-describe("POST /valuation/estimate", () => {
+describeWithToken("POST /valuation/estimate", () => {
   it("returns price estimate for a known item", async () => {
     const res = await fetch(`${BASE}/valuation/estimate`, {
       method: "POST",
