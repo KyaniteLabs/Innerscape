@@ -89,3 +89,15 @@ packages/
 ## License
 
 MIT — KyaniteLabs
+
+---
+
+## Part of KyaniteLabs
+
+More from [KyaniteLabs](https://kyanitelabs.tech). Related projects:
+
+- **[Elixis](https://github.com/KyaniteLabs/Elixis)** — local-first AI pattern-synthesis engine for ideas
+- **[openglaze](https://github.com/KyaniteLabs/openglaze)** — free ceramic glaze calculator (UMF)
+- **[liminal](https://github.com/KyaniteLabs/liminal)** — AI creative-coding studio (p5.js, GLSL, Three.js)
+
+→ More at **[kyanitelabs.tech](https://kyanitelabs.tech)**
