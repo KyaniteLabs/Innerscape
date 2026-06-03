@@ -94,7 +94,7 @@ MIT — KyaniteLabs
 
 ## Part of KyaniteLabs
 
-Open-source tools by [KyaniteLabs](https://kyanitelabs.tech). Related projects:
+More from [KyaniteLabs](https://kyanitelabs.tech). Related projects:
 
 - **[Elixis](https://github.com/KyaniteLabs/Elixis)** — local-first AI pattern-synthesis engine for ideas
 - **[openglaze](https://github.com/KyaniteLabs/openglaze)** — free ceramic glaze calculator (UMF)
