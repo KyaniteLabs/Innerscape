@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "innerscape": {
+      "command": "npm",
+      "args": ["run", "mcp"]
+    }
+  }
+}
