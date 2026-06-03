@@ -1,0 +1,7 @@
+interface:
+  display_name: "Innerscape"
+  short_description: "Guide gentle personal-growth workflows"
+  default_prompt: "Use $innerscape to turn this reflection into one clear next move and a useful capture point."
+
+policy:
+  allow_implicit_invocation: true
