@@ -15,7 +15,7 @@
     "@expo/vector-icons": "^15.1.1",
     "@innerscape/shared": "*",
     "@tanstack/react-query": "^5.60.0",
-    "expo": "~56.0.8",
+    "expo": "~56.0.9",
     "expo-constants": "~55.0.16",
     "expo-haptics": "~55.0.14",
     "expo-linking": "~56.0.13",
