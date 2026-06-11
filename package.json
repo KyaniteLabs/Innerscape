@@ -64,13 +64,13 @@
   },
   "dependencies": {
     "expo": "^56.0.8",
-    "react": "19.2.6",
+    "react": "19.2.7",
     "react-native": "0.83.6"
   },
   "overrides": {
     "@prisma/dev": {
-      "@hono/node-server": "1.19.13"
+      "@hono/node-server": "1.19.14"
     },
-    "postcss": "8.5.14"
+    "postcss": "8.5.15"
   }
 }
