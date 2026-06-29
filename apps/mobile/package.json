@@ -14,7 +14,7 @@
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
     "@innerscape/shared": "*",
-    "@tanstack/react-query": "^5.60.0",
+    "@tanstack/react-query": "^5.101.2",
     "expo": "~56.0.8",
     "expo-constants": "~55.0.16",
     "expo-haptics": "~55.0.14",
