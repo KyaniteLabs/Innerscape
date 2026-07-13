@@ -18,7 +18,7 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^3.0.81",
+    "@ai-sdk/anthropic": "^4.0.12",
     "@ai-sdk/openai": "^3.0.67",
     "@fastify/cors": "^11.2.0",
     "@fastify/jwt": "^10.1.0",
