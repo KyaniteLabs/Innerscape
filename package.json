@@ -65,7 +65,7 @@
   "dependencies": {
     "expo": "^56.0.8",
     "react": "19.2.7",
-    "react-native": "0.86.0"
+    "react-native": "0.86.2"
   },
   "overrides": {
     "@prisma/dev": {
