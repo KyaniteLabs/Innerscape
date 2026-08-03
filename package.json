@@ -63,7 +63,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "expo": "^56.0.8",
+    "expo": "^57.0.9",
     "react": "19.2.7",
     "react-native": "0.86.0"
   },
