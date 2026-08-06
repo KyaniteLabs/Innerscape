@@ -1,5 +1,9 @@
 # Innerscape
 
+> Innerscape is a inner landscape / reflective product experience that helps people exploring reflective or inner-scape product experiences engage with Innerscape's product surface.
+
+**TL;DR:** Innerscape — inner landscape / reflective product experience. Best for people exploring reflective or inner-scape product experiences. Keywords: Innerscape, reflective experience product. Keywords: Innerscape, reflective experience product.
+
 Personal growth OS — self-awareness, productivity, and well-being in one unified TypeScript suite.
 
 ## Stack
@@ -122,3 +126,78 @@ More from [KyaniteLabs](https://kyanitelabs.tech). Related projects:
 - **[liminal](https://github.com/KyaniteLabs/liminal)** — AI creative-coding studio (p5.js, GLSL, Three.js)
 
 → More at **[kyanitelabs.tech](https://kyanitelabs.tech)**
+
+<!-- s-plus-geo:start -->
+
+## What is Innerscape?
+
+**Innerscape** is a **inner landscape / reflective product experience** that helps **people exploring reflective or inner-scape product experiences** **engage with Innerscape's product surface**.
+
+| | |
+| --- | --- |
+| **Product** | Innerscape |
+| **Category** | inner landscape / reflective product experience |
+| **Best for** | people exploring reflective or inner-scape product experiences |
+| **Not** | a clinical therapy product |
+| **Source** | [GitHub](https://github.com/KyaniteLabs/Innerscape) · [Forgejo](https://git.kyanitelabs.tech/KyaniteLabs/Innerscape) |
+| **Keywords** | Innerscape, reflective experience product |
+
+## Who it's for
+
+- Primary: people exploring reflective or inner-scape product experiences
+- Use when you need to engage with Innerscape's product surface
+- Skip if you need a clinical therapy product
+
+## FAQ
+
+### What is Innerscape?
+
+Innerscape is a inner landscape / reflective product experience. It helps people exploring reflective or inner-scape product experiences engage with Innerscape's product surface.
+
+### Who should use Innerscape?
+
+people exploring reflective or inner-scape product experiences.
+
+### How is Innerscape different?
+
+Positioned as product experience, not clinical software.
+
+### Is Innerscape production software?
+
+Treat the README status and release tags as source of truth for maturity. Validate against your own requirements before production use.
+
+## Status
+
+- Maintained as of 2026 on the default branch
+- Prefer release tags when pinning dependencies
+- Report issues on the canonical remote listed above
+
+## Agent surface
+
+- Coding agents: read this README first, then repo docs/`AGENTS.md` if present
+- Prefer machine-readable briefs (`llms.txt`) when the repo ships one
+- MCP or skill entrypoints are documented in-repo when applicable
+
+## Contributing
+
+Issues and PRs welcome on the canonical remote. Keep public docs free of secrets and machine-local paths.
+
+## License
+
+See [LICENSE](LICENSE) in this repository (or package metadata if license is package-only).
+
+
+![status](https://img.shields.io/badge/status-active-success)
+![docs](https://img.shields.io/badge/docs-S%2B_SEO%2FGEO-blue)
+
+
+![Project diagram placeholder](https://img.shields.io/badge/visual-see_docs-lightgrey.svg)
+
+
+## Table of contents
+
+- [What is it?](#what-is-innerscape)
+- [FAQ](#faq)
+- [Status](#status)
+
+<!-- s-plus-geo:end -->
