@@ -18,7 +18,7 @@
     "expo": "~56.0.8",
     "expo-constants": "~55.0.16",
     "expo-haptics": "~55.0.14",
-    "expo-linking": "~56.0.13",
+    "expo-linking": "~57.0.5",
     "expo-router": "~55.0.14",
     "expo-secure-store": "~56.0.4",
     "expo-status-bar": "~55.0.6",
