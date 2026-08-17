@@ -16,7 +16,7 @@
     "@innerscape/shared": "*",
     "@tanstack/react-query": "^5.60.0",
     "expo": "~56.0.8",
-    "expo-constants": "~55.0.16",
+    "expo-constants": "~57.0.10",
     "expo-haptics": "~55.0.14",
     "expo-linking": "~56.0.13",
     "expo-router": "~55.0.14",
