@@ -1,8 +1,8 @@
 # Innerscape
 
-> Innerscape is a inner landscape / reflective product experience that helps people exploring reflective or inner-scape product experiences engage with Innerscape's product surface.
+> Innerscape is a personal growth OS — journaling, emotional check-ins, habits and goals, body/sleep logs, and a PARA-style hub — built as a TypeScript suite (Fastify backend + Expo mobile app).
 
-**TL;DR:** Innerscape — inner landscape / reflective product experience. Best for people exploring reflective or inner-scape product experiences. Keywords: Innerscape, reflective experience product. Keywords: Innerscape, reflective experience product.
+**TL;DR:** Innerscape — self-hosted personal growth OS for self-awareness, productivity, and well-being. Best for people who want journaling, reflection, habits, and reviews in one app they control. Keywords: personal growth OS, journaling app, self-hosted well-being.
 
 Personal growth OS — self-awareness, productivity, and well-being in one unified TypeScript suite.
 
@@ -10,8 +10,8 @@ Personal growth OS — self-awareness, productivity, and well-being in one unifi
 
 | Layer | Tech |
 |-------|------|
-| **Backend** | Fastify 5, Prisma 6, PostgreSQL, JWT (jose), Zod |
-| **Mobile** | Expo SDK 53, React Native, TanStack Query v5, Expo Router |
+| **Backend** | Fastify 5, Prisma 7, PostgreSQL, JWT (jose), Zod |
+| **Mobile** | Expo SDK 56, React Native, TanStack Query v5, Expo Router |
 | **Shared** | TypeScript types across backend + mobile |
 | **Deploy** | Docker Compose, Traefik, Let's Encrypt TLS |
 
@@ -19,7 +19,7 @@ Personal growth OS — self-awareness, productivity, and well-being in one unifi
 
 ### Prerequisites
 
-- Node.js 22+
+- Node.js 22+ recommended (root `engines` allows >=20)
 - PostgreSQL 16+
 - Expo CLI
 
@@ -48,7 +48,7 @@ npx expo start
 
 ```bash
 cd apps/backend
-npm test                # 143 integration tests
+npm test                # integration tests
 npx tsc --noEmit        # Zero errors
 ```
 
@@ -83,7 +83,7 @@ apps/
       services/     auth, insights, vision-analysis
       middleware/    JWT auth
     tests/
-      integration/  9 test files, 143 tests
+      integration/  8 test files
   mobile/           Expo app — 5 tabs (Home, Mind, Flow, Body, Hub)
     hooks/          16 data hooks (TanStack Query)
     components/     12 UI components
@@ -123,7 +123,7 @@ More from [KyaniteLabs](https://kyanitelabs.tech). Related projects:
 
 - **[Elixis](https://github.com/KyaniteLabs/Elixis)** — local-first AI pattern-synthesis engine for ideas
 - **[openglaze](https://github.com/KyaniteLabs/openglaze)** — free ceramic glaze calculator (UMF)
-- **[liminal](https://github.com/KyaniteLabs/liminal)** — AI creative-coding studio (p5.js, GLSL, Three.js)
+- **[tastecheck](https://github.com/KyaniteLabs/tastecheck)** — frontend taste and ship-gate toolkit for AI coding agents
 
 → More at **[kyanitelabs.tech](https://kyanitelabs.tech)**
 
@@ -131,36 +131,36 @@ More from [KyaniteLabs](https://kyanitelabs.tech). Related projects:
 
 ## What is Innerscape?
 
-**Innerscape** is a **inner landscape / reflective product experience** that helps **people exploring reflective or inner-scape product experiences** **engage with Innerscape's product surface**.
+**Innerscape** is a **personal growth OS** — self-awareness, productivity, and well-being in one TypeScript suite: a Fastify/Prisma backend and an Expo mobile app with Mind, Flow, Body, and Hub tabs.
 
 | | |
 | --- | --- |
 | **Product** | Innerscape |
-| **Category** | inner landscape / reflective product experience |
-| **Best for** | people exploring reflective or inner-scape product experiences |
-| **Not** | a clinical therapy product |
-| **Source** | [GitHub](https://github.com/KyaniteLabs/Innerscape) · [Forgejo](https://git.kyanitelabs.tech/KyaniteLabs/Innerscape) |
-| **Keywords** | Innerscape, reflective experience product |
+| **Category** | personal growth OS (journaling, habits, body, and reflection app) |
+| **Best for** | people who want journaling, reflection, habits, goals, and reviews in one self-hosted app |
+| **Not** | a clinical therapy product or medical diagnosis tool |
+| **Source** | [GitHub](https://github.com/KyaniteLabs/Innerscape) · [Forgejo](https://git.kyanitelabs.tech/KyaniteLabs/Innerscape) (private, maintainers only) |
+| **Keywords** | personal growth OS, journaling app, habit tracker, self-hosted well-being, PARA hub |
 
 ## Who it's for
 
-- Primary: people exploring reflective or inner-scape product experiences
-- Use when you need to engage with Innerscape's product surface
-- Skip if you need a clinical therapy product
+- Primary: people who want journaling, reflection, habits, goals, and reviews in one self-hosted app
+- Use when you need to track mood, journal, build habits, and run daily/weekly reviews in one place you control
+- Skip if you need a clinical therapy product or medical diagnosis tool
 
 ## FAQ
 
 ### What is Innerscape?
 
-Innerscape is a inner landscape / reflective product experience. It helps people exploring reflective or inner-scape product experiences engage with Innerscape's product surface.
+**Innerscape** is a **personal growth OS** — self-awareness, productivity, and well-being in one TypeScript suite: a Fastify/Prisma backend and an Expo mobile app with Mind, Flow, Body, and Hub tabs.
 
 ### Who should use Innerscape?
 
-people exploring reflective or inner-scape product experiences.
+People who want journaling, reflection, habits, goals, and reviews in one self-hosted app.
 
 ### How is Innerscape different?
 
-Positioned as product experience, not clinical software.
+Unlike single-purpose journaling or habit apps, Innerscape combines reflection, habits, body logs, and a knowledge hub in one self-hostable stack; it is positioned as personal tooling, not clinical software.
 
 ### Is Innerscape production software?
 
@@ -170,7 +170,7 @@ Treat the README status and release tags as source of truth for maturity. Valida
 
 - Maintained as of 2026 on the default branch
 - Prefer release tags when pinning dependencies
-- Report issues on the canonical remote listed above
+- Report issues on [GitHub](https://github.com/KyaniteLabs/Innerscape/issues)
 
 ## Agent surface
 
@@ -180,24 +180,10 @@ Treat the README status and release tags as source of truth for maturity. Valida
 
 ## Contributing
 
-Issues and PRs welcome on the canonical remote. Keep public docs free of secrets and machine-local paths.
+Issues and PRs welcome on [GitHub](https://github.com/KyaniteLabs/Innerscape). Keep public docs free of secrets and machine-local paths.
 
 ## License
 
 See [LICENSE](LICENSE) in this repository (or package metadata if license is package-only).
-
-
-![status](https://img.shields.io/badge/status-active-success)
-![docs](https://img.shields.io/badge/docs-S%2B_SEO%2FGEO-blue)
-
-
-![Project diagram placeholder](https://img.shields.io/badge/visual-see_docs-lightgrey.svg)
-
-
-## Table of contents
-
-- [What is it?](#what-is-innerscape)
-- [FAQ](#faq)
-- [Status](#status)
 
 <!-- s-plus-geo:end -->
