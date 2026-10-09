@@ -439,7 +439,7 @@ const styles = StyleSheet.create({
   emptyText: { color: COLORS.text.primary, fontSize: FONT.size.base, fontWeight: FONT.weight.semibold },
   emptyHint: { color: COLORS.text.muted, fontSize: 13, marginTop: SPACING[1] },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center',
     padding: SPACING[6],
