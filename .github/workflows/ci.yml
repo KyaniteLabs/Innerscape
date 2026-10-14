@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   backend:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     defaults:
       run:
         working-directory: apps/backend
@@ -50,7 +50,7 @@ jobs:
       - run: npm test
 
   mobile-types:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     defaults:
       run:
         working-directory: apps/mobile
