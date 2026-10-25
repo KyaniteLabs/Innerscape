@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 30
     services:
       postgres:
-        image: postgres:16
+        image: postgres:16@sha256:9e2cf6287f25c3151f4c9421ccce2b17f3e60061c111a29165e0d2cdd9ff0a97
         env:
           POSTGRES_USER: innerscape
           POSTGRES_PASSWORD: innerscape
@@ -53,6 +53,14 @@ jobs:
       - name: Lint all workspaces
         run: npm run lint --workspaces --if-present
 
+      - name: Wait for the Postgres service to accept connections
+        shell: bash
+        run: |
+          for i in $(seq 1 60); do
+            if (exec 3<>/dev/tcp/postgres/5432) 2>/dev/null; then echo "postgres ready after ${i}s"; exit 0; fi
+            sleep 1
+          done
+          echo "postgres did not become ready in 60s"; exit 1
       - name: Push schema to test database
         working-directory: apps/backend
         run: npx prisma db push
