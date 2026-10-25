@@ -1,26 +1,63 @@
+name: CI
 on:
   push:
     branches: [main]
   pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  # Unique per push commit so queued main runs are never replaced; per PR otherwise.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number && format('pr-{0}', github.event.pull_request.number) || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   test:
+    name: ci/required
     runs-on: docker
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: innerscape
+          POSTGRES_PASSWORD: innerscape
+          POSTGRES_DB: innerscape
+        ports:
+          - 5432:5432
+    env:
+      DATABASE_URL: postgresql://innerscape:innerscape@postgres:5432/innerscape
     container:
-      image: node:22-slim
+      image: node:26-bookworm@sha256:5c4012d11d9857c42713ba511fbc19645cac1706bb710d51d42b0d301dff7f88
     steps:
-      - uses: actions/checkout@v4
-      - name: Install dependencies
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Record toolchain
         run: |
-          if [ -f package.json ]; then
-            npm ci || npm install
-          fi
-      - name: Lint
-        run: |
-          if [ -f package.json ]; then
-            npx --no eslint . || true
-          fi
-      - name: Test
-        run: |
-          if [ -f package.json ]; then
-            npm test || true
-          fi
+          node --version
+          npm --version
+
+      - name: Install frozen dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Generate Prisma client
+        run: npm run db:generate --workspace=apps/backend
+
+      - name: Build all workspaces
+        run: npm run build --workspaces --if-present
+
+      - name: Typecheck all workspaces
+        run: npm run typecheck --workspaces --if-present
+
+      - name: Lint all workspaces
+        run: npm run lint --workspaces --if-present
+
+      - name: Push schema to test database
+        working-directory: apps/backend
+        run: npx prisma db push
+
+      - name: Integration tests (backend)
+        run: npm test --workspace=apps/backend
