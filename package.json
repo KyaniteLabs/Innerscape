@@ -56,16 +56,16 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.6.0",
     "prettier": "^3.4.0",
-    "typescript": "~5.9.2",
+    "typescript": "~6.0.3",
     "typescript-eslint": "^8.60.1"
   },
   "engines": {
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "expo": "^56.0.8",
-    "react": "19.2.7",
-    "react-native": "0.86.0"
+    "expo": "56.0.24",
+    "react": "19.2.3",
+    "react-native": "0.85.3"
   },
   "overrides": {
     "@prisma/dev": {
