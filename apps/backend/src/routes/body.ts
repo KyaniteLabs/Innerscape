@@ -7,7 +7,7 @@ import { ITEM_DECISIONS, completeScan, decideItem, scanMachine } from '../domain
 // --- Body Check-Ins ---
 
 const bodyCheckInSchema = z.object({
-  bodyScan: z.record(z.any()),
+  bodyScan: z.record(z.string(), z.any()),
   emotionWheelFeeling: z.string().min(1),
   emotionWheelValence: z.enum(['pleasant', 'unpleasant', 'neutral']),
   reflectionRating: z.number().int().min(1).max(5).optional(),
@@ -51,7 +51,7 @@ export async function bodyCheckInRoutes(app: FastifyInstance) {
 // --- Somatic Mappings ---
 
 const somaticSchema = z.object({
-  sensationPattern: z.record(z.any()),
+  sensationPattern: z.record(z.string(), z.any()),
   predictedEmotion: z.string().min(1),
   confidence: z.number().min(0).max(1),
 });
