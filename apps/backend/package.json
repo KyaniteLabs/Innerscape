@@ -9,7 +9,7 @@
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
-    "test": "vitest run tests/integration",
+    "test": "vitest run tests/unit tests/integration",
     "test:watch": "vitest",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
@@ -35,6 +35,7 @@
     "zod": "^3.24.0"
   },
   "devDependencies": {
+    "fast-check": "^4.10.2",
     "prisma": "^7.8.0",
     "tsx": "^4.22.4",
     "typescript": "^5.7.0",

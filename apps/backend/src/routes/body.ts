@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { prisma } from '../db.js';
 import { authMiddleware } from '../middleware/auth.js';
+import { ITEM_DECISIONS, completeScan, decideItem, scanMachine } from '../domain/lifecycles.js';
 
 // --- Body Check-Ins ---
 
@@ -151,7 +152,7 @@ const completeScanSchema = z.object({
 });
 
 const decideItemSchema = z.object({
-  decision: z.enum(['keep', 'donate', 'sell', 'recycle', 'trash']),
+  decision: z.enum(ITEM_DECISIONS),
   notes: z.string().optional(),
 });
 
@@ -216,14 +217,13 @@ export async function spaceRoutes(app: FastifyInstance) {
     const scan = await prisma.spaceScan.findFirst({ where: { id: scanId, userId: request.userId } });
     if (!scan) return reply.status(404).send({ error: 'Scan not found' });
 
+    if (!scanMachine.canTransition(scanMachine.parse(scan.status), 'completed')) {
+      return reply.status(409).send({ error: `Scan cannot be completed from status '${scan.status}'` });
+    }
+
     return prisma.spaceScan.update({
       where: { id: scanId },
-      data: {
-        status: 'completed',
-        completedAt: new Date(),
-        ...(parsed.data.afterPhotoUri ? { afterPhotoUri: parsed.data.afterPhotoUri } : {}),
-        ...(parsed.data.durationSeconds ? { durationSeconds: parsed.data.durationSeconds } : {}),
-      },
+      data: completeScan(scan, parsed.data),
     });
   });
 
@@ -262,7 +262,7 @@ export async function spaceRoutes(app: FastifyInstance) {
 
     return prisma.detectedItem.update({
       where: { id: itemId },
-      data: { decision: parsed.data.decision, decidedAt: new Date() },
+      data: decideItem(item, parsed.data.decision),
     });
   });
 }
