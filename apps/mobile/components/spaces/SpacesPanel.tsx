@@ -16,11 +16,15 @@ import {
   useCompleteScan,
   useAddDetectedItem,
 } from '../../hooks/useSpaces';
+import type { SpaceScanStatus } from '@innerscape/shared';
 import { COLORS, RADIUS, FONT, SPACING } from '../../lib/theme';
 
-const SCAN_STATUS_LABELS: Record<string, string> = {
-  pending: 'In Progress',
+// Exhaustive over the backend scan lifecycle: adding a SpaceScanStatus without a label fails typecheck.
+// The backend writes 'active' for an in-progress scan; 'pending' is kept for legacy rows.
+const SCAN_STATUS_LABELS: Record<SpaceScanStatus, string> & Record<string, string> = {
+  active: 'In Progress',
   completed: 'Completed',
+  pending: 'In Progress',
 };
 
 interface Props {
@@ -439,7 +443,12 @@ const styles = StyleSheet.create({
   emptyText: { color: COLORS.text.primary, fontSize: FONT.size.base, fontWeight: FONT.weight.semibold },
   emptyHint: { color: COLORS.text.muted, fontSize: 13, marginTop: SPACING[1] },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    // absoluteFillObject literal: RN 0.86 types dropped StyleSheet.absoluteFillObject
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center',
     padding: SPACING[6],

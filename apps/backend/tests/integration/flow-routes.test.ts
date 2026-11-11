@@ -154,6 +154,20 @@ describe('GET /api/v1/goals', () => {
 
 // --- Dopamine Menu ---
 
+describe('GET /api/v1/goals status filter', () => {
+  it('rejects an unknown status instead of silently returning nothing', async () => {
+    const res = await app.inject({ method: 'GET', url: '/api/v1/goals?status=done', headers: authHeaders() });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('accepts every named goal status', async () => {
+    for (const status of ['active', 'completed', 'archived']) {
+      const res = await app.inject({ method: 'GET', url: `/api/v1/goals?status=${status}`, headers: authHeaders() });
+      expect(res.statusCode).toBe(200);
+    }
+  });
+});
+
 describe('POST /api/v1/dopamine-menu', () => {
   it('creates a dopamine menu item', async () => {
     const res = await app.inject({

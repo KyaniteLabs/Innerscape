@@ -78,3 +78,7 @@ packages/*/build/
 
 # OMC state
 .omc/
+
+# Python bytecode (the Hermes install scanner flags committed bytecode as HIGH)
+__pycache__/
+*.py[cod]
