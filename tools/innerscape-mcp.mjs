@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import readline from "node:readline";
-import { moduleMap, planningPrompt, projectBrief } from "./innerscape-cli.mjs";
+import { isEntryPoint, moduleMap, planningPrompt, projectBrief } from "./innerscape-cli.mjs";
 
 const protocolVersion = "2024-11-05";
 
@@ -79,16 +79,24 @@ export function handleMessage(message) {
   return error(id, -32601, `Unsupported method: ${method}`);
 }
 
-const rl = readline.createInterface({ input: process.stdin });
-rl.on("line", (line) => {
-  if (!line.trim()) return;
-  let reply;
-  try {
-    reply = handleMessage(JSON.parse(line));
-  } catch (err) {
-    reply = error(null, -32700, `Invalid JSON: ${err.message}`);
-  }
-  if (reply) {
-    process.stdout.write(`${JSON.stringify(reply)}\n`);
-  }
-});
+// stdout carries JSON-RPC only; anything else written there breaks the client.
+export function serve(input = process.stdin, output = process.stdout) {
+  const rl = readline.createInterface({ input });
+  rl.on("line", (line) => {
+    if (!line.trim()) return;
+    let reply;
+    try {
+      reply = handleMessage(JSON.parse(line));
+    } catch (err) {
+      reply = error(null, -32700, `Invalid JSON: ${err.message}`);
+    }
+    if (reply) {
+      output.write(`${JSON.stringify(reply)}\n`);
+    }
+  });
+  return rl;
+}
+
+if (isEntryPoint(import.meta.url)) {
+  serve();
+}
