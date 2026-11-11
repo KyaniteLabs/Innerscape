@@ -290,6 +290,102 @@ describe('GET /api/v1/spaces', () => {
   });
 });
 
+// --- Scan lifecycle (active -> completed) ---
+
+describe('Space scan lifecycle', () => {
+  let scanId = '';
+  let itemId = '';
+
+  it('starts a scan in the active state', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/spaces/${spaceId}/scans`,
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      payload: { beforePhotoUri: 'file://before.jpg' },
+    });
+    expect(res.statusCode).toBe(201);
+    const body = res.json();
+    expect(body).toHaveProperty('status', 'active');
+    expect(body.completedAt).toBeNull();
+    scanId = body.id;
+  });
+
+  it('decides a detected item: decision and decidedAt are written together, and can be changed', async () => {
+    const created = await app.inject({
+      method: 'POST',
+      url: `/api/v1/scans/${scanId}/items`,
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      payload: { label: 'Lamp', confidence: 0.9 },
+    });
+    expect(created.statusCode).toBe(201);
+    expect(created.json()).toMatchObject({ decision: 'undecided', decidedAt: null });
+    itemId = created.json().id;
+
+    for (const decision of ['keep', 'recycle']) {
+      const res = await app.inject({
+        method: 'POST',
+        url: `/api/v1/items/${itemId}/decide`,
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
+        payload: { decision },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.json()).toHaveProperty('decision', decision);
+      expect(res.json().decidedAt).not.toBeNull();
+    }
+
+    const back = await app.inject({
+      method: 'POST',
+      url: `/api/v1/items/${itemId}/decide`,
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      payload: { decision: 'undecided' },
+    });
+    expect(back.statusCode).toBe(400);
+  });
+
+  it('completes an active scan', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/scans/${scanId}/complete`,
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      payload: { durationSeconds: 60 },
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body).toHaveProperty('status', 'completed');
+    expect(body.completedAt).not.toBeNull();
+  });
+
+  // Bug: completing an already-completed scan used to succeed and silently overwrite
+  // completedAt / durationSeconds. completed is terminal.
+  it('refuses to complete an already-completed scan and leaves it untouched', async () => {
+    const before = await prisma.spaceScan.findUniqueOrThrow({ where: { id: scanId } });
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/scans/${scanId}/complete`,
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      payload: { durationSeconds: 999 },
+    });
+    expect(res.statusCode).toBe(409);
+    const after = await prisma.spaceScan.findUniqueOrThrow({ where: { id: scanId } });
+    expect(after.completedAt?.toISOString()).toBe(before.completedAt?.toISOString());
+    expect(after.durationSeconds).toBe(60);
+  });
+
+  it('still completes a legacy scan stored with status "pending"', async () => {
+    const legacy = await prisma.spaceScan.create({
+      data: { spaceId, userId, beforePhotoUri: 'file://legacy.jpg', status: 'pending' },
+    });
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/scans/${legacy.id}/complete`,
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      payload: {},
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toHaveProperty('status', 'completed');
+  });
+});
+
 // --- Auth enforcement ---
 
 describe('Auth enforcement', () => {
