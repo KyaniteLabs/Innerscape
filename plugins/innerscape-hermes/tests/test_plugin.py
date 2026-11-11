@@ -153,7 +153,8 @@ def test_unstuck_skill_keeps_the_coach_inside_its_boundaries():
     text = (PLUGIN_DIR / "skills" / "unstuck" / "SKILL.md").read_text(encoding="utf-8")
     assert text.startswith("---\nname: unstuck\n")
     for must in ("988", "diagnose", "medication", "innerscape_capture", "user_confirmed: true", "Body state outranks planning",
-                 "never shown as a menu", "one next move"):
+                 "never shown as a menu", "one next move", "danger to yourself or someone else",
+                 "treat it as a crisis", "KyaniteLabs/unstuck-coach-live"):
         assert must.lower() in text.lower(), must
 
 

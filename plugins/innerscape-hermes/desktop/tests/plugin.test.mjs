@@ -283,3 +283,9 @@ test('the page never renders a raw tool error, and the pick hint keeps its space
   assert.doesNotMatch(SOURCE, /children:\s*d\.error\b/)
   assert.doesNotMatch(SOURCE, /d\.valence \? null/)
 })
+
+test('the page footer says it is not a crisis service and that coach notes reach the AI provider', () => {
+  assert.match(SOURCE, /not a crisis service and not medical advice/)
+  assert.match(SOURCE, /t\('care\.notService'\)/)
+  assert.match(SOURCE, /it goes to your AI provider/)
+})
