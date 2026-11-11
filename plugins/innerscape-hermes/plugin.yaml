@@ -1,0 +1,34 @@
+name: innerscape
+version: "0.1.0"
+manifest_version: 2
+description: "Gentle check-ins and journaling with your own Innerscape server. Three tools: save a mood check-in in your words (energy 0-100 and pleasant, unpleasant or neutral) when you ask or say yes, save a journal entry only after you say yes to the exact text and tags, and read today's counts with your latest check-in. /innerscape does the same from chat, and a bundled skill keeps the agent to one grounding observation and one small next step. The skill asks the agent never to score, label or diagnose a mood, and the plugin refuses to save during scheduled runs. Disclosure: it calls your Innerscape REST API (default http://127.0.0.1:3001) with the token in INNERSCAPE_TOKEN, using the Python standard library. The token can read and write your whole Innerscape account. What the tools return goes to your model provider and stays in Hermes session history. Plain http is allowed only to this machine, proxies and redirects are not used, and the plugin keeps no copy of what it sends. Reading and saving are off on chat platforms by default, and saving is off in scheduled runs. No telemetry and no background jobs."
+author: "Kyanite Labs"
+license: MIT
+homepage: https://github.com/KyaniteLabs/Innerscape/tree/main/plugins/innerscape-hermes
+tags: [journaling, wellbeing, self-reflection, check-in, personal-growth]
+requires_hermes: ">=0.21.6"
+requires_env:
+  - name: INNERSCAPE_TOKEN
+    description: "Login token from your Innerscape server (POST /api/v1/auth/login). It can read and write your whole account and lasts 7 days by default."
+    secret: true
+provides_tools:
+  - innerscape_checkin
+  - innerscape_journal
+  - innerscape_today
+config_schema:
+  base_url:
+    type: str
+    default: "http://127.0.0.1:3001"
+    description: "Your Innerscape API server. Plain http only to this machine; use https anywhere else."
+  allow_reads_on_gateway:
+    type: bool
+    default: false
+    description: "When false, today's counts and latest check-in are not read from chat platforms, because a chat can include other people."
+  allow_writes_on_gateway:
+    type: bool
+    default: false
+    description: "When false, check-ins and journal entries are not saved from chat platforms, because a chat can include other people."
+  timeout_seconds:
+    type: int
+    default: 10
+    description: "Time limit for each API call (2 to 60)."
