@@ -224,6 +224,48 @@ const blankCheckin = () => ({ energy: 50, valence: '', feeling: '', body: '' })
 const blankDrafts = () => ({ checkin: blankCheckin(), journal: '', tags: '', stuck: '' })
 const drafts = atom(blankDrafts())
 const focusTarget = atom(null)
+const paneRequest = atom(null)
+const VIEWS = ['today', 'checkin', 'journal', 'unstuck']
+const UPDATE_EVENTS = ['checkin.updated', 'journal.updated', 'capture.updated']
+const validItemId = id => typeof id === 'string' && /^[A-Za-z0-9_-]{1,128}$/.test(id)
+
+function validPaneEvent(name, payload) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return false
+  const has = key => Object.prototype.hasOwnProperty.call(payload, key)
+  if (name === 'view.set') return Object.keys(payload).every(k => ['view', 'item_id'].includes(k))
+    && VIEWS.includes(payload.view) && (!has('item_id') || validItemId(payload.item_id))
+  return UPDATE_EVENTS.includes(name) && Object.keys(payload).every(k => k === 'id')
+    && (!has('id') || validItemId(payload.id))
+}
+
+// A page-scoped subscription: cancellation prevents an older in-flight REST
+// snapshot from landing after the event, including the initial loading query.
+function subscribePaneUpdates(qc) {
+  if (typeof host.onEvent !== 'function') return () => {}
+  let mounted = true
+  const stops = UPDATE_EVENTS.map(name => host.onEvent(`plugin.${ID}.${name}`, async ({ payload } = {}) => {
+    if (!validPaneEvent(name, payload)) return
+    const filter = { queryKey: [ID, 'today'] }
+    try {
+      await qc.cancelQueries(filter)
+      if (mounted) await qc.invalidateQueries(filter)
+    } catch { /* polling and the retry button remain available */ }
+  }))
+  return () => { mounted = false; for (const stop of stops) stop() }
+}
+
+function focusPaneView(root, request) {
+  if (!root || !validPaneEvent('view.set', request)) return false
+  const section = root.querySelector(`[data-isc-view="${request.view}"]`)
+  if (!section) return false // the status request may still be loading
+  const item = request.item_id
+    ? section.querySelector(`[data-isc-item="${request.item_id}"], [id="${request.item_id}"]`)
+    : section.querySelector('input, textarea')
+  const target = item || section
+  target.scrollIntoView?.({ block: 'center' })
+  target.focus?.({ preventScroll: true })
+  return true
+}
 
 function connState(s) {
   if (!s) return null
@@ -299,7 +341,7 @@ function Today({ q, t }) {
   return jsxs('div', { className: 'isc-today', children: [
     jsx('ul', { className: 'isc-counts', 'aria-label': t('today.counts'), children: COUNT_KEYS.filter(k => Number.isInteger(counts[k])).map(k =>
       jsxs('li', { className: 'isc-count', children: [jsx('b', { children: counts[k] }), jsx('span', { children: t(`today.${k}`) })] }, k)) }),
-    jsxs('div', { className: 'isc-latest', children: [
+    jsxs('div', { className: 'isc-latest', 'data-isc-item': validItemId(c?.id) ? c.id : undefined, tabIndex: -1, children: [
       jsxs('div', { className: 'isc-latest-top', children: [
         jsx('h3', { className: 'isc-label', style: { margin: 0 }, children: t('today.latest') }),
         c?.at ? jsx('span', { className: 'isc-hint', children: t('today.at', when(c.at)) }) : null
@@ -316,7 +358,9 @@ function Today({ q, t }) {
               ] }) : null
             ] })
           ] })
-        : jsx('p', { className: 'isc-p', children: d.latest_checkin_note ? t('today.inferred') : t('today.none') })
+        : d.latest_checkin_error
+          ? jsxs('p', { className: 'isc-p', role: 'alert', children: [t('err.today'), ' ', jsx(Button, { size: 'xs', variant: 'secondary', onClick: () => q.refetch(), children: t('err.retry') })] })
+          : jsx('p', { className: 'isc-p', children: d.latest_checkin_note ? t('today.inferred') : t('today.none') })
     ] })
   ] })
 }
@@ -328,14 +372,21 @@ function CheckInForm({ ctx, t, onSaved }) {
   const target = useValue(focusTarget)
   useEffect(() => { if (target === 'checkin') { ref.current?.focus(); focusTarget.set(null) } }, [target])
   const save = useMutation({
-    mutationFn: () => ctx.rest('/checkin', { method: 'POST', body: {
-      energy: d.energy, valence: d.valence, feeling: d.feeling.trim() || null, body_note: d.body.trim() || null
+    mutationFn: sent => ctx.rest('/checkin', { method: 'POST', body: {
+      energy: sent.energy, valence: sent.valence, feeling: sent.feeling.trim() || null, body_note: sent.body.trim() || null
     } }).then(okOr),
-    onSuccess: () => { drafts.set({ ...drafts.get(), checkin: blankCheckin() }); host.notify({ kind: 'success', message: t('checkin.saved') }); onSaved() },
+    onSuccess: (_result, sent) => {
+      const current = drafts.get().checkin
+      if (current.energy === sent.energy && current.valence === sent.valence && current.feeling === sent.feeling && current.body === sent.body) {
+        drafts.set({ ...drafts.get(), checkin: blankCheckin() })
+      }
+      host.notify({ kind: 'success', message: t('checkin.saved') })
+      onSaved()
+    },
     onError: fail(t('err.checkin'))
   })
   const ready = VALENCES.includes(d.valence) && !save.isPending
-  return jsxs('form', { className: 'isc-sec', onSubmit: e => { e.preventDefault(); if (ready) save.mutate() }, children: [
+  return jsxs('form', { className: 'isc-sec', onSubmit: e => { e.preventDefault(); if (ready) save.mutate({ ...d }) }, children: [
     jsxs('div', { className: 'isc-field', children: [
       jsx('label', { htmlFor: 'isc-energy', children: t('checkin.energy') }),
       jsxs('div', { className: 'isc-range', children: [
@@ -443,11 +494,18 @@ function JournalForm({ ctx, t, onSaved }) {
 function InnerscapePage({ ctx, status, refreshStatus }) {
   const t = useT()
   const qc = useQueryClient()
+  const root = useRef(null)
+  const request = useValue(paneRequest)
   const today = useQuery({ queryKey: [ID, 'today'], queryFn: () => ctx.rest('/today'), refetchInterval: 60_000 })
   const s = useValue(status)
   const st = useQuery({ queryKey: [ID, 'status'], queryFn: () => ctx.rest('/status').then(r => { status.set(r); return r }), refetchInterval: 60_000 })
+  useEffect(() => subscribePaneUpdates(qc), [qc])
+  useEffect(() => {
+    if (request?.view === 'today' && request.item_id && !today.data && !today.isError) return
+    if (focusPaneView(root.current, request) && paneRequest.get() === request) paneRequest.set(null)
+  }, [request, s, today.data, today.isError])
   const refresh = () => { qc.invalidateQueries({ queryKey: [ID] }); refreshStatus() }
-  const shell = children => jsx('div', { className: 'isc-host', children: jsx('div', { className: 'isc', children }) })
+  const shell = children => jsx('div', { ref: root, className: 'isc-host', children: jsx('div', { className: 'isc', children }) })
   const url = s?.base_url || 'http://127.0.0.1:3001'
   const cs = connState(s)
 
@@ -464,12 +522,13 @@ function InnerscapePage({ ctx, status, refreshStatus }) {
     ] }) : null
   ] }, 'head')
 
-  const sec = (id, title, hint, body) => jsxs('section', { className: 'isc-card isc-sec', 'aria-labelledby': id, children: [
+  const sec = (view, id, title, hint, body) => jsxs('section', { className: 'isc-card isc-sec', tabIndex: -1,
+    'data-isc-view': view, 'aria-labelledby': id, children: [
     jsxs('div', { className: 'isc-sec-head', children: [jsx('h2', { id, className: 'isc-h2', children: title }), hint ? jsx('p', { className: 'isc-hint', children: hint }) : null] }),
     body
   ] }, id)
   // The coach needs no Innerscape server (only parking an item does), so it stays when the server is down.
-  const coachSec = sec('isc-coach-h', t('coach.title'), null, jsx(CoachCard, { t }))
+  const coachSec = sec('unstuck', 'isc-coach-h', t('coach.title'), null, jsx(CoachCard, { t }))
 
   if (!s && st.isError) {
     return shell([head, jsx('div', { className: 'isc-card', role: 'alert', children: jsx(ErrorState, { title: t('err.downTitle'), description: t('err.down'),
@@ -488,11 +547,11 @@ function InnerscapePage({ ctx, status, refreshStatus }) {
   return shell([
     head,
     warn,
-    sec('isc-today-h', t('today.title'), t('today.hint'), jsx(Today, { q: today, t })),
+    sec('today', 'isc-today-h', t('today.title'), t('today.hint'), jsx(Today, { q: today, t })),
     coachSec,
     jsxs('div', { className: 'isc-cols', children: [
-      sec('isc-checkin-h', t('checkin.title'), t('checkin.hint'), jsx(CheckInForm, { ctx, t, onSaved: refresh })),
-      sec('isc-journal-h', t('journal.title'), t('journal.hint'), jsx(JournalForm, { ctx, t, onSaved: refresh }))
+      sec('checkin', 'isc-checkin-h', t('checkin.title'), t('checkin.hint'), jsx(CheckInForm, { ctx, t, onSaved: refresh })),
+      sec('journal', 'isc-journal-h', t('journal.title'), t('journal.hint'), jsx(JournalForm, { ctx, t, onSaved: refresh }))
     ] }, 'cols'),
     jsxs('footer', { className: 'isc-note', children: [
       jsx('p', { children: jsx('b', { children: t('care.crisis') }) }),
@@ -541,7 +600,8 @@ function cleanPrefs(raw) {
 }
 
 // Pure helpers, exported for desktop/tests only; the host reads the default export.
-export const __internals = { cleanPrefs, connState, parseTags, okOr, drafts, focusTarget, CSS, coachPrompt, handToCoach, startCoach, transfer }
+export const __internals = { cleanPrefs, connState, parseTags, okOr, drafts, focusTarget, CSS, coachPrompt, handToCoach, startCoach, transfer,
+  paneRequest, subscribePaneUpdates, focusPaneView }
 
 export default {
   id: ID,
@@ -560,7 +620,15 @@ export default {
     document.head.appendChild(style)
     ctx.onDispose(() => style.remove())
     // Drafts never outlive the plugin.
-    ctx.onDispose(() => { transferSeq++; transfer.set(null); drafts.set(blankDrafts()); focusTarget.set(null) })
+    ctx.onDispose(() => { transferSeq++; transfer.set(null); drafts.set(blankDrafts()); focusTarget.set(null); paneRequest.set(null) })
+
+    // Navigation listens for the enabled plugin's lifetime so the agent can open
+    // the page from another route; data subscriptions belong to the mounted page.
+    if (typeof host.onEvent === 'function') ctx.onDispose(host.onEvent(`plugin.${ID}.view.set`, ({ payload } = {}) => {
+      if (!validPaneEvent('view.set', payload)) return
+      paneRequest.set({ ...payload })
+      host.navigate(PATH)
+    }))
 
     const status = atom(null)
     const pull = () => ctx.rest('/status').then(s => { if (s && typeof s === 'object') status.set(s) }, () => {})

@@ -17,6 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `/innerscape status` now asks the server whether it accepts the token (`/api/v1/user/me`), keeping only the yes or no.
 - A token that Hermes refuses to hand to the plugin (for example an unscoped secret) is now a clear error instead of a crash.
 
+### Added
+
+- Hermes plugin v0.4.0 lets the agent drive the Desktop page: confirmed saves emit bounded local events that refresh today's data, and `innerscape_show` opens and focuses the Today, Check in, Journal or Unstuck Coach section. Older REST reads are cancelled before event refreshes, event and view inputs are validated, and the skills and status output explain the person's pane-enable step.
+- Hermes plugin `plugins/innerscape-hermes` (v0.1.0): `innerscape_checkin`, `innerscape_journal` and `innerscape_today` tools, an `/innerscape` command and a bundled skill with the Innerscape guardrails. It calls your own server's REST API with `INNERSCAPE_TOKEN`, refuses plain http to other machines, follows no redirects, needs a user yes before saving a journal entry, keeps saving off on chat platforms by default, and never scores or labels a mood.
+- CI job `ci/hermes-plugin` runs the plugin tests.
+- Hermes plugin v0.3.0 merges in the Unstuck Coach: the `unstuck` skill (one next move, hold the rest, no diagnosis, crisis stop with 988), an `innerscape_capture` tool and `/innerscape capture` that park an item in the Innerscape inbox only after a yes, and a Get unstuck card on the Desktop page that opens a new chat with the note drafted and unsent, plus a palette action that jumps to the card.
+
 ## [0.1.0] - 2025-05-09
 
 ### Added

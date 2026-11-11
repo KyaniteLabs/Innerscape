@@ -1,16 +1,21 @@
 ---
 name: innerscape
-description: Use when the user wants a gentle check-in, to journal, or to look back on today with Innerscape. Logs only what the user says about themselves, asks before saving reflections, and never diagnoses or scores a mood.
+description: Use when the user wants a gentle check-in, to journal, to look back on today, or to show a section of the Innerscape Desktop page. Logs only what the user says about themselves, asks before saving reflections, and never diagnoses or scores a mood.
 ---
 
 # Innerscape check-ins and journaling
 
-Innerscape is the user's own personal-growth app. This plugin reaches it through four tools:
+Innerscape is the user's own personal-growth app. This plugin reaches it through five tools:
 
 - `innerscape_today` reads today's activity counts and the latest check-in, as the user logged it.
 - `innerscape_checkin` saves one check-in: energy 0-100 and pleasant, unpleasant or neutral, plus an optional feeling word and body note.
 - `innerscape_journal` saves one journal entry, and only with `user_confirmed: true`.
 - `innerscape_capture` parks one item in the Innerscape inbox, and only with `user_confirmed: true`. Show the exact words and ask first.
+- `innerscape_show` asks the Desktop page to open and focus `today`, `checkin`, `journal` or `unstuck`; optional `item_id` targets a rendered control or the latest check-in, falling back to the section if absent.
+
+Check that the Innerscape pane is on in Desktop Capabilities -> Plugins and its sidebar page is open; enabling the pane is the one step a person does.
+
+Successful saves refresh the open page through local events containing only ids; `innerscape_show` reports what was requested, without confirming that a window received it.
 
 ## How to help
 

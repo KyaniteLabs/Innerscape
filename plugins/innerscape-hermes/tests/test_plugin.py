@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
+import importlib.util
 import re
 import sys
+import contextvars
+import threading
 from pathlib import Path
 
 import pytest
@@ -22,10 +25,10 @@ def call(plugin, tool, args):
 
 # --- registration and manifest ---------------------------------------------------
 
-def test_register_exposes_four_tools_one_command_and_both_skills(plugin):
+def test_register_exposes_five_tools_one_command_and_both_skills(plugin):
     ctx = FakeCtx()
     plugin.register(ctx)
-    assert set(ctx.tools) == {"innerscape_checkin", "innerscape_journal", "innerscape_today", "innerscape_capture"}
+    assert set(ctx.tools) == {"innerscape_checkin", "innerscape_journal", "innerscape_today", "innerscape_capture", "innerscape_show"}
     assert set(ctx.commands) == {"innerscape"}
     assert set(ctx.skills) == {"innerscape", "unstuck"}
     for name in ("innerscape", "unstuck"):
@@ -39,7 +42,7 @@ def test_register_exposes_four_tools_one_command_and_both_skills(plugin):
 def test_manifest_matches_registration_and_declares_the_token():
     text = (PLUGIN_DIR / "plugin.yaml").read_text(encoding="utf-8")
     tools = re.findall(r"^  - (innerscape_\w+)$", text, re.M)
-    assert tools == ["innerscape_checkin", "innerscape_journal", "innerscape_today", "innerscape_capture"]
+    assert tools == ["innerscape_checkin", "innerscape_journal", "innerscape_today", "innerscape_capture", "innerscape_show"]
     assert re.search(r"^requires_env:\n  - name: INNERSCAPE_TOKEN\n(    .*\n)*    secret: true$", text, re.M)
     assert 'requires_hermes: ">=0.21.6"' in text
     for key in ("base_url", "allow_reads_on_gateway", "allow_writes_on_gateway", "timeout_seconds"):
@@ -166,7 +169,7 @@ def test_today_returns_counts_and_the_logged_checkin_but_no_derived_labels(plugi
     out = call(plugin, "_tool_today", {})
     assert out["ok"]
     assert out["counts"] == {"emotionalCheckIns": 2, "journalEntries": 1, "habitsCompleted": 1, "tasksCompleted": 0, "itemsCaptured": 3}
-    assert out["latest_checkin"] == {"at": "2026-11-10T09:00:00.000Z", "at_local": datetime.fromisoformat("2026-11-10T09:00:00+00:00").astimezone().strftime("%Y-%m-%d %H:%M"), "is_today": False,
+    assert out["latest_checkin"] == {"id": "ci_0", "at": "2026-11-10T09:00:00.000Z", "at_local": datetime.fromisoformat("2026-11-10T09:00:00+00:00").astimezone().strftime("%Y-%m-%d %H:%M"), "is_today": False,
                                    "energy": 22, "valence": "unpleasant", "feeling": "foggy"}
     raw = json.dumps(out)
     assert "low_energy_unpleasant" not in raw and "consecutiveLowEnergyDays" not in raw and "totalActivity" not in raw
@@ -607,6 +610,32 @@ def test_a_blank_identity_in_a_gateway_process_is_refused(plugin, api, runtime):
     runtime.reset_session_vars()  # ...but this task never bound one
     assert "off on chat platforms" in call(plugin, "_tool_checkin", CHECKIN)["error"]
     assert api.requests == []
+
+
+def test_tool_handler_thread_keeps_the_desktop_surface_and_bare_threads_fail_closed(runtime):
+    # Hermes runs every tool handler through propagate_context_to_thread
+    # (agent/tool_executor.py), so a handler thread carries the caller's session
+    # surface. A bare thread with no session context must still fail closed:
+    # it cannot be told apart from a remote worker.
+    spec = importlib.util.spec_from_file_location("innerscape_thread_probe", PLUGIN_DIR / "__init__.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module._ctx = FakeCtx()
+    module.checkin = lambda **_: {"ok": True}
+    tokens = runtime.set_session_vars(platform="desktop", source="desktop")
+    try:
+        propagated, bare = [], []
+        ctx = contextvars.copy_context()
+        worker = threading.Thread(target=ctx.run, args=(lambda: propagated.append(call(module, "_tool_checkin", CHECKIN)),))
+        worker.start()
+        worker.join()
+        assert propagated[0]["ok"]
+        worker = threading.Thread(target=lambda: bare.append(call(module, "_tool_checkin", CHECKIN)))
+        worker.start()
+        worker.join()
+        assert "off on chat platforms" in bare[0]["error"]
+    finally:
+        runtime.clear_session_vars(tokens)
 
 
 def test_session_surface_names_the_surface(plugin, api, runtime):

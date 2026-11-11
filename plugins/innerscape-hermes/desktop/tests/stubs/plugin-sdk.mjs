@@ -24,6 +24,15 @@ export function atom(value) {
 }
 
 export const host = {
+  get onEvent() {
+    if (is().eventsSupported === false) return undefined
+    return (name, fn) => {
+      const listeners = is().listeners.get(name) || new Set()
+      listeners.add(fn)
+      is().listeners.set(name, listeners)
+      return () => { listeners.delete(fn); if (!listeners.size) is().listeners.delete(name) }
+    }
+  },
   navigate: (path) => is().navigations.push(path),
   notify: (m) => is().notifies.push(m),
   notifyError: (err, fallback) => is().errors.push([String(err?.message ?? err), fallback]),
@@ -43,8 +52,22 @@ export const host = {
 
 export const relativeTime = (ms) => `t${ms}`
 const unused = () => { throw new Error('hook called outside a render') }
-export const useMutation = unused
+export const useMutation = (options) => {
+  // Like MutationObserver.setOptions, each render updates options on a pending mutation.
+  const state = is().mutation ??= { options, pending: false }
+  state.options = options
+  return {
+    get isPending() { return state.pending },
+    mutate: (...variables) => {
+      state.pending = true
+      is().pendingMutation = Promise.resolve(state.options.mutationFn(...variables)).then(
+        (data) => state.options.onSuccess?.(data, ...variables),
+        (error) => state.options.onError?.(error, ...variables)
+      ).finally(() => { state.pending = false })
+    }
+  }
+}
 export const usePluginI18n = unused
 export const useQuery = unused
 export const useQueryClient = unused
-export const useValue = unused
+export const useValue = (value) => value.get()

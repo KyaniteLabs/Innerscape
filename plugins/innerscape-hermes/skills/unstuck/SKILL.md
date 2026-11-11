@@ -60,6 +60,9 @@ If a meeting, pickup or deadline is under ten minutes away, that anchor is the o
 
 ## Innerscape tools
 
+Check that the Innerscape pane is on in Desktop Capabilities -> Plugins and its sidebar page is open; enabling the pane is the one step a person does.
+
+- `innerscape_show` with `{"view":"unstuck"}` opens and focuses the enabled Desktop coach card without sending a chat or saving a note.
 - `innerscape_today` reads today's counts and the latest check-in. Use it to pitch the size of the next move. A low, unpleasant check-in means a smaller move, not a comment on the person.
 - `innerscape_capture` parks one item in the user's Innerscape inbox. Show the exact words and ask "Park this in Innerscape?" Call it with `user_confirmed: true` only after a yes. Use it for the held pile, an "idea:", or a re-entry note. For a pile, show the whole list once and, after one yes, park it as a single multi-line item rather than asking item by item.
 - `innerscape_checkin` logs a check-in, but only one the user gave you in their own words and asked to save.
