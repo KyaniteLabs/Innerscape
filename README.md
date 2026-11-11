@@ -61,7 +61,7 @@ npx tsc --noEmit        # Zero errors
 Innerscape exposes three local agent surfaces for project and reflective workflow support:
 
 - CLI: `npm run cli -- brief`, `npm run cli -- modules`, or `npm run cli -- plan --focus "weekly review" --energy low`.
-- MCP: `npm run mcp` starts a stdio MCP server with tools for the project brief, module map, and bounded planning prompts.
+- MCP: `node tools/innerscape-mcp.mjs` starts a stdio MCP server with tools for the project brief, module map, and bounded planning prompts. Point MCP clients at `node` directly: `npm run` prints a banner on stdout, which breaks the JSON-RPC stream.
 - Skill: [`skills/innerscape/SKILL.md`](skills/innerscape/SKILL.md) tells compatible agents how to use Innerscape without overstepping into diagnosis or major life automation.
 
 Example MCP config from an installed checkout:
@@ -70,8 +70,8 @@ Example MCP config from an installed checkout:
 {
   "mcpServers": {
     "innerscape": {
-      "command": "npm",
-      "args": ["run", "mcp", "--prefix", "/path/to/Innerscape"]
+      "command": "node",
+      "args": ["/path/to/Innerscape/tools/innerscape-mcp.mjs"]
     }
   }
 }

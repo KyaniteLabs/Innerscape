@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- The README and AGENTS.md MCP config now launches `node tools/innerscape-mcp.mjs` directly. The old `npm run mcp` launch printed npm's banner on stdout, which broke the JSON-RPC stream for MCP clients.
+- The `innerscape` and `innerscape-mcp` bins now run when npm links them as symlinks, and importing the MCP module no longer starts reading stdin.
+- New dependency-free tests (`npm run test:tools`) cover the CLI commands and the MCP server, including a subprocess run of the documented launch that requires pure JSON-RPC on stdout. Both CIs run them.
+
 ## [0.1.0] - 2025-05-09
 
 ### Added

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { realpathSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 export const modules = [
@@ -97,7 +98,17 @@ export function main(argv = process.argv.slice(2)) {
   process.exitCode = 2;
 }
 
-const invokedPath = process.argv[1] ? fileURLToPath(import.meta.url) === process.argv[1] : false;
-if (invokedPath) {
+// Run main() only when this file is the entry point. npm links the `innerscape`
+// bin as a symlink, so compare real paths, not the raw argv[1].
+export function isEntryPoint(moduleUrl, argvPath = process.argv[1]) {
+  if (!argvPath) return false;
+  try {
+    return realpathSync(fileURLToPath(moduleUrl)) === realpathSync(argvPath);
+  } catch {
+    return false;
+  }
+}
+
+if (isEntryPoint(import.meta.url)) {
   main();
 }

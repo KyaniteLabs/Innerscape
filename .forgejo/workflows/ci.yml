@@ -53,6 +53,9 @@ jobs:
       - name: Lint all workspaces
         run: npm run lint --workspaces --if-present
 
+      - name: Agent surface tests (CLI and stdio MCP server)
+        run: npm run test:tools
+
       - name: Wait for the Postgres service to accept connections
         shell: bash
         run: |
