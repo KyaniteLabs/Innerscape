@@ -28,7 +28,7 @@ config_schema:
   allow_writes_on_gateway:
     type: bool
     default: false
-    description: "When false, check-ins and journal entries are not saved from chat platforms, because a chat can include other people."
+    description: "When false, check-ins, journal entries and inbox items are not saved from chat platforms, because a chat can include other people."
   timeout_seconds:
     type: int
     default: 10

@@ -92,6 +92,7 @@ ${Object.entries(FONTS).map(([w, b]) => `@font-face{font-family:'${FACE}';font-s
 .isc-coach-why p{margin:0;font-size:12.5px;line-height:1.55;color:var(--isc-t2)}
 .isc-coach-why b{color:var(--isc-t1);font-weight:600}
 .isc-coach textarea{min-height:84px;font-size:13px;line-height:1.55;resize:vertical}
+.isc textarea::placeholder,.isc input::placeholder{color:var(--isc-t3);opacity:1}
 .isc-journal textarea{min-height:180px;font-size:13px;line-height:1.55;resize:vertical}
 .isc-note{display:flex;flex-direction:column;gap:6px;padding:14px 16px;border-top:1px solid var(--isc-line);font-size:12px;color:var(--isc-t2)}
 .isc-note p{margin:0}
@@ -101,6 +102,7 @@ ${Object.entries(FONTS).map(([w, b]) => `@font-face{font-family:'${FACE}';font-s
   font-family:var(--font-sans,system-ui,sans-serif);font-size:13px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--ui-text-primary)}
 .isc-dlg-tags{margin:8px 0 0;font-size:12px;color:var(--ui-text-secondary)}
 @container (max-width:780px){.isc{padding:18px 16px 40px}.isc-today,.isc-cols,.isc-coach{grid-template-columns:minmax(0,1fr)}}
+@container (max-width:560px){.isc>*{order:3}.isc>.isc-head,.isc>.isc-warn{order:0}.isc>[aria-labelledby=isc-coach-h]{order:1}.isc>[aria-labelledby=isc-today-h]{order:2}}
 @media (prefers-reduced-motion:reduce){.isc *{transition:none!important;animation:none!important}}
 `
 
@@ -131,7 +133,8 @@ const EN = {
     today: 'Today’s numbers didn’t load.',
     checkin: 'The check-in wasn’t saved.',
     journal: 'The journal entry wasn’t saved.',
-    coach: 'Couldn’t put the note in a new chat. Start one and say “coach me”; your words are still here.'
+    coach: 'Couldn’t put the note in a new chat. Your words are back on the Innerscape page; start a chat and say “coach me”.',
+    coachTaken: 'That new chat already had a draft, so nothing was replaced. Your words are back on the Innerscape page.'
   },
   today: {
     title: 'Today', hint: 'Activity, not a grade.',
@@ -145,13 +148,13 @@ const EN = {
     inferred: 'The latest check-in was inferred by the app, not logged by you, so it isn’t shown.'
   },
   coach: {
-    title: 'Unstuck Coach', hint: 'Nothing is sent until you press send in the chat.',
+    title: 'Unstuck Coach', hint: 'Opens a new chat with your note as an unsent draft. Nothing is sent until you press send.',
     lead: 'Stuck, frozen, or carrying too much?',
-    body: 'The coach names what’s in the way without blame, gives you one next move, and holds the rest. It doesn’t diagnose, and it never acts on your accounts.',
+    body: 'The coach gives you one next move and holds the rest. It never diagnoses.',
     label: 'What’s in front of you', placeholder: 'Messy is fine. The bill, the text you haven’t answered, the thing you keep avoiding.',
     go: 'Get unstuck', opening: 'Opening a chat…',
     count: (n, max) => `${n.toLocaleString()} / ${max.toLocaleString()}`,
-    starter: 'I need a coach to get started on this.',
+    starter: 'Coach me with the innerscape:unstuck skill. I need help getting started.',
     prompt: raw => `Coach me with the innerscape:unstuck skill. This is what’s in front of me:\n\n${raw}`
   },
   valence: { pleasant: 'Pleasant', neutral: 'Neutral', unpleasant: 'Unpleasant' },
@@ -174,7 +177,7 @@ const EN = {
   },
   care: {
     crisis: 'If you are in danger or thinking about harming yourself, contact local emergency services now. In the US, call or text 988.',
-    privacy: url => `Saves go straight to your Innerscape server at ${url}. Hermes keeps no copy, and nothing is saved on a schedule.`
+    privacy: url => `Check-ins and journal entries go straight to your Innerscape server at ${url}, and nothing is saved on a schedule. A note you hand to the coach becomes a Hermes chat draft, which Hermes keeps like any other chat.`
   },
   chip: { open: 'Open Innerscape' },
   palette: { open: 'Innerscape: Open today', checkin: 'Innerscape: Check in', journal: 'Innerscape: Write in journal', unstuck: 'Innerscape: Get unstuck' },
@@ -186,7 +189,7 @@ const EN = {
     tokSet: 'set', tokMissing: 'not set', tokExpired: 'expired',
     agent: 'Server address and chat-platform permissions are under Agent settings.',
     privacy: 'Privacy',
-    privacyBody: 'This page reads and writes only through your own Innerscape server. Drafts stay in memory until you close the app; they are never written to disk.'
+    privacyBody: 'This page reads and writes only through your own Innerscape server. Its own drafts stay in memory and are cleared when you quit. Get unstuck moves your note into a Hermes chat draft, which Hermes stores like any other unsent message; once you send it, it is part of that chat.'
   }
 }
 const LOCALES = { en: EN }
@@ -234,16 +237,48 @@ function connState(s) {
 // The coach runs in chat, where the innerscape:unstuck skill and the tools live.
 // Open a fresh chat and put the note in its composer; the user reads it and
 // presses send. The composer mounts a moment after newChat, so retry briefly.
+// One transfer at a time, owned by the plugin, not the card: navigating to the
+// chat unmounts the card, so a card-scoped op would die mid-flight. Disposing
+// the plugin bumps `transferSeq`, which cancels any transfer still retrying.
+// A destination that already holds other text is never overwritten.
 const coachPrompt = (raw, t) => { const r = String(raw).trim(); return r ? t('coach.prompt', r) : t('coach.starter') }
 const sleep = ms => new Promise(r => setTimeout(r, ms))
-async function handToCoach(text, { tries = 16, wait = 150 } = {}) {
-  if (typeof host.newChat !== 'function' || typeof host.composer?.setDraft !== 'function') return false
+let transferSeq = 0
+const transfer = atom(null) // {id, source}: the open op, so the busy state survives a remount
+async function handToCoach(text, { tries = 30, wait = 150, op = transferSeq } = {}) {
+  if (typeof host.newChat !== 'function' || typeof host.composer?.setDraft !== 'function') return 'miss'
   host.newChat()
   for (let i = 0; i < tries; i++) {
     await sleep(wait)
-    try { if (await host.composer.setDraft('new', text)) return true } catch {}
+    if (op !== transferSeq) return 'cancelled'
+    try {
+      const have = typeof host.composer.getDraft === 'function' ? await host.composer.getDraft('new') : null
+      if (op !== transferSeq) return 'cancelled'
+      if (have && have.trim() && have !== text) return 'taken'
+      if (have === text) return 'ok'
+      if (await host.composer.setDraft('new', text)) return op === transferSeq ? 'ok' : 'cancelled'
+    } catch {}
   }
-  return false
+  return 'miss'
+}
+async function startCoach(source, t) {
+  if (transfer.get()) return
+  const op = transferSeq
+  const id = {}
+  transfer.set({ id, source })
+  let res
+  try { res = await handToCoach(coachPrompt(source, t), { op }) } catch { res = 'miss' } finally { if (transfer.get()?.id === id) transfer.set(null) }
+  if (res === 'cancelled' || op !== transferSeq) return
+  if (res === 'ok') {
+    // Clear only the words that were handed over; anything typed since stays.
+    if (drafts.get().stuck === source) drafts.set({ ...drafts.get(), stuck: '' })
+    return
+  }
+  // The new chat is on screen now, so bring the user back to their words.
+  focusTarget.set('stuck')
+  host.navigate(PATH)
+  const msg = t(res === 'taken' ? 'err.coachTaken' : 'err.coach')
+  host.notifyError(new Error(msg), msg)
 }
 
 // --- page ------------------------------------------------------------------------
@@ -331,34 +366,29 @@ function CheckInForm({ ctx, t, onSaved }) {
 
 function CoachCard({ t }) {
   const { stuck } = useValue(drafts)
-  const [busy, setBusy] = useState(false)
+  const busy = !!useValue(transfer)
   const ref = useRef(null)
   const target = useValue(focusTarget)
   useEffect(() => { if (target === 'stuck') { ref.current?.focus(); focusTarget.set(null) } }, [target])
-  const go = async () => {
-    setBusy(true)
-    const ok = await handToCoach(coachPrompt(stuck, t))
-    setBusy(false)
-    // The words now live in the chat draft; on a miss they stay here.
-    if (ok) drafts.set({ ...drafts.get(), stuck: '' })
-    else host.notifyError(new Error(t('err.coach')), t('err.coach'))
-  }
+  const go = () => { if (!busy) startCoach(stuck, t) }
   return jsxs('div', { className: 'isc-coach', children: [
     jsxs('div', { className: 'isc-coach-why', children: [
       jsx('p', { children: jsx('b', { children: t('coach.lead') }) }),
       jsx('p', { children: t('coach.body') })
     ] }),
-    jsxs('form', { className: 'isc-sec', onSubmit: e => { e.preventDefault(); if (!busy) go() }, children: [
+    jsxs('form', { className: 'isc-sec', onSubmit: e => { e.preventDefault(); go() }, children: [
       jsxs('div', { className: 'isc-field', children: [
         jsx('label', { htmlFor: 'isc-stuck', children: t('coach.label') }),
         jsx(Textarea, { id: 'isc-stuck', ref, value: stuck, maxLength: STUCK_MAX, rows: 3, placeholder: t('coach.placeholder'),
-          spellCheck: true, autoCapitalize: 'sentences', 'aria-describedby': 'isc-stuck-n',
+          spellCheck: true, autoCapitalize: 'sentences', 'aria-describedby': 'isc-stuck-hint isc-stuck-n',
+          onKeyDown: e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); go() } },
           onChange: e => drafts.set({ ...drafts.get(), stuck: e.target.value }) })
       ] }),
       jsxs('div', { className: 'isc-row', children: [
         jsx(Button, { type: 'submit', disabled: busy, children: busy ? t('coach.opening') : t('coach.go') }),
         jsx('span', { id: 'isc-stuck-n', className: 'isc-hint', children: t('coach.count', stuck.length, STUCK_MAX) })
-      ] })
+      ] }),
+      jsx('p', { id: 'isc-stuck-hint', className: 'isc-hint', children: t('coach.hint') })
     ] })
   ] })
 }
@@ -431,9 +461,16 @@ function InnerscapePage({ ctx, status, refreshStatus }) {
     ] }) : null
   ] }, 'head')
 
+  const sec = (id, title, hint, body) => jsxs('section', { className: 'isc-card isc-sec', 'aria-labelledby': id, children: [
+    jsxs('div', { className: 'isc-sec-head', children: [jsx('h2', { id, className: 'isc-h2', children: title }), hint ? jsx('p', { className: 'isc-hint', children: hint }) : null] }),
+    body
+  ] }, id)
+  // The coach needs no Innerscape server (only parking an item does), so it stays when the server is down.
+  const coachSec = sec('isc-coach-h', t('coach.title'), null, jsx(CoachCard, { t }))
+
   if (!s && st.isError) {
     return shell([head, jsx('div', { className: 'isc-card', role: 'alert', children: jsx(ErrorState, { title: t('err.downTitle'), description: t('err.down'),
-      children: jsx(Button, { size: 'sm', variant: 'secondary', onClick: () => st.refetch(), children: t('err.retry') }) }) }, 'err')])
+      children: jsx(Button, { size: 'sm', variant: 'secondary', onClick: () => st.refetch(), children: t('err.retry') }) }) }, 'err'), coachSec])
   }
   if (!s) {
     return shell([head, jsx(Skeleton, { style: { height: 150, borderRadius: 12 } }, 'a'), jsx(Skeleton, { style: { height: 360, borderRadius: 12 } }, 'b')])
@@ -444,16 +481,12 @@ function InnerscapePage({ ctx, status, refreshStatus }) {
     jsx('span', { children: warnText }),
     jsx(Button, { size: 'sm', variant: 'secondary', onClick: refresh, children: t('err.retry') })
   ] }, 'warn') : null
-  const sec = (id, title, hint, body) => jsxs('section', { className: 'isc-card isc-sec', 'aria-labelledby': id, children: [
-    jsxs('div', { className: 'isc-sec-head', children: [jsx('h2', { id, className: 'isc-h2', children: title }), hint ? jsx('p', { className: 'isc-hint', children: hint }) : null] }),
-    body
-  ] }, id)
 
   return shell([
     head,
     warn,
     sec('isc-today-h', t('today.title'), t('today.hint'), jsx(Today, { q: today, t })),
-    sec('isc-coach-h', t('coach.title'), t('coach.hint'), jsx(CoachCard, { t })),
+    coachSec,
     jsxs('div', { className: 'isc-cols', children: [
       sec('isc-checkin-h', t('checkin.title'), t('checkin.hint'), jsx(CheckInForm, { ctx, t, onSaved: refresh })),
       sec('isc-journal-h', t('journal.title'), t('journal.hint'), jsx(JournalForm, { ctx, t, onSaved: refresh }))
@@ -504,7 +537,7 @@ function cleanPrefs(raw) {
 }
 
 // Pure helpers, exported for desktop/tests only; the host reads the default export.
-export const __internals = { cleanPrefs, connState, parseTags, okOr, drafts, focusTarget, CSS, coachPrompt, handToCoach }
+export const __internals = { cleanPrefs, connState, parseTags, okOr, drafts, focusTarget, CSS, coachPrompt, handToCoach, startCoach, transfer }
 
 export default {
   id: ID,
@@ -523,7 +556,7 @@ export default {
     document.head.appendChild(style)
     ctx.onDispose(() => style.remove())
     // Drafts never outlive the plugin.
-    ctx.onDispose(() => { drafts.set(blankDrafts()); focusTarget.set(null) })
+    ctx.onDispose(() => { transferSeq++; transfer.set(null); drafts.set(blankDrafts()); focusTarget.set(null) })
 
     const status = atom(null)
     const pull = () => ctx.rest('/status').then(s => { if (s && typeof s === 'object') status.set(s) }, () => {})

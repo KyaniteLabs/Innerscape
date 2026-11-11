@@ -184,18 +184,84 @@ test('the coach opens a new chat and drafts the note; nothing is sent', async ()
   assert.equal(I.coachPrompt('   ', t), 'coach.starter')
 
   // An older host without newChat/composer: report a miss, touch nothing.
-  assert.equal(await I.handToCoach('x', { tries: 2, wait: 0 }), false)
+  assert.equal(await I.handToCoach('x', { tries: 2, wait: 0 }), 'miss')
 
   // The composer mounts on the third try.
   globalThis.__is.chat = { opened: 0, drafts: [], mountAfter: 3 }
-  assert.equal(await I.handToCoach('P:the bill', { tries: 5, wait: 0 }), true)
+  assert.equal(await I.handToCoach('P:the bill', { tries: 5, wait: 0 }), 'ok')
   assert.equal(globalThis.__is.chat.opened, 1)
   assert.deepEqual(globalThis.__is.chat.drafts.map(([id]) => id), ['new', 'new', 'new'])
 
   // It never mounts: give up after the retries, so the page keeps the words.
   globalThis.__is.chat = { opened: 0, drafts: [], mountAfter: 99 }
-  assert.equal(await I.handToCoach('x', { tries: 4, wait: 0 }), false)
+  assert.equal(await I.handToCoach('x', { tries: 4, wait: 0 }), 'miss')
   assert.equal(globalThis.__is.chat.drafts.length, 4)
+
+  // The fresh chat already holds other words: never overwrite them.
+  globalThis.__is.chat = { opened: 0, drafts: [], mountAfter: 1, existing: 'half a reply' }
+  assert.equal(await I.handToCoach('x', { tries: 3, wait: 0 }), 'taken')
+  assert.equal(globalThis.__is.chat.drafts.length, 0)
+  assert.equal(globalThis.__is.chat.existing, 'half a reply')
+})
+
+test('the empty-box starter still names the coach skill', () => {
+  assert.match(SOURCE, /starter: '[^']*innerscape:unstuck/)
+  assert.match(SOURCE, /prompt: raw => `[^`]*innerscape:unstuck/)
+})
+
+test('get unstuck: success clears only the words handed over; a miss keeps them and leads back', async () => {
+  freshGlobals()
+  const { default: plugin, __internals: I } = await load()
+  const ctx = makeCtx()
+  plugin.register(ctx)
+  const t = (k, a) => (k === 'coach.prompt' ? `P:${a}` : k)
+
+  // Success, and the box was not touched meanwhile: cleared.
+  globalThis.__is.chat = { opened: 0, drafts: [], mountAfter: 1 }
+  I.drafts.set({ ...I.drafts.get(), stuck: 'the bill' })
+  await I.startCoach('the bill', t)
+  assert.equal(I.drafts.get().stuck, '')
+  assert.equal(I.transfer.get(), null)
+
+  // Success, but the user typed more after pressing the button: kept.
+  globalThis.__is.chat = { opened: 0, drafts: [], mountAfter: 2, onTry: () => I.drafts.set({ ...I.drafts.get(), stuck: 'the bill, and the text' }) }
+  I.drafts.set({ ...I.drafts.get(), stuck: 'the bill' })
+  await I.startCoach('the bill', t)
+  assert.equal(I.drafts.get().stuck, 'the bill, and the text')
+
+  // A miss: the words stay, the page comes back with the box focused, the user is told.
+  delete globalThis.__is.chat
+  I.drafts.set({ ...I.drafts.get(), stuck: 'the bill' })
+  await I.startCoach('the bill', t)
+  assert.equal(I.drafts.get().stuck, 'the bill')
+  assert.equal(I.focusTarget.get(), 'stuck')
+  assert.deepEqual(globalThis.__is.navigations, ['/innerscape'])
+  assert.equal(globalThis.__is.errors.at(-1)[1], 'err.coach')
+
+  // A taken destination says so.
+  globalThis.__is.chat = { opened: 0, drafts: [], mountAfter: 1, existing: 'other words' }
+  await I.startCoach('the bill', t)
+  assert.equal(globalThis.__is.errors.at(-1)[1], 'err.coachTaken')
+  assert.equal(I.drafts.get().stuck, 'the bill')
+})
+
+test('disposing the plugin mid-transfer cancels it: nothing lands, nothing is held', async () => {
+  freshGlobals()
+  const { default: plugin, __internals: I } = await load()
+  const ctx = makeCtx()
+  plugin.register(ctx)
+  const t = (k, a) => (k === 'coach.prompt' ? `P:${a}` : k)
+  let tries = 0
+  globalThis.__is.chat = { opened: 0, drafts: [], mountAfter: 99, onTry: () => { if (++tries === 2) ctx.dispose() } }
+  I.drafts.set({ ...I.drafts.get(), stuck: 'private words' })
+  const p = I.startCoach('private words', t)
+  assert.ok(I.transfer.get(), 'busy while the transfer runs')
+  await p
+  assert.equal(tries, 2, 'no retries after dispose')
+  assert.equal(I.transfer.get(), null)
+  assert.equal(I.drafts.get().stuck, '')
+  assert.deepEqual(globalThis.__is.errors, [])
+  assert.deepEqual(globalThis.__is.navigations, [])
 })
 
 test('no brown, orange or amber in the stylesheet', async () => {

@@ -3,7 +3,7 @@
   "label": "Innerscape",
   "description": "No dashboard tab of its own. Serves the Desktop page's routes under /api/plugins/innerscape/: status, today, check-in and journal.",
   "icon": "Heart",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "tab": { "hidden": true },
   "api": "plugin_api.py"
 }

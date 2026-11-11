@@ -31,7 +31,13 @@ export const host = {
   get newChat() { return is().chat ? () => { is().chat.opened++ } : undefined },
   get composer() {
     const c = is().chat
-    return c ? { setDraft: async (id, text) => { c.drafts.push([id, text]); return c.opened > 0 && c.drafts.length >= c.mountAfter } } : undefined
+    if (!c) return undefined
+    // `existing`: text already in the fresh chat's composer. `onTry`: runs before each setDraft (a test can dispose mid-transfer).
+    const mounted = () => c.opened > 0 && c.drafts.length + 1 >= c.mountAfter
+    return {
+      getDraft: async (id) => (mounted() ? (c.existing ?? '') : null),
+      setDraft: async (id, text) => { c.onTry?.(); c.drafts.push([id, text]); const ok = c.opened > 0 && c.drafts.length >= c.mountAfter; if (ok) c.existing = text; return ok }
+    }
   }
 }
 

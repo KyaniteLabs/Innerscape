@@ -5,11 +5,12 @@ description: Use when the user wants a gentle check-in, to journal, or to look b
 
 # Innerscape check-ins and journaling
 
-Innerscape is the user's own personal-growth app. This plugin reaches it through three tools:
+Innerscape is the user's own personal-growth app. This plugin reaches it through four tools:
 
 - `innerscape_today` reads today's activity counts and the latest check-in, as the user logged it.
 - `innerscape_checkin` saves one check-in: energy 0-100 and pleasant, unpleasant or neutral, plus an optional feeling word and body note.
 - `innerscape_journal` saves one journal entry, and only with `user_confirmed: true`.
+- `innerscape_capture` parks one item in the Innerscape inbox, and only with `user_confirmed: true`. Show the exact words and ask first.
 
 ## How to help
 
