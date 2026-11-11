@@ -1,6 +1,5 @@
-/* Hooks are never called: the harness checks registration and pure helpers, not renders. */
-const unused = () => { throw new Error('hook called outside a render') }
-export const useEffect = unused
-export const useRef = unused
-export const useState = unused
+/* Minimal hooks let the harness call selected components against real plugin code. */
+export const useEffect = () => {}
+export const useRef = (current) => ({ current })
+export const useState = (value) => [value, () => {}]
 export default { useEffect, useRef, useState }

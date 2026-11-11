@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
+import importlib.util
 import re
 import sys
+import contextvars
+import threading
 from pathlib import Path
 
 import pytest
@@ -607,6 +610,32 @@ def test_a_blank_identity_in_a_gateway_process_is_refused(plugin, api, runtime):
     runtime.reset_session_vars()  # ...but this task never bound one
     assert "off on chat platforms" in call(plugin, "_tool_checkin", CHECKIN)["error"]
     assert api.requests == []
+
+
+def test_tool_handler_thread_keeps_the_desktop_surface_and_bare_threads_fail_closed(runtime):
+    # Hermes runs every tool handler through propagate_context_to_thread
+    # (agent/tool_executor.py), so a handler thread carries the caller's session
+    # surface. A bare thread with no session context must still fail closed:
+    # it cannot be told apart from a remote worker.
+    spec = importlib.util.spec_from_file_location("innerscape_thread_probe", PLUGIN_DIR / "__init__.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module._ctx = FakeCtx()
+    module.checkin = lambda **_: {"ok": True}
+    tokens = runtime.set_session_vars(platform="desktop", source="desktop")
+    try:
+        propagated, bare = [], []
+        ctx = contextvars.copy_context()
+        worker = threading.Thread(target=ctx.run, args=(lambda: propagated.append(call(module, "_tool_checkin", CHECKIN)),))
+        worker.start()
+        worker.join()
+        assert propagated[0]["ok"]
+        worker = threading.Thread(target=lambda: bare.append(call(module, "_tool_checkin", CHECKIN)))
+        worker.start()
+        worker.join()
+        assert "off on chat platforms" in bare[0]["error"]
+    finally:
+        runtime.clear_session_vars(tokens)
 
 
 def test_session_surface_names_the_surface(plugin, api, runtime):

@@ -316,7 +316,9 @@ function Today({ q, t }) {
               ] }) : null
             ] })
           ] })
-        : jsx('p', { className: 'isc-p', children: d.latest_checkin_note ? t('today.inferred') : t('today.none') })
+        : d.latest_checkin_error
+          ? jsxs('p', { className: 'isc-p', role: 'alert', children: [t('err.today'), ' ', jsx(Button, { size: 'xs', variant: 'secondary', onClick: () => q.refetch(), children: t('err.retry') })] })
+          : jsx('p', { className: 'isc-p', children: d.latest_checkin_note ? t('today.inferred') : t('today.none') })
     ] })
   ] })
 }
@@ -331,7 +333,14 @@ function CheckInForm({ ctx, t, onSaved }) {
     mutationFn: () => ctx.rest('/checkin', { method: 'POST', body: {
       energy: d.energy, valence: d.valence, feeling: d.feeling.trim() || null, body_note: d.body.trim() || null
     } }).then(okOr),
-    onSuccess: () => { drafts.set({ ...drafts.get(), checkin: blankCheckin() }); host.notify({ kind: 'success', message: t('checkin.saved') }); onSaved() },
+    onSuccess: () => {
+      const current = drafts.get().checkin
+      if (current.energy === d.energy && current.valence === d.valence && current.feeling === d.feeling && current.body === d.body) {
+        drafts.set({ ...drafts.get(), checkin: blankCheckin() })
+      }
+      host.notify({ kind: 'success', message: t('checkin.saved') })
+      onSaved()
+    },
     onError: fail(t('err.checkin'))
   })
   const ready = VALENCES.includes(d.valence) && !save.isPending

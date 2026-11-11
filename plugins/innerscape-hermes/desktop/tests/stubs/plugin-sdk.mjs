@@ -43,8 +43,13 @@ export const host = {
 
 export const relativeTime = (ms) => `t${ms}`
 const unused = () => { throw new Error('hook called outside a render') }
-export const useMutation = unused
+export const useMutation = (options) => ({
+  isPending: false,
+  mutate: () => {
+    is().pendingMutation = Promise.resolve(options.mutationFn()).then(options.onSuccess, options.onError)
+  }
+})
 export const usePluginI18n = unused
 export const useQuery = unused
 export const useQueryClient = unused
-export const useValue = unused
+export const useValue = (value) => value.get()

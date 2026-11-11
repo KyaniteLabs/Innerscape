@@ -17,6 +17,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 const HERE = dirname(fileURLToPath(import.meta.url))
 const PLUGIN = resolve(HERE, '..', 'plugin.js')
 const SOURCE = readFileSync(PLUGIN, 'utf8')
+const WORKFLOW = readFileSync(resolve(HERE, '../../../../.github/workflows/ci.yml'), 'utf8')
 const STUBS = {
   '@hermes/plugin-sdk': 'plugin-sdk.mjs',
   react: 'react.mjs',
@@ -66,10 +67,58 @@ async function load() {
   for (const [spec, file] of Object.entries(STUBS)) {
     code = code.split(`from '${spec}'`).join(`from '${pathToFileURL(join(HERE, 'stubs', file)).href}'`)
   }
+  code += '\nexport const __testComponents = { Today, CheckInForm }\n'
   const out = join(OUT, `plugin-${copies++}.mjs`)
   writeFileSync(out, code)
   return import(pathToFileURL(out).href)
 }
+
+function findNode(tree, predicate) {
+  if (!tree || typeof tree !== 'object') return null
+  if (predicate(tree)) return tree
+  const children = tree.props?.children
+  for (const child of Array.isArray(children) ? children : [children]) {
+    const found = findNode(child, predicate)
+    if (found) return found
+  }
+  return null
+}
+
+test('a failed latest check-in lookup is shown as unavailable, not empty', async () => {
+  freshGlobals()
+  const { __testComponents: { Today } } = await load()
+  const tree = Today({
+    q: { data: { ok: true, counts: { emotionalCheckIns: 2 }, latest_checkin: null, latest_checkin_error: 'read failed' }, refetch() {} },
+    t: (key) => key
+  })
+  const content = JSON.stringify(tree)
+  assert.match(content, /err\.today/)
+  assert.match(content, /err\.retry/)
+  assert.doesNotMatch(content, /today\.none/)
+})
+
+test('saving a check-in preserves edits made after submission', async () => {
+  freshGlobals()
+  const { __internals: I, __testComponents: { CheckInForm } } = await load()
+  I.drafts.set({ ...I.drafts.get(), checkin: { energy: 42, valence: 'neutral', feeling: 'original feeling', body: '' } })
+  let resolveSave
+  const ctx = { rest: async (_path, options) => { globalThis.__is.submitted = options.body; return new Promise((resolve) => { resolveSave = resolve }) } }
+  const tree = CheckInForm({ ctx, t: (key) => key, onSaved() {} })
+  const input = findNode(tree, (node) => node.type?.displayName === 'Input')
+  assert.equal(input.props.disabled, undefined, 'field remains editable while save is pending')
+  // Submit through the actual form handler, which starts the deferred request.
+  tree.props.onSubmit({ preventDefault() {} })
+  assert.equal(globalThis.__is.submitted.feeling, 'original feeling')
+  input.props.onChange({ target: { value: 'new unsaved feeling' } })
+  resolveSave({ ok: true })
+  await globalThis.__is.pendingMutation
+  assert.equal(I.drafts.get().checkin.feeling, 'new unsaved feeling')
+})
+
+test('CI covers the Hermes Python plugin and Desktop plugin tests', () => {
+  assert.match(WORKFLOW, /hermes-plugin:[\s\S]*python3 -m pytest plugins\/innerscape-hermes\/tests/)
+  assert.match(WORKFLOW, /hermes-plugin:[\s\S]*node --test plugins\/innerscape-hermes\/desktop\/tests\/plugin\.test\.mjs/)
+})
 
 test('imports only the three specifiers Desktop allows', () => {
   const specs = [...SOURCE.matchAll(/^import[^'"]*['"]([^'"]+)['"]/gm)].map((m) => m[1]).sort()
