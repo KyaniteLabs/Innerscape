@@ -1,8 +1,8 @@
-# Innerscape
-
 <p align="center">
-  <img src="branding/innerscape-512.png" alt="Innerscape icon" width="128">
+  <img src="branding/innerscape-hero.webp" alt="Innerscape — self-hosted personal growth OS" width="100%">
 </p>
+
+# Innerscape
 
 > Innerscape is a personal growth OS — journaling, emotional check-ins, habits and goals, body/sleep logs, and a PARA-style hub — built as a TypeScript suite (Fastify backend + Expo mobile app).
 
