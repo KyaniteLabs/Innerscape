@@ -9,6 +9,7 @@ You're talking to your agent at the end of a long day and you want to note how i
   - `innerscape_journal` saves one journal entry, exactly as written. The agent must show you the text and any tags and get a yes first; the tool refuses unless `user_confirmed` is true.
   - `innerscape_today` reads today's counts (check-ins, journal entries, habits, tasks, captures) and your latest check-in with its date. A check-in the app inferred, rather than one you logged, is left out.
 - **A slash command.** `/innerscape today | checkin <0-100> <pleasant|unpleasant|neutral> [feeling] | journal <text> | status | help`. Typing `journal` with your text is your yes to saving it.
+- **A Desktop page.** In Hermes Desktop, Innerscape gets its own page in the sidebar: today's counts and your latest check-in, a check-in form, and a journal box. A journal entry is saved only after a dialog shows you the exact text and tags and you press Save. The command palette has *Innerscape: open*, *check in* and *write in journal*, and a small cairn in the status bar opens the page (you can hide it in Settings ▸ Plugins ▸ Innerscape).
 - **A skill.** The bundled `innerscape` skill keeps the agent to one grounding observation, one small next step and one place to capture a follow-up. It carries the Innerscape guardrails: no diagnosis, no automated life decisions, consent before anything sensitive becomes a record, and small reversible steps when you're overwhelmed.
 
 ## Install
@@ -55,6 +56,7 @@ Tokens last 7 days by default. `/innerscape status` shows whether the token is s
 - **It keeps nothing, but Hermes does.** The plugin writes no files and keeps no copy of what it sends; your entries live in your Innerscape database. What a tool returns goes to your model provider like any other tool result, and Hermes keeps it in the session history.
 - **It reads back only what you logged.** `innerscape_today` drops the server's derived state labels, its low-energy streak count and any check-in the app inferred. The agent reflects; it doesn't classify you.
 - **A save means a saved record.** The plugin reports a save only when the server answers with the new record. If the reply is missing or odd, it says the entry may or may not be saved.
+- **The Desktop page uses the same client.** Its routes (`dashboard/plugin_api.py`, under `/api/plugins/innerscape/`) call the agent half's own functions, so the same token handling, limits and loopback rule apply. Hermes serves them only to an authenticated Desktop or dashboard session, and only while the plugin is enabled. The page keeps unsaved drafts in memory and forgets them when you quit or disable the plugin; it stores one setting, whether the status-bar cairn shows. While the page is open it refreshes today's counts and the connection once a minute.
 - **Nothing runs in the background.** No telemetry, no scheduled check-ins, no automatic journaling. The plugin acts only when you or the agent call a tool or the slash command, and it refuses to save anything during a scheduled (cron) run.
 
 ## Settings
@@ -86,6 +88,17 @@ cd plugins/innerscape-hermes
 python -m pytest tests -q
 ```
 
-The tests run against a fake Innerscape API on `127.0.0.1` that checks request bodies the way the real server does, and the Hermes v0.21.6 `gateway/session_context.py`, vendored verbatim under `tests/hermes_runtime/` with its MIT license. They need only `pytest`.
+The tests run against a fake Innerscape API on `127.0.0.1` that checks request bodies the way the real server does, and the Hermes v0.21.6 `gateway/session_context.py`, vendored verbatim under `tests/hermes_runtime/` with its MIT license. They need `pytest`; the Desktop page's route tests also need `fastapi` and `httpx` and are skipped without them.
+
+The Desktop half has its own check, on Node 18 or later:
+
+```bash
+cd plugins/innerscape-hermes/desktop
+node --test tests/plugin.test.mjs
+```
+
+It runs the real `plugin.js` against stubbed SDK and React modules and checks what it registers, how it handles stored settings, that it forgets drafts on unload, and that it uses no `eval`, raw network calls or browser storage. It does not render the page. The page was rendered in headless Chrome, against a stand-in host with the Desktop theme, at 320 to 1440 px wide and with its journal dialog open.
+
+After changing the fonts or the cairn, rebuild the embedded copies with `python3 tools/embed-assets.py`.
 
 License: MIT, the same as Innerscape.
