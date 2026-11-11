@@ -278,3 +278,8 @@ test('no brown, orange or amber in the stylesheet', async () => {
     assert.ok(hue < 15 || hue > 55, `#${h} sits in the brown/orange band (hue ${hue.toFixed(0)})`)
   }
 })
+
+test('the page never renders a raw tool error, and the pick hint keeps its space', () => {
+  assert.doesNotMatch(SOURCE, /children:\s*d\.error\b/)
+  assert.doesNotMatch(SOURCE, /d\.valence \? null/)
+})

@@ -48,6 +48,8 @@ Then restart Hermes and try it:
 
 The second line should answer `Saved a check-in: energy 60, pleasant, rested.`
 
+**Turn on the Desktop page.** Hermes Desktop installs the page with the plugin but leaves it off. Open Capabilities ▸ Plugins, search for Innerscape, open it and switch it on. The Innerscape page then shows in the sidebar, and the cairn shows in the status bar. If your Desktop app connects to Hermes on another machine, install the plugin on both: the tools run where Hermes runs, and the page loads from the app's own machine.
+
 Tokens last 7 days by default. `/innerscape status` shows whether the token is set, when it expires, and whether the server is up. It never prints the token.
 
 ## What it does on your machine
@@ -82,7 +84,7 @@ Set these under `plugins.entries.innerscape.settings`. The two `allow_` settings
 - **Pasted text reaches the model.** Anything you paste into the coach, such as a message you haven't answered, goes to the model with the save tools available. Text written to steer an AI could try to get it to save something; the model still has to show you the words and ask first.
 - **Not a crisis service.** Innerscape and this plugin are for everyday reflection. The tools and the skill tell the agent to stop and point to local emergency services or a crisis line (in the US, call or text 988) if you mention self-harm or a crisis.
 - **`status` doesn't test the token.** The server has no "who am I" endpoint, so `status` reads the token's expiry date and checks `/health`. A wrong token shows up on the first real call.
-- **Platforms.** Tested on Linux only. macOS and Windows are unverified.
+- **Platforms.** Tested on Linux (agent, dashboard and browser-hosted Desktop) and in Hermes Desktop on macOS. Windows is unverified.
 
 ## Tests
 
