@@ -87,6 +87,11 @@ ${Object.entries(FONTS).map(([w, b]) => `@font-face{font-family:'${FACE}';font-s
 .isc-seg button[aria-pressed=true]{background:var(--isc-acc);color:var(--isc-ink)}
 .isc-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
 .isc-row .isc-hint{margin-left:auto}
+.isc-coach{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:18px;align-items:start}
+.isc-coach-why{display:flex;flex-direction:column;gap:8px}
+.isc-coach-why p{margin:0;font-size:12.5px;line-height:1.55;color:var(--isc-t2)}
+.isc-coach-why b{color:var(--isc-t1);font-weight:600}
+.isc-coach textarea{min-height:84px;font-size:13px;line-height:1.55;resize:vertical}
 .isc-journal textarea{min-height:180px;font-size:13px;line-height:1.55;resize:vertical}
 .isc-note{display:flex;flex-direction:column;gap:6px;padding:14px 16px;border-top:1px solid var(--isc-line);font-size:12px;color:var(--isc-t2)}
 .isc-note p{margin:0}
@@ -95,7 +100,7 @@ ${Object.entries(FONTS).map(([w, b]) => `@font-face{font-family:'${FACE}';font-s
 .isc-dlg-text{margin:0;max-height:300px;overflow:auto;padding:12px 14px;border-radius:6px;border:1px solid var(--ui-stroke-tertiary);background:var(--ui-bg-secondary);
   font-family:var(--font-sans,system-ui,sans-serif);font-size:13px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--ui-text-primary)}
 .isc-dlg-tags{margin:8px 0 0;font-size:12px;color:var(--ui-text-secondary)}
-@container (max-width:780px){.isc{padding:18px 16px 40px}.isc-today,.isc-cols{grid-template-columns:minmax(0,1fr)}}
+@container (max-width:780px){.isc{padding:18px 16px 40px}.isc-today,.isc-cols,.isc-coach{grid-template-columns:minmax(0,1fr)}}
 @media (prefers-reduced-motion:reduce){.isc *{transition:none!important;animation:none!important}}
 `
 
@@ -108,6 +113,7 @@ const BODY_NOTE_MAX = 500
 const JOURNAL_MAX = 10000
 const TAG_MAX = 40
 const TAGS_MAX = 10
+const STUCK_MAX = 4000
 
 // --- copy ----------------------------------------------------------------------
 const EN = {
@@ -124,7 +130,8 @@ const EN = {
     server: url => `Can’t reach your Innerscape server at ${url}.`,
     today: 'Today’s numbers didn’t load.',
     checkin: 'The check-in wasn’t saved.',
-    journal: 'The journal entry wasn’t saved.'
+    journal: 'The journal entry wasn’t saved.',
+    coach: 'Couldn’t put the note in a new chat. Start one and say “coach me”; your words are still here.'
   },
   today: {
     title: 'Today', hint: 'Activity, not a grade.',
@@ -136,6 +143,16 @@ const EN = {
     energyOf: n => `${n} of 100`,
     at: when => `logged ${when}`,
     inferred: 'The latest check-in was inferred by the app, not logged by you, so it isn’t shown.'
+  },
+  coach: {
+    title: 'Unstuck Coach', hint: 'Nothing is sent until you press send in the chat.',
+    lead: 'Stuck, frozen, or carrying too much?',
+    body: 'The coach names what’s in the way without blame, gives you one next move, and holds the rest. It doesn’t diagnose, and it never acts on your accounts.',
+    label: 'What’s in front of you', placeholder: 'Messy is fine. The bill, the text you haven’t answered, the thing you keep avoiding.',
+    go: 'Get unstuck', opening: 'Opening a chat…',
+    count: (n, max) => `${n.toLocaleString()} / ${max.toLocaleString()}`,
+    starter: 'I need a coach to get started on this.',
+    prompt: raw => `Coach me with the innerscape:unstuck skill. This is what’s in front of me:\n\n${raw}`
   },
   valence: { pleasant: 'Pleasant', neutral: 'Neutral', unpleasant: 'Unpleasant' },
   checkin: {
@@ -160,7 +177,7 @@ const EN = {
     privacy: url => `Saves go straight to your Innerscape server at ${url}. Hermes keeps no copy, and nothing is saved on a schedule.`
   },
   chip: { open: 'Open Innerscape' },
-  palette: { open: 'Innerscape: Open today', checkin: 'Innerscape: Check in', journal: 'Innerscape: Write in journal' },
+  palette: { open: 'Innerscape: Open today', checkin: 'Innerscape: Check in', journal: 'Innerscape: Write in journal', unstuck: 'Innerscape: Get unstuck' },
   settings: {
     chip: 'Show Innerscape in the status bar',
     chipBody: 'A small cairn that opens this page. It never shows your check-ins or counts.',
@@ -200,7 +217,8 @@ const fail = what => err => host.notifyError(err, what)
 
 // Drafts live in memory only: they survive moving around the app, never a restart.
 const blankCheckin = () => ({ energy: 50, valence: '', feeling: '', body: '' })
-const drafts = atom({ checkin: blankCheckin(), journal: '', tags: '' })
+const blankDrafts = () => ({ checkin: blankCheckin(), journal: '', tags: '', stuck: '' })
+const drafts = atom(blankDrafts())
 const focusTarget = atom(null)
 
 function connState(s) {
@@ -211,6 +229,21 @@ function connState(s) {
   if (s.server && s.server !== 'up') return 'server'
   if (typeof s.token_expires_in_hours === 'number' && s.token_expires_in_hours < 24) return 'soon'
   return 'ok'
+}
+
+// The coach runs in chat, where the innerscape:unstuck skill and the tools live.
+// Open a fresh chat and put the note in its composer; the user reads it and
+// presses send. The composer mounts a moment after newChat, so retry briefly.
+const coachPrompt = (raw, t) => { const r = String(raw).trim(); return r ? t('coach.prompt', r) : t('coach.starter') }
+const sleep = ms => new Promise(r => setTimeout(r, ms))
+async function handToCoach(text, { tries = 16, wait = 150 } = {}) {
+  if (typeof host.newChat !== 'function' || typeof host.composer?.setDraft !== 'function') return false
+  host.newChat()
+  for (let i = 0; i < tries; i++) {
+    await sleep(wait)
+    try { if (await host.composer.setDraft('new', text)) return true } catch {}
+  }
+  return false
 }
 
 // --- page ------------------------------------------------------------------------
@@ -293,6 +326,40 @@ function CheckInForm({ ctx, t, onSaved }) {
       jsx('small', { id: 'isc-body-h', children: t('checkin.bodyHint') })
     ] }),
     jsx('div', { className: 'isc-row', children: jsx(Button, { type: 'submit', disabled: !ready, children: save.isPending ? t('checkin.saving') : t('checkin.save') }) })
+  ] })
+}
+
+function CoachCard({ t }) {
+  const { stuck } = useValue(drafts)
+  const [busy, setBusy] = useState(false)
+  const ref = useRef(null)
+  const target = useValue(focusTarget)
+  useEffect(() => { if (target === 'stuck') { ref.current?.focus(); focusTarget.set(null) } }, [target])
+  const go = async () => {
+    setBusy(true)
+    const ok = await handToCoach(coachPrompt(stuck, t))
+    setBusy(false)
+    // The words now live in the chat draft; on a miss they stay here.
+    if (ok) drafts.set({ ...drafts.get(), stuck: '' })
+    else host.notifyError(new Error(t('err.coach')), t('err.coach'))
+  }
+  return jsxs('div', { className: 'isc-coach', children: [
+    jsxs('div', { className: 'isc-coach-why', children: [
+      jsx('p', { children: jsx('b', { children: t('coach.lead') }) }),
+      jsx('p', { children: t('coach.body') })
+    ] }),
+    jsxs('form', { className: 'isc-sec', onSubmit: e => { e.preventDefault(); if (!busy) go() }, children: [
+      jsxs('div', { className: 'isc-field', children: [
+        jsx('label', { htmlFor: 'isc-stuck', children: t('coach.label') }),
+        jsx(Textarea, { id: 'isc-stuck', ref, value: stuck, maxLength: STUCK_MAX, rows: 3, placeholder: t('coach.placeholder'),
+          spellCheck: true, autoCapitalize: 'sentences', 'aria-describedby': 'isc-stuck-n',
+          onChange: e => drafts.set({ ...drafts.get(), stuck: e.target.value }) })
+      ] }),
+      jsxs('div', { className: 'isc-row', children: [
+        jsx(Button, { type: 'submit', disabled: busy, children: busy ? t('coach.opening') : t('coach.go') }),
+        jsx('span', { id: 'isc-stuck-n', className: 'isc-hint', children: t('coach.count', stuck.length, STUCK_MAX) })
+      ] })
+    ] })
   ] })
 }
 
@@ -386,6 +453,7 @@ function InnerscapePage({ ctx, status, refreshStatus }) {
     head,
     warn,
     sec('isc-today-h', t('today.title'), t('today.hint'), jsx(Today, { q: today, t })),
+    sec('isc-coach-h', t('coach.title'), t('coach.hint'), jsx(CoachCard, { t })),
     jsxs('div', { className: 'isc-cols', children: [
       sec('isc-checkin-h', t('checkin.title'), t('checkin.hint'), jsx(CheckInForm, { ctx, t, onSaved: refresh })),
       sec('isc-journal-h', t('journal.title'), t('journal.hint'), jsx(JournalForm, { ctx, t, onSaved: refresh }))
@@ -436,7 +504,7 @@ function cleanPrefs(raw) {
 }
 
 // Pure helpers, exported for desktop/tests only; the host reads the default export.
-export const __internals = { cleanPrefs, connState, parseTags, okOr, drafts, focusTarget, CSS }
+export const __internals = { cleanPrefs, connState, parseTags, okOr, drafts, focusTarget, CSS, coachPrompt, handToCoach }
 
 export default {
   id: ID,
@@ -455,7 +523,7 @@ export default {
     document.head.appendChild(style)
     ctx.onDispose(() => style.remove())
     // Drafts never outlive the plugin.
-    ctx.onDispose(() => { drafts.set({ checkin: blankCheckin(), journal: '', tags: '' }); focusTarget.set(null) })
+    ctx.onDispose(() => { drafts.set(blankDrafts()); focusTarget.set(null) })
 
     const status = atom(null)
     const pull = () => ctx.rest('/status').then(s => { if (s && typeof s === 'object') status.set(s) }, () => {})
@@ -467,7 +535,8 @@ export default {
       { id: 'chip', area: STATUSBAR_AREAS.right, order: 110, render: () => jsx(Chip, { prefs }) },
       { id: 'open', area: PALETTE_AREA, data: { id: 'innerscape.open', label: tNow('palette.open'), keywords: ['today', 'mood', 'journal'], run: go(null) } },
       { id: 'checkin', area: PALETTE_AREA, data: { id: 'innerscape.checkin', label: tNow('palette.checkin'), keywords: ['mood', 'energy', 'feeling'], run: go('checkin') } },
-      { id: 'journal', area: PALETTE_AREA, data: { id: 'innerscape.journal', label: tNow('palette.journal'), keywords: ['write', 'entry', 'diary'], run: go('journal') } }
+      { id: 'journal', area: PALETTE_AREA, data: { id: 'innerscape.journal', label: tNow('palette.journal'), keywords: ['write', 'entry', 'diary'], run: go('journal') } },
+      { id: 'unstuck', area: PALETTE_AREA, data: { id: 'innerscape.unstuck', label: tNow('palette.unstuck'), keywords: ['stuck', 'coach', 'overwhelmed', 'next step'], run: go('stuck') } }
     ])
 
     ctx.registerSettingsPage?.({ id: 'settings', title: tNow('name'), icon: 'heart', render: () => jsx(Settings, { prefs, update, status }) })

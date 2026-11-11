@@ -63,6 +63,14 @@ def _zod_journal(b):
             and isinstance(b.get("tags", []), list) and all(isinstance(t, str) for t in b.get("tags", [])))
 
 
+def _zod_capture(b):
+    """apps/backend/src/routes/hub.ts captureSchema."""
+    return (isinstance(b, dict) and isinstance(b.get("content"), str) and 1 <= _u16(b["content"]) <= 5000
+            and b.get("contentType", "text") in ("text", "voice", "image", "link")
+            and isinstance(b.get("source", "app"), str)
+            and isinstance(b.get("tags", []), list) and all(isinstance(t, str) for t in b.get("tags", [])))
+
+
 class FakeInnerscape:
     """Records every request; answers like apps/backend for the routes the plugin uses."""
 
@@ -103,6 +111,10 @@ class FakeInnerscape:
                     if not _zod_journal(body):
                         return self._send(400, {"error": "Validation failed"})
                     return self._send(201, {"id": "je_1", **body})
+                if method == "POST" and self.path == "/api/v1/capture":
+                    if not _zod_capture(body):
+                        return self._send(400, {"error": "Validation failed"})
+                    return self._send(201, {"id": "cap_1", "classificationStatus": "pending", **body})
                 if self.path == "/api/v1/review/daily-summary":
                     return self._send(200, {"date": "2026-11-10T00:00:00.000Z", "emotionalCheckIns": 2, "habitsCompleted": 1,
                                             "tasksCompleted": 0, "itemsCaptured": 3, "journalEntries": 1, "totalActivity": 7})

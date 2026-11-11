@@ -20,13 +20,14 @@ def call(plugin, tool, args):
 
 # --- registration and manifest ---------------------------------------------------
 
-def test_register_exposes_three_tools_one_command_and_the_skill(plugin):
+def test_register_exposes_four_tools_one_command_and_both_skills(plugin):
     ctx = FakeCtx()
     plugin.register(ctx)
-    assert set(ctx.tools) == {"innerscape_checkin", "innerscape_journal", "innerscape_today"}
+    assert set(ctx.tools) == {"innerscape_checkin", "innerscape_journal", "innerscape_today", "innerscape_capture"}
     assert set(ctx.commands) == {"innerscape"}
-    assert set(ctx.skills) == {"innerscape"}
-    assert ctx.skills["innerscape"][1].startswith("Use when")
+    assert set(ctx.skills) == {"innerscape", "unstuck"}
+    for name in ("innerscape", "unstuck"):
+        assert ctx.skills[name][1].startswith("Use when")
     assert ctx.hooks == {}
     for kw in ctx.tools.values():
         assert kw["toolset"] == "innerscape"
@@ -36,7 +37,7 @@ def test_register_exposes_three_tools_one_command_and_the_skill(plugin):
 def test_manifest_matches_registration_and_declares_the_token():
     text = (PLUGIN_DIR / "plugin.yaml").read_text(encoding="utf-8")
     tools = re.findall(r"^  - (innerscape_\w+)$", text, re.M)
-    assert tools == ["innerscape_checkin", "innerscape_journal", "innerscape_today"]
+    assert tools == ["innerscape_checkin", "innerscape_journal", "innerscape_today", "innerscape_capture"]
     assert re.search(r"^requires_env:\n  - name: INNERSCAPE_TOKEN\n(    .*\n)*    secret: true$", text, re.M)
     assert 'requires_hermes: ">=0.21.6"' in text
     for key in ("base_url", "allow_reads_on_gateway", "allow_writes_on_gateway", "timeout_seconds"):
@@ -44,7 +45,7 @@ def test_manifest_matches_registration_and_declares_the_token():
 
 
 def test_every_tool_description_carries_the_crisis_line(plugin):
-    for schema in (plugin.CHECKIN_SCHEMA, plugin.JOURNAL_SCHEMA):
+    for schema in (plugin.CHECKIN_SCHEMA, plugin.JOURNAL_SCHEMA, plugin.CAPTURE_SCHEMA):
         assert "988" in schema["description"] and "save nothing" in schema["description"]
 
 
@@ -112,6 +113,48 @@ def test_journal_refuses_empty_and_oversized_text(plugin, api):
     assert "required" in call(plugin, "_tool_journal", {"content": "  ", "user_confirmed": True})["error"]
     assert "limit is 10000" in call(plugin, "_tool_journal", {"content": "x" * 10_001, "user_confirmed": True})["error"]
     assert api.requests == []
+
+
+# --- capture (the Unstuck Coach's inbox) ------------------------------------------
+
+@pytest.mark.parametrize("confirmed", [None, False, "yes", 1])
+def test_capture_needs_an_explicit_yes(plugin, api, confirmed):
+    args = {"content": "pay the water bill"}
+    if confirmed is not None:
+        args["user_confirmed"] = confirmed
+    out = call(plugin, "_tool_capture", args)
+    assert not out["ok"] and "ask whether to park" in out["error"]
+    assert api.requests == []
+
+
+def test_capture_parks_the_approved_words_as_text_from_hermes(plugin, api):
+    out = call(plugin, "_tool_capture", {"content": "idea: Sunday shutdown list ", "tags": ["later", "later"], "user_confirmed": True})
+    assert {k: out[k] for k in ("ok", "saved", "id", "tags")} == {"ok": True, "saved": "inbox item", "id": "cap_1", "tags": ["later"]}
+    assert "988" in out["reading"]
+    assert api.requests[-1]["path"] == "/api/v1/capture"
+    assert api.requests[-1]["body"] == {"content": "idea: Sunday shutdown list ", "contentType": "text", "source": "hermes", "tags": ["later"]}
+
+
+def test_capture_refuses_empty_oversized_and_unknown_args(plugin, api):
+    assert "required" in call(plugin, "_tool_capture", {"content": " ", "user_confirmed": True})["error"]
+    assert "limit is 5000" in call(plugin, "_tool_capture", {"content": "x" * 5001, "user_confirmed": True})["error"]
+    assert "unknown argument" in call(plugin, "_tool_capture", {"content": "x", "user_confirmed": True, "source": "cron"})["error"]
+    assert api.requests == []
+
+
+def test_slash_capture(plugin, api):
+    assert plugin._slash("capture answer the landlord", platform="cli") == "Parked in your Innerscape inbox (19 characters)."
+    assert api.requests[-1]["body"]["content"] == "answer the landlord"
+    assert "Nothing to park" in plugin._slash("capture", platform="cli")
+    assert "off on chat platforms" in plugin._slash("capture my private pile", platform="telegram")
+
+
+def test_unstuck_skill_keeps_the_coach_inside_its_boundaries():
+    text = (PLUGIN_DIR / "skills" / "unstuck" / "SKILL.md").read_text(encoding="utf-8")
+    assert text.startswith("---\nname: unstuck\n")
+    for must in ("988", "diagnose", "medication", "innerscape_capture", "user_confirmed: true", "Body state outranks planning",
+                 "never shown as a menu", "one next move"):
+        assert must.lower() in text.lower(), must
 
 
 # --- today -------------------------------------------------------------------------
@@ -210,6 +253,8 @@ def test_writes_are_off_on_chat_platforms_by_default(plugin, api, runtime):
         assert not out["ok"] and "off on chat platforms" in out["error"]
         out = call(plugin, "_tool_journal", {"content": "x", "user_confirmed": True})
         assert not out["ok"] and "off on chat platforms" in out["error"]
+        out = call(plugin, "_tool_capture", {"content": "x", "user_confirmed": True})
+        assert not out["ok"] and "off on chat platforms" in out["error"]
         out = call(plugin, "_tool_today", {})
         assert not out["ok"] and "Reading Innerscape is off" in out["error"]
         assert api.requests == []
@@ -307,7 +352,8 @@ def test_scheduled_runs_never_save(plugin, api, runtime, monkeypatch):
     tokens = runtime.set_session_vars(platform="cli", cron_session="1")
     try:
         for tool, args in (("_tool_checkin", {"user_confirmed": True, "energy": 50, "valence": "pleasant"}),
-                           ("_tool_journal", {"content": "x", "user_confirmed": True})):
+                           ("_tool_journal", {"content": "x", "user_confirmed": True}),
+                           ("_tool_capture", {"content": "x", "user_confirmed": True})):
             out = call(plugin, tool, args)
             assert not out["ok"] and "scheduled runs" in out["error"]
         assert api.requests == []
