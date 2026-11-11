@@ -71,20 +71,20 @@ Set these under `plugins.entries.innerscape.settings`. The two `allow_` settings
 | Key | Default | What it does |
 |---|---|---|
 | `base_url` | `http://127.0.0.1:3001` | Your Innerscape API server. Plain `http` only to this machine |
-| `allow_reads_on_gateway` | `false` | Allows reading today's counts and latest check-in from chat platforms |
-| `allow_writes_on_gateway` | `false` | Allows saving check-ins, journal entries and inbox items from chat platforms such as Telegram or Discord |
+| `allow_reads_on_gateway` | `false` | Allows reading today's counts and latest check-in from chat platforms, webhooks and other remote surfaces |
+| `allow_writes_on_gateway` | `false` | Allows saving check-ins, journal entries and inbox items from chat platforms such as Telegram or Discord, webhooks and other remote surfaces |
 | `timeout_seconds` | `10` | Overall time limit for each API call, including reading the reply (2 to 60) |
 
 ## Known issues
 
-- **Off on chat platforms.** A Telegram or Discord chat can include other people, so reading `today` and saving check-ins, journal entries or inbox items are refused there unless you set `allow_reads_on_gateway: true` or `allow_writes_on_gateway: true`. Think about who else is in the chat before you turn either on.
+- **Off everywhere but your own machine.** Reading `today` and saving check-ins, journal entries or inbox items work only from the Hermes CLI, TUI, Desktop or an ACP editor. A Telegram or Discord chat can include other people, and webhooks, the API server and kanban workers carry requests from someone other than you at the keyboard, so all of these are refused unless you set `allow_reads_on_gateway: true` or `allow_writes_on_gateway: true`. A turn that names no surface is refused too. Think about who else can reach that surface before you turn either on.
 - **A slow save may still land.** If the server times out after a check-in or journal entry was sent, it may already be saved. The error says so; check Innerscape before trying again.
 - **Tokens expire.** After 7 days (or your server's `JWT_EXPIRES_IN`), calls fail with a message that says how to log in again. Hermes reads `INNERSCAPE_TOKEN` when it starts, so restart it after you change the token.
-- **"Today" is the server's today.** The daily summary counts from midnight in the server's time zone, which may differ from yours.
+- **"Today" is the server's today.** The daily summary counts from midnight in the server's time zone, which may differ from yours The latest check-in is the newest one ever, so `today` shows it in your local time and says when it is not from today.
 - **The guardrails are instructions to the agent.** The save tools refuse unless `user_confirmed` is true, but the model sets that flag after it asks you; Hermes has no separate approval step for plugin tools. So the consent check is a code guard backing the model's instructions, not a guarantee. A `/innerscape` command you type yourself is your own yes. "Reflect, don't label" and the crisis guidance are likewise instructions, not guarantees.
 - **Pasted text reaches the model.** Anything you paste into the coach, such as a message you haven't answered, goes to the model with the save tools available. Text written to steer an AI could try to get it to save something; the model still has to show you the words and ask first.
 - **Not a crisis service.** Innerscape and this plugin are for everyday reflection. The tools and the skill tell the agent to stop and point to local emergency services or a crisis line (in the US, call or text 988) if you mention self-harm or a crisis.
-- **`status` doesn't test the token.** The server has no "who am I" endpoint, so `status` reads the token's expiry date and checks `/health`. A wrong token shows up on the first real call.
+- **`status` tests the token.** It checks `/health`, reads the token's expiry date, and asks `/api/v1/user/me` whether the server accepts it. It keeps only the yes or no, never your account details.
 - **Platforms.** Tested on Linux (agent, dashboard and browser-hosted Desktop) and in Hermes Desktop on macOS. Windows is unverified.
 
 ## Tests

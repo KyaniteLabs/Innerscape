@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime
 import re
+import sys
 from pathlib import Path
 
 import pytest
@@ -164,7 +166,8 @@ def test_today_returns_counts_and_the_logged_checkin_but_no_derived_labels(plugi
     out = call(plugin, "_tool_today", {})
     assert out["ok"]
     assert out["counts"] == {"emotionalCheckIns": 2, "journalEntries": 1, "habitsCompleted": 1, "tasksCompleted": 0, "itemsCaptured": 3}
-    assert out["latest_checkin"] == {"at": "2026-11-10T09:00:00.000Z", "energy": 22, "valence": "unpleasant", "feeling": "foggy"}
+    assert out["latest_checkin"] == {"at": "2026-11-10T09:00:00.000Z", "at_local": datetime.fromisoformat("2026-11-10T09:00:00+00:00").astimezone().strftime("%Y-%m-%d %H:%M"), "is_today": False,
+                                   "energy": 22, "valence": "unpleasant", "feeling": "foggy"}
     raw = json.dumps(out)
     assert "low_energy_unpleasant" not in raw and "consecutiveLowEnergyDays" not in raw and "totalActivity" not in raw
 
@@ -304,7 +307,7 @@ def test_slash_writes_refused_from_chat_platform(plugin, api):
 def test_slash_today(plugin):
     out = plugin._slash("today", platform="cli")
     assert out.startswith("Today: 2 check-ins, 1 journal entry, 1 habit, 0 tasks done, 3 captured")
-    assert "Latest check-in (2026-11-10 09:00 server time): energy 22, unpleasant, foggy" in out
+    assert f"Latest check-in ({datetime.fromisoformat('2026-11-10T09:00:00+00:00').astimezone().strftime('%Y-%m-%d %H:%M')}, not today): energy 22, unpleasant, foggy" in out
     assert "Reading Innerscape is off" in plugin._slash("today", platform="telegram")
 
 
@@ -579,3 +582,98 @@ def test_an_empty_or_odd_daily_summary_is_an_error(plugin, api, body):
     api.override["/api/v1/review/daily-summary"] = (200, body, {})
     out = call(plugin, "_tool_today", {})
     assert not out["ok"] and "daily summary" in out["error"]
+
+
+# --- local surfaces only (Fable round 1: I1-I4) -----------------------------------------
+
+CHECKIN = {"user_confirmed": True, "energy": 50, "valence": "pleasant"}
+
+
+@pytest.mark.parametrize("platform,source", [
+    ("webhook", ""), ("api_server", ""), ("msgraph_webhook", ""), ("gateway", ""), ("", "kanban"), ("cli", "kanban"),
+])
+def test_remote_surfaces_are_refused_by_default(plugin, api, runtime, platform, source):
+    tokens = runtime.set_session_vars(platform=platform, source=source)
+    try:
+        assert "off on chat platforms" in call(plugin, "_tool_checkin", CHECKIN)["error"]
+        assert "Reading Innerscape is off" in call(plugin, "_tool_today", {})["error"]
+        assert api.requests == []
+    finally:
+        runtime.clear_session_vars(tokens)
+
+
+def test_a_blank_identity_in_a_gateway_process_is_refused(plugin, api, runtime):
+    runtime.clear_session_vars(runtime.set_session_vars(platform="telegram"))  # the gateway has bound sessions
+    runtime.reset_session_vars()  # ...but this task never bound one
+    assert "off on chat platforms" in call(plugin, "_tool_checkin", CHECKIN)["error"]
+    assert api.requests == []
+
+
+def test_session_surface_names_the_surface(plugin, api, runtime):
+    ctx = FakeCtx({"base_url": api.url})
+    ctx.session_surface = lambda: "cli"
+    plugin._ctx = ctx
+    assert call(plugin, "_tool_checkin", CHECKIN)["ok"]
+    ctx.session_surface = lambda: ""  # outside any session
+    assert "off on chat platforms" in call(plugin, "_tool_checkin", CHECKIN)["error"]
+
+
+def test_the_override_still_opens_remote_surfaces(plugin, api, runtime):
+    plugin._ctx = FakeCtx({"base_url": api.url, "allow_writes_on_gateway": True, "allow_reads_on_gateway": True})
+    tokens = runtime.set_session_vars(platform="webhook")
+    try:
+        assert call(plugin, "_tool_checkin", CHECKIN)["ok"]
+        assert call(plugin, "_tool_today", {})["ok"]
+    finally:
+        runtime.clear_session_vars(tokens)
+
+
+def test_slash_from_a_webhook_is_refused(plugin, api):
+    assert "off on chat platforms" in plugin._slash("journal secret thoughts", platform="webhook")
+    assert "Reading Innerscape is off" in plugin._slash("today", platform="api_server")
+    assert api.requests == []
+
+
+def test_a_refused_secret_is_an_error_not_a_crash(plugin, api, monkeypatch):
+    import types
+
+    class UnscopedSecretError(Exception):
+        pass
+
+    def get_secret(name):
+        raise UnscopedSecretError(name)
+
+    agent = types.ModuleType("agent")
+    scope = types.ModuleType("agent.secret_scope")
+    scope.get_secret = get_secret
+    agent.secret_scope = scope
+    monkeypatch.setitem(sys.modules, "agent", agent)
+    monkeypatch.setitem(sys.modules, "agent.secret_scope", scope)
+    out = call(plugin, "_tool_today", {})
+    assert not out["ok"] and "UnscopedSecretError" in out["error"]
+    assert not plugin.status()["ok"]
+
+
+def test_an_old_checkin_is_not_shown_as_today(plugin, api):
+    out = call(plugin, "_tool_today", {})
+    assert out["latest_checkin"]["is_today"] is False
+    assert "not today" in plugin._slash("today", platform="cli")
+
+
+def test_a_checkin_from_today_says_so(plugin, api):
+    from datetime import timezone
+
+    now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    api.override["/api/v1/context/current"] = (200, {"checkIn": {"timestamp": now, "energyLevel": 60, "valence": "pleasant"}})
+    out = call(plugin, "_tool_today", {})
+    assert out["latest_checkin"]["is_today"] is True
+    assert "(today " in plugin._slash("today", platform="cli")
+
+
+def test_status_asks_the_server_about_the_token(plugin, api, monkeypatch):
+    s = plugin.status()
+    assert s["token_accepted"] is True and "accepted by the server" in plugin._slash("status", platform="cli")
+    assert "owner@example.com" not in json.dumps(s)
+    monkeypatch.setenv("INNERSCAPE_TOKEN", "not-the-token")
+    s = plugin.status()
+    assert s["token_accepted"] is False and not s["ok"] and "rejected by the server" in plugin._slash("status", platform="cli")

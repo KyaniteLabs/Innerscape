@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -47,7 +48,8 @@ def test_status_reports_server_and_token(dash):
 def test_today_has_counts_and_the_users_words_only(dash):
     r = dash.get("/api/plugins/innerscape/today").json()
     assert r["counts"]["emotionalCheckIns"] == 2
-    assert r["latest_checkin"] == {"at": "2026-11-10T09:00:00.000Z", "energy": 22, "valence": "unpleasant", "feeling": "foggy"}
+    assert r["latest_checkin"] == {"at": "2026-11-10T09:00:00.000Z", "at_local": datetime.fromisoformat("2026-11-10T09:00:00+00:00").astimezone().strftime("%Y-%m-%d %H:%M"), "is_today": False,
+                                   "energy": 22, "valence": "unpleasant", "feeling": "foggy"}
     assert "reading" not in r and "computedState" not in json.dumps(r)
 
 

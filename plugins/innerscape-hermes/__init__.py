@@ -26,10 +26,11 @@ import math
 import os
 import re
 import time
+from datetime import datetime
 import urllib.error
 import urllib.parse
 import urllib.request
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -52,11 +53,11 @@ DEFAULTS: Dict[str, Any] = {
     "timeout_seconds": 10,
 }
 
-# Mirrors gateway.session_context.NON_MESSAGING_SESSION_SURFACES.
-_NON_MESSAGING = frozenset({
-    "", "api_server", "cli", "codex", "desktop", "gateway", "kanban", "local",
-    "msgraph_webhook", "tool", "tui", "webhook",
-})
+# Surfaces where the person typing is the person whose data this is. Everything else
+# (chat platforms, webhooks, the API server, kanban workers, unknown names) needs the
+# allow_*_on_gateway settings. Hermes's own NON_MESSAGING_SESSION_SURFACES is wider on
+# purpose: it answers "is this a chat?", not "is this the owner at their machine?".
+_LOCAL_SURFACES = frozenset({"cli", "tui", "desktop", "local", "acp"})
 
 _REFRESH = (
     "Tokens last 7 days by default. Get a fresh one by running "
@@ -134,6 +135,8 @@ def _raw_token() -> str:
         val = get_secret(TOKEN_ENV)
     except ImportError:
         val = os.environ.get(TOKEN_ENV)
+    except Exception as exc:  # e.g. UnscopedSecretError: refuse cleanly, never a 500
+        raise ValueError(f"Hermes would not hand {TOKEN_ENV} to this turn ({type(exc).__name__}).") from None
     return str(val or "").strip()
 
 
@@ -160,24 +163,43 @@ def _token_expiry(tok: str) -> Optional[float]:
         return None
 
 
-def _on_gateway() -> bool:
-    """True when this turn arrives over a human messaging surface (fails closed)."""
+def _session_identity() -> Tuple[str, str, bool]:
+    """(platform, source, gateway-process) for this turn, each name lower-cased."""
+    surface = getattr(_ctx, "session_surface", None)
     try:
         from gateway.session_context import get_session_env
     except ImportError:
-        idents = (
-            os.environ.get("HERMES_PLATFORM") or os.environ.get("HERMES_SESSION_PLATFORM") or "",
-            os.environ.get("HERMES_SESSION_SOURCE") or "",
-        )
-        explicit = [str(v).strip().lower() for v in idents if str(v).strip()]
-        return not explicit or any(v not in _NON_MESSAGING for v in explicit)
-    try:
+        platform = os.environ.get("HERMES_PLATFORM") or os.environ.get("HERMES_SESSION_PLATFORM") or ""
+        source = os.environ.get("HERMES_SESSION_SOURCE") or ""
+        engaged = False
+    else:
+        from gateway import session_context as _sc
+
         platform = get_session_env("HERMES_SESSION_PLATFORM", "") or os.environ.get("HERMES_PLATFORM", "")
-        idents = (str(v or "").strip().lower() for v in (platform, get_session_env("HERMES_SESSION_SOURCE", "")))
-        return any(v and v not in _NON_MESSAGING for v in idents)
+        source = get_session_env("HERMES_SESSION_SOURCE", "")
+        engaged = bool(getattr(_sc, "session_context_engaged", lambda: False)())
+    if not str(platform or "").strip() and callable(surface):  # Hermes names the classic CLI "cli" here
+        platform = surface() or ""
+    return str(platform or "").strip().lower(), str(source or "").strip().lower(), engaged
+
+
+def _on_gateway() -> bool:
+    """True unless this turn comes from a local surface (cli, tui, desktop, local, acp).
+
+    Chat platforms, webhooks, the API server, kanban workers and unknown names all count as
+    remote. A turn that names no surface at all is local only on an older Hermes without
+    ``session_surface``, outside a process that has bound gateway sessions. Fails closed."""
+    try:
+        platform, source, engaged = _session_identity()
     except Exception:
         logger.debug("innerscape: session identity lookup failed; failing closed", exc_info=True)
         return True
+    named = [v for v in (platform, source) if v]
+    if named:
+        return any(v not in _LOCAL_SURFACES for v in named)
+    if engaged or callable(getattr(_ctx, "session_surface", None)):
+        return True
+    return (os.environ.get("HERMES_GATEWAY_SESSION") or "").strip().lower() in ("1", "true", "yes", "on")
 
 
 def _in_cron() -> bool:
@@ -196,7 +218,7 @@ def _surface_allowed(key: str, platform: Any = None) -> bool:
     if _cfg(key) is True:
         return True
     if isinstance(platform, str) and platform.strip():
-        return platform.strip().lower() in _NON_MESSAGING
+        return platform.strip().lower() in _LOCAL_SURFACES
     return not _on_gateway()
 
 
@@ -209,13 +231,15 @@ def _reads_allowed(platform: Any = None) -> bool:
 
 
 _GATEWAY_WRITE_OFF = (
-    "Saving to Innerscape is off on chat platforms and in scheduled runs, because a chat can include "
-    "other people and a schedule can't say yes. Save it from the Hermes CLI or desktop, or set "
+    "Saving to Innerscape is off on chat platforms, webhooks, other remote surfaces and in scheduled "
+    "runs, because someone other than you may be on the other end and a schedule can't say yes. "
+    "Save it from the Hermes CLI or desktop, or set "
     "allow_writes_on_gateway: true for chat platforms."
 )
 
 _GATEWAY_READ_OFF = (
-    "Reading Innerscape is off on chat platforms, because a chat can include other people. "
+    "Reading Innerscape is off on chat platforms, webhooks and other remote surfaces, because "
+    "someone other than you may be on the other end. "
     "Ask from the Hermes CLI or desktop, or set allow_reads_on_gateway: true."
 )
 
@@ -428,6 +452,18 @@ def capture(content: Any = None, tags: Any = None, user_confirmed: Any = False) 
             "reading": "Parked. Tell the user it is held in their Innerscape inbox and return to the one next move. " + _CRISIS}
 
 
+def _local_time(at: Any) -> Tuple[Optional[str], Optional[bool]]:
+    """An ISO timestamp from the server as this machine's local time, and whether that is today."""
+    try:
+        dt = datetime.fromisoformat(str(at).replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return None, None
+    if dt.tzinfo is None:  # no offset: we cannot say which day it was
+        return None, None
+    local = dt.astimezone()
+    return local.strftime("%Y-%m-%d %H:%M"), local.date() == datetime.now().astimezone().date()
+
+
 def today() -> Dict[str, Any]:
     summary = _api("GET", "/api/v1/review/daily-summary")
     if not summary["ok"]:
@@ -450,8 +486,12 @@ def today() -> Dict[str, Any]:
     if isinstance(ci, dict):
         # Only what the user logged. The server's derived state labels and low-energy
         # streak are left out on purpose: the agent reflects, it does not classify.
+        # The server sends the latest check-in ever, which may be from an earlier day.
+        at_local, is_today = _local_time(ci.get("timestamp"))
         latest = {
             "at": ci.get("timestamp"),
+            "at_local": at_local,
+            "is_today": is_today,
             "energy": ci.get("energyLevel"),
             "valence": ci.get("valence"),
             "feeling": ci.get("feelingLabel"),
@@ -461,7 +501,8 @@ def today() -> Dict[str, Any]:
         "counts": counts,
         "latest_checkin": latest,
         "reading": (
-            "Counts are activity, not a grade. Offer one grounding observation and one small next "
+            "Counts are activity, not a grade. The latest check-in may be from an earlier day "
+            "(see is_today); never present an older one as how the user feels today. Offer one grounding observation and one small next "
             "step at most; never diagnose or tell the user how they feel. " + _CRISIS
         ),
     }
@@ -505,6 +546,13 @@ def status() -> Dict[str, Any]:
             out["server"] = "up" if resp.status == 200 else f"HTTP {resp.status}"
     except Exception as exc:
         out["server"] = f"unreachable ({type(exc).__name__})"
+    if out["server"] == "up" and tok and out["ok"]:
+        # Ask the server whether it accepts the token; only the yes/no is kept, never the profile.
+        me = _api("GET", "/api/v1/user/me")
+        out["token_accepted"] = bool(me["ok"] and isinstance(me.get("data"), dict) and me["data"].get("id"))
+        if not out["token_accepted"]:
+            out["ok"] = False
+            out.setdefault("token_note", f"The server did not accept the token: {me.get('error') or 'no account came back'}")
     return out
 
 
@@ -628,8 +676,9 @@ _HELP = (
     "  /innerscape journal <text>                         Save these words as an entry\n"
     "  /innerscape capture <text>                         Park these words in your inbox\n"
     "  /innerscape status                                 Server, token and expiry\n"
-    "Reading and saving are off on chat platforms unless allow_reads_on_gateway or\n"
-    "allow_writes_on_gateway is true. Saving is always off in scheduled runs."
+    "Reading and saving work only from the CLI, TUI, Desktop or an ACP editor; chat platforms,\n"
+    "webhooks and other remote surfaces need allow_reads_on_gateway or allow_writes_on_gateway.\n"
+    "Saving is always off in scheduled runs."
 )
 
 
@@ -645,7 +694,10 @@ def _fmt_today(res: Dict[str, Any]) -> str:
     latest = res.get("latest_checkin")
     if latest:
         feel = f", {latest['feeling']}" if latest.get("feeling") else ""
-        when = f" ({str(latest['at'])[:16].replace('T', ' ')} server time)" if latest.get("at") else ""
+        if latest.get("at_local"):
+            when = f" (today {latest['at_local'][11:]})" if latest.get("is_today") else f" ({latest['at_local']}, not today)"
+        else:
+            when = f" ({latest['at']})" if latest.get("at") else ""
         lines.append(f"Latest check-in{when}: energy {latest.get('energy')}, {latest.get('valence')}{feel}")
     elif res.get("latest_checkin_note"):
         lines.append(res["latest_checkin_note"])
@@ -661,7 +713,8 @@ def _fmt_today(res: Dict[str, Any]) -> str:
 def _fmt_status(s: Dict[str, Any]) -> str:
     lines = [f"Innerscape at {s.get('base_url')}: server {s.get('server', 'not checked')}",
              f"  token: {'set' if s.get('token_set') else 'not set'}"
-             + (f", expires in {s['token_expires_in_hours']} h" if 'token_expires_in_hours' in s else ""),
+             + (f", expires in {s['token_expires_in_hours']} h" if 'token_expires_in_hours' in s else "")
+             + ({True: ", accepted by the server", False: ", rejected by the server"}.get(s.get("token_accepted"), "")),
              f"  reading from chat platforms: {'on' if s.get('reads_on_gateway') else 'off'}",
              f"  saving from chat platforms: {'on' if s.get('writes_on_gateway') else 'off'}"]
     if s.get("token_note"):

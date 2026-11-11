@@ -115,6 +115,8 @@ class FakeInnerscape:
                     if not _zod_capture(body):
                         return self._send(400, {"error": "Validation failed"})
                     return self._send(201, {"id": "cap_1", "classificationStatus": "pending", **body})
+                if self.path == "/api/v1/user/me":
+                    return self._send(200, {"id": "u_1", "email": "owner@example.com", "onboardingCompleted": True})
                 if self.path == "/api/v1/review/daily-summary":
                     return self._send(200, {"date": "2026-11-10T00:00:00.000Z", "emotionalCheckIns": 2, "habitsCompleted": 1,
                                             "tasksCompleted": 0, "itemsCaptured": 3, "journalEntries": 1, "totalActivity": 7})

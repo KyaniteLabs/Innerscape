@@ -1,7 +1,7 @@
 name: innerscape
 version: "0.3.0"
 manifest_version: 2
-description: "Gentle check-ins, journaling and an Unstuck Coach with your own Innerscape server. Four tools: save a mood check-in in your words (energy 0-100 and pleasant, unpleasant or neutral) when you ask or say yes, save a journal entry only after you say yes to the exact text and tags, park an item in your Innerscape inbox only after you say yes to the exact words, and read today's counts with your latest check-in. /innerscape does the same from chat, Hermes Desktop gets an Innerscape page with the same actions and a Get unstuck card, and two bundled skills keep the agent to one grounding observation and one small next step: innerscape for reflection, unstuck for when you're frozen, overloaded or avoiding something. The skill asks the agent never to score, label or diagnose a mood, and the plugin refuses to save during scheduled runs. Disclosure: it calls your Innerscape REST API (default http://127.0.0.1:3001) with the token in INNERSCAPE_TOKEN, using the Python standard library. The token can read and write your whole Innerscape account. What the tools return goes to your model provider and stays in Hermes session history. Plain http is allowed only to this machine, proxies and redirects are not used, and the plugin keeps no copy of what it sends. Reading and saving (check-ins, journal entries, inbox items) are off on chat platforms by default, and saving is off in scheduled runs. No telemetry and no background jobs."
+description: "Gentle check-ins, journaling and an Unstuck Coach with your own Innerscape server. Four tools: save a mood check-in in your words (energy 0-100 and pleasant, unpleasant or neutral) when you ask or say yes, save a journal entry only after you say yes to the exact text and tags, park an item in your Innerscape inbox only after you say yes to the exact words, and read today's counts with your latest check-in. /innerscape does the same from chat, Hermes Desktop gets an Innerscape page with the same actions and a Get unstuck card, and two bundled skills keep the agent to one grounding observation and one small next step: innerscape for reflection, unstuck for when you're frozen, overloaded or avoiding something. The skill asks the agent never to score, label or diagnose a mood, and the plugin refuses to save during scheduled runs. Disclosure: it calls your Innerscape REST API (default http://127.0.0.1:3001) with the token in INNERSCAPE_TOKEN, using the Python standard library. The token can read and write your whole Innerscape account. What the tools return goes to your model provider and stays in Hermes session history. Plain http is allowed only to this machine, proxies and redirects are not used, and the plugin keeps no copy of what it sends. Reading and saving (check-ins, journal entries, inbox items) are off on chat platforms, webhooks and other remote surfaces by default (they work from the CLI, TUI, Desktop and ACP), and saving is off in scheduled runs. No telemetry and no background jobs."
 author: "Kyanite Labs"
 license: MIT
 homepage: https://github.com/KyaniteLabs/Innerscape/tree/main/plugins/innerscape-hermes
@@ -24,11 +24,11 @@ config_schema:
   allow_reads_on_gateway:
     type: bool
     default: false
-    description: "When false, today's counts and latest check-in are not read from chat platforms, because a chat can include other people."
+    description: "When false, today's counts and latest check-in are not read from chat platforms, webhooks or other remote surfaces, because someone other than you may be on the other end."
   allow_writes_on_gateway:
     type: bool
     default: false
-    description: "When false, check-ins, journal entries and inbox items are not saved from chat platforms, because a chat can include other people."
+    description: "When false, check-ins, journal entries and inbox items are not saved from chat platforms, webhooks or other remote surfaces, because someone other than you may be on the other end."
   timeout_seconds:
     type: int
     default: 10
