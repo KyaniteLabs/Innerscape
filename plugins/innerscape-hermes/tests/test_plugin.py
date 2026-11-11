@@ -565,3 +565,17 @@ def test_a_failed_skill_registration_is_logged_as_a_warning(plugin, caplog):
     with caplog.at_level("WARNING"):
         plugin.register(BadCtx())
     assert "guardrails are not loaded" in caplog.text
+
+
+def test_an_unreadable_success_reply_is_an_error_not_zero_activity(plugin, api):
+    api.override["/api/v1/review/daily-summary"] = (200, b"{not json", {})
+    out = call(plugin, "_tool_today", {})
+    assert not out["ok"] and "not JSON" in out["error"]
+    assert "No check-ins" not in plugin._slash("today", platform="cli")
+
+
+@pytest.mark.parametrize("body", [b"", b"[]", b"null", b'"ok"'])
+def test_an_empty_or_odd_daily_summary_is_an_error(plugin, api, body):
+    api.override["/api/v1/review/daily-summary"] = (200, body, {})
+    out = call(plugin, "_tool_today", {})
+    assert not out["ok"] and "daily summary" in out["error"]

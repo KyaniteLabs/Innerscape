@@ -294,6 +294,9 @@ def _api(method: str, path: str, body: Optional[Dict[str, Any]] = None) -> Dict[
         parsed = json.loads(raw.decode("utf-8")) if raw else None
     except (UnicodeDecodeError, json.JSONDecodeError):
         parsed = None
+        if raw and method == "GET" and 200 <= status < 300:
+            # A read we cannot parse is not "nothing there"; saves are checked by _saved_id.
+            return {"ok": False, "error": f"Innerscape at {base} sent a reply that is not JSON."}
     if status == 401:
         return {"ok": False, "error": f"Innerscape refused the token (expired or wrong). {_REFRESH}"}
     if 300 <= status < 400:
@@ -429,8 +432,10 @@ def today() -> Dict[str, Any]:
     summary = _api("GET", "/api/v1/review/daily-summary")
     if not summary["ok"]:
         return summary
+    if not isinstance(summary["data"], dict):
+        return {"ok": False, "error": "Innerscape sent an empty or unexpected daily summary."}
     current = _api("GET", "/api/v1/context/current")
-    s = summary["data"] if isinstance(summary["data"], dict) else {}
+    s = summary["data"]
     counts = {
         k: s.get(k) for k in ("emotionalCheckIns", "journalEntries", "habitsCompleted", "tasksCompleted", "itemsCaptured")
         if isinstance(s.get(k), int)
