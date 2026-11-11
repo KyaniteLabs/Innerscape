@@ -18,14 +18,15 @@ jobs:
     runs-on: docker
     timeout-minutes: 30
     services:
-      postgres:
+      # Not "postgres": shared runner networks may already carry that alias for another database.
+      innerscape-ci-db:
         image: postgres:16@sha256:9e2cf6287f25c3151f4c9421ccce2b17f3e60061c111a29165e0d2cdd9ff0a97
         env:
           POSTGRES_USER: innerscape
           POSTGRES_PASSWORD: innerscape
           POSTGRES_DB: innerscape
     env:
-      DATABASE_URL: postgresql://innerscape:innerscape@postgres:5432/innerscape
+      DATABASE_URL: postgresql://innerscape:innerscape@innerscape-ci-db:5432/innerscape
     container:
       image: node:26-bookworm@sha256:5c4012d11d9857c42713ba511fbc19645cac1706bb710d51d42b0d301dff7f88
     steps:
@@ -60,7 +61,7 @@ jobs:
         shell: bash
         run: |
           for i in $(seq 1 60); do
-            if (exec 3<>/dev/tcp/postgres/5432) 2>/dev/null; then echo "postgres ready after ${i}s"; exit 0; fi
+            if (exec 3<>/dev/tcp/innerscape-ci-db/5432) 2>/dev/null; then echo "postgres ready after ${i}s"; exit 0; fi
             sleep 1
           done
           echo "postgres did not become ready in 60s"; exit 1

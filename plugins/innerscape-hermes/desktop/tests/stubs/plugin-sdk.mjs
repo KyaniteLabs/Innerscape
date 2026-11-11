@@ -52,12 +52,21 @@ export const host = {
 
 export const relativeTime = (ms) => `t${ms}`
 const unused = () => { throw new Error('hook called outside a render') }
-export const useMutation = (options) => ({
-  isPending: false,
-  mutate: () => {
-    is().pendingMutation = Promise.resolve(options.mutationFn()).then(options.onSuccess, options.onError)
+export const useMutation = (options) => {
+  // Like MutationObserver.setOptions, each render updates options on a pending mutation.
+  const state = is().mutation ??= { options, pending: false }
+  state.options = options
+  return {
+    get isPending() { return state.pending },
+    mutate: (...variables) => {
+      state.pending = true
+      is().pendingMutation = Promise.resolve(state.options.mutationFn(...variables)).then(
+        (data) => state.options.onSuccess?.(data, ...variables),
+        (error) => state.options.onError?.(error, ...variables)
+      ).finally(() => { state.pending = false })
+    }
   }
-})
+}
 export const usePluginI18n = unused
 export const useQuery = unused
 export const useQueryClient = unused

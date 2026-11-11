@@ -372,12 +372,12 @@ function CheckInForm({ ctx, t, onSaved }) {
   const target = useValue(focusTarget)
   useEffect(() => { if (target === 'checkin') { ref.current?.focus(); focusTarget.set(null) } }, [target])
   const save = useMutation({
-    mutationFn: () => ctx.rest('/checkin', { method: 'POST', body: {
-      energy: d.energy, valence: d.valence, feeling: d.feeling.trim() || null, body_note: d.body.trim() || null
+    mutationFn: sent => ctx.rest('/checkin', { method: 'POST', body: {
+      energy: sent.energy, valence: sent.valence, feeling: sent.feeling.trim() || null, body_note: sent.body.trim() || null
     } }).then(okOr),
-    onSuccess: () => {
+    onSuccess: (_result, sent) => {
       const current = drafts.get().checkin
-      if (current.energy === d.energy && current.valence === d.valence && current.feeling === d.feeling && current.body === d.body) {
+      if (current.energy === sent.energy && current.valence === sent.valence && current.feeling === sent.feeling && current.body === sent.body) {
         drafts.set({ ...drafts.get(), checkin: blankCheckin() })
       }
       host.notify({ kind: 'success', message: t('checkin.saved') })
@@ -386,7 +386,7 @@ function CheckInForm({ ctx, t, onSaved }) {
     onError: fail(t('err.checkin'))
   })
   const ready = VALENCES.includes(d.valence) && !save.isPending
-  return jsxs('form', { className: 'isc-sec', onSubmit: e => { e.preventDefault(); if (ready) save.mutate() }, children: [
+  return jsxs('form', { className: 'isc-sec', onSubmit: e => { e.preventDefault(); if (ready) save.mutate({ ...d }) }, children: [
     jsxs('div', { className: 'isc-field', children: [
       jsx('label', { htmlFor: 'isc-energy', children: t('checkin.energy') }),
       jsxs('div', { className: 'isc-range', children: [

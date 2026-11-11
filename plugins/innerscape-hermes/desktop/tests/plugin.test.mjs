@@ -13,6 +13,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { useMutation as useMutationStub } from './stubs/plugin-sdk.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const PLUGIN = resolve(HERE, '..', 'plugin.js')
@@ -111,9 +112,54 @@ test('saving a check-in preserves edits made after submission', async () => {
   tree.props.onSubmit({ preventDefault() {} })
   assert.equal(globalThis.__is.submitted.feeling, 'original feeling')
   input.props.onChange({ target: { value: 'new unsaved feeling' } })
+  // Store updates rerender React components and refresh MutationObserver options.
+  CheckInForm({ ctx, t: (key) => key, onSaved() {} })
   resolveSave({ ok: true })
   await globalThis.__is.pendingMutation
   assert.equal(I.drafts.get().checkin.feeling, 'new unsaved feeling')
+})
+
+test('the mutation stub applies rerendered options to a pending save', async () => {
+  freshGlobals()
+  let resolveSave
+  const observer = useMutationStub({
+    mutationFn: () => new Promise((resolve) => { resolveSave = resolve }),
+    onSuccess: () => { globalThis.__is.callback = 'old' }
+  })
+  observer.mutate({ feeling: 'submitted' })
+  useMutationStub({
+    mutationFn: () => assert.fail('a rerender must not restart the pending mutation'),
+    onSuccess: (_result, sent) => { globalThis.__is.callback = sent.feeling }
+  })
+  resolveSave({ ok: true })
+  await globalThis.__is.pendingMutation
+  assert.equal(globalThis.__is.callback, 'submitted')
+})
+
+test('a submitted snapshot survives a rerender in real query-core', { skip: !process.env.TANSTACK_QUERY_CORE }, async () => {
+  const { MutationObserver, QueryClient } = await import(pathToFileURL(resolve(process.env.TANSTACK_QUERY_CORE, 'build/modern/index.js')).href)
+  const blank = { energy: 5, valence: '', feeling: '', body: '' }
+  let draft = { energy: 42, valence: 'neutral', feeling: 'submitted feeling', body: '' }
+  let resolveSave
+  const response = new Promise((resolve) => { resolveSave = resolve })
+  const observer = new MutationObserver(new QueryClient(), {
+    mutationFn: (sent) => response.then(() => sent),
+    onSuccess: (_result, sent) => {
+      if (draft.energy === sent.energy && draft.valence === sent.valence && draft.feeling === sent.feeling && draft.body === sent.body) draft = blank
+    }
+  })
+  const pending = observer.mutate({ ...draft })
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  draft = { ...draft, feeling: 'new unsaved feeling' }
+  observer.setOptions({
+    mutationFn: (sent) => response.then(() => sent),
+    onSuccess: (_result, sent) => {
+      if (draft.energy === sent.energy && draft.valence === sent.valence && draft.feeling === sent.feeling && draft.body === sent.body) draft = blank
+    }
+  })
+  resolveSave()
+  await pending
+  assert.equal(draft.feeling, 'new unsaved feeling')
 })
 
 test('CI covers the Hermes Python plugin and Desktop plugin tests', () => {
