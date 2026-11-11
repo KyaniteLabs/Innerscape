@@ -26,6 +26,7 @@ import logging
 import math
 import os
 import re
+import sys
 import time
 from datetime import datetime
 import urllib.error
@@ -357,6 +358,8 @@ def _valid_item_id(value: Any) -> bool:
 
 def _broadcast_pane_event(event: str, payload: Dict[str, Any]) -> None:
     """Only bounded visual hints cross the local Desktop bridge; delivery is best effort."""
+    if "tui_gateway.server" not in sys.modules:
+        return
     if not isinstance(event, str) or len(event) > 128 or not isinstance(payload, dict):
         return
     if event in _PANE_UPDATES:

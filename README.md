@@ -1,8 +1,11 @@
-<p align="center">
-  <img src="branding/innerscape-hero.webp" alt="Innerscape — self-hosted personal growth OS" width="100%">
-</p>
-
 # Innerscape
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="branding/innerscape-lockup-transparent-light-ink.png">
+    <img src="branding/innerscape-lockup-transparent-dark-ink.png" alt="Innerscape by KyaniteLabs" width="420">
+  </picture>
+</p>
 
 > Innerscape is a personal growth OS — journaling, emotional check-ins, habits and goals, body/sleep logs, and a PARA-style hub — built as a TypeScript suite (Fastify backend + Expo mobile app).
 
@@ -63,6 +66,7 @@ Innerscape exposes three local agent surfaces for project and reflective workflo
 - CLI: `npm run cli -- brief`, `npm run cli -- modules`, or `npm run cli -- plan --focus "weekly review" --energy low`.
 - MCP: `node tools/innerscape-mcp.mjs` starts a stdio MCP server with tools for the project brief, module map, and bounded planning prompts. Point MCP clients at `node` directly: `npm run` prints a banner on stdout, which breaks the JSON-RPC stream.
 - Skill: [`skills/innerscape/SKILL.md`](skills/innerscape/SKILL.md) tells compatible agents how to use Innerscape without overstepping into diagnosis or major life automation.
+- Hermes plugin: [`plugins/innerscape-hermes`](plugins/innerscape-hermes/README.md) lets Hermes save check-ins and journal entries to your own server, read back today and coach you when you're stuck, with saving off on chat platforms by default.
 
 Example MCP config from an installed checkout:
 

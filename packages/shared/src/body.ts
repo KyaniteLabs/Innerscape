@@ -56,15 +56,6 @@ export interface Space {
   createdAt: Date;
 }
 
-/**
- * Space scan lifecycle: active ──complete──▶ completed (terminal).
- * Source of truth: apps/backend/src/domain/lifecycles.ts (SCAN_STATES).
- */
-export type SpaceScanStatus = 'active' | 'completed';
-
-/** Detected item decision: undecided ──decide──▶ any decision (changeable, never back to undecided). */
-export type DetectedItemDecision = 'undecided' | 'keep' | 'donate' | 'sell' | 'recycle' | 'trash';
-
 export interface SpaceScan {
   id: string;
   spaceId: string;
@@ -74,7 +65,7 @@ export interface SpaceScan {
   scannedAt: Date;
   completedAt?: Date;
   durationSeconds?: number;
-  status: SpaceScanStatus;
+  status: 'active' | 'completed' | 'abandoned';
 }
 
 export interface DetectedItem {
@@ -82,7 +73,7 @@ export interface DetectedItem {
   scanId: string;
   label: string;
   confidence: number;
-  decision: DetectedItemDecision;
+  decision: 'keep' | 'donate' | 'trash' | 'sell' | 'undecided';
   decidedAt?: Date;
   estimatedValueCents?: number;
   category?: string;

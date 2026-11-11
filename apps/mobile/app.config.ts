@@ -7,6 +7,13 @@ const config: ExpoConfig = {
   orientation: 'portrait',
   scheme: 'innerscape',
   userInterfaceStyle: 'dark',
+  icon: './assets/icon.png',
+  android: {
+    adaptiveIcon: {
+      foregroundImage: './assets/adaptive-icon.png',
+      backgroundColor: '#08110E',
+    },
+  },
   platforms: ['ios', 'android', 'web'],
   web: {
     name: 'Innerscape',
@@ -18,6 +25,7 @@ const config: ExpoConfig = {
     display: 'standalone',
     orientation: 'portrait',
     bundler: 'metro',
+    favicon: './assets/favicon.png',
   },
   plugins: ['expo-router', 'expo-secure-store'],
   experiments: {

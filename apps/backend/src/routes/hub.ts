@@ -2,15 +2,6 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { prisma } from '../db.js';
 import { authMiddleware } from '../middleware/auth.js';
-import {
-  CAPTURE_STATES,
-  PROJECT_STATES,
-  archiveProject,
-  captureMachine,
-  classifyCapture,
-  initialProjectStatus,
-  projectMachine,
-} from '../domain/lifecycles.js';
 
 // --- Capture Items (Universal Inbox) ---
 
@@ -27,11 +18,6 @@ const classifySchema = z.object({
   confidence: z.number().min(0).max(1),
 });
 
-// An empty `status` means "all statuses" (existing client contract).
-const captureQuerySchema = z.object({
-  status: z.union([z.enum(CAPTURE_STATES), z.literal('')]).default('pending'),
-});
-
 export async function captureRoutes(app: FastifyInstance) {
   app.post('/api/v1/capture', { preHandler: authMiddleware }, async (request, reply) => {
     const parsed = captureSchema.safeParse(request.body);
@@ -46,12 +32,8 @@ export async function captureRoutes(app: FastifyInstance) {
     return reply.status(201).send(item);
   });
 
-  app.get('/api/v1/capture', { preHandler: authMiddleware }, async (request, reply) => {
-    const parsedQuery = captureQuerySchema.safeParse(request.query ?? {});
-    if (!parsedQuery.success) {
-      return reply.status(400).send({ error: parsedQuery.error.flatten().fieldErrors });
-    }
-    const { status } = parsedQuery.data;
+  app.get('/api/v1/capture', { preHandler: authMiddleware }, async (request) => {
+    const { status = 'pending' } = request.query as { status?: string };
 
     return prisma.captureItem.findMany({
       where: {
@@ -72,13 +54,14 @@ export async function captureRoutes(app: FastifyInstance) {
     const item = await prisma.captureItem.findFirst({ where: { id, userId: request.userId } });
     if (!item) return reply.status(404).send({ error: 'Capture item not found' });
 
-    if (!captureMachine.canTransition(captureMachine.parse(item.classificationStatus), 'classified')) {
-      return reply.status(409).send({ error: `Capture item cannot be classified from status '${item.classificationStatus}'` });
-    }
-
     return prisma.captureItem.update({
       where: { id },
-      data: classifyCapture(item, parsed.data),
+      data: {
+        classificationStatus: 'classified',
+        classifiedModule: parsed.data.module,
+        classifiedType: parsed.data.type,
+        classifiedConfidence: parsed.data.confidence ?? null,
+      },
     });
   });
 
@@ -99,19 +82,9 @@ const projectSchema = z.object({
   deadline: z.string().datetime().optional(),
 });
 
-// An empty `status` means "all statuses" (existing client contract).
-const projectQuerySchema = z.object({
-  status: z.union([z.enum(PROJECT_STATES), z.literal('')]).default('active'),
-  area: z.string().optional(),
-});
-
 export async function projectRoutes(app: FastifyInstance) {
-  app.get('/api/v1/projects', { preHandler: authMiddleware }, async (request, reply) => {
-    const parsedQuery = projectQuerySchema.safeParse(request.query ?? {});
-    if (!parsedQuery.success) {
-      return reply.status(400).send({ error: parsedQuery.error.flatten().fieldErrors });
-    }
-    const { status, area } = parsedQuery.data;
+  app.get('/api/v1/projects', { preHandler: authMiddleware }, async (request) => {
+    const { status = 'active', area } = request.query as { status?: string; area?: string };
 
     return prisma.project.findMany({
       where: {
@@ -133,7 +106,6 @@ export async function projectRoutes(app: FastifyInstance) {
       data: {
         userId: request.userId!,
         ...parsed.data,
-        status: initialProjectStatus(parsed.data.area),
         deadline: parsed.data.deadline ? new Date(parsed.data.deadline) : new Date(),
       },
     });
@@ -146,13 +118,9 @@ export async function projectRoutes(app: FastifyInstance) {
     const project = await prisma.project.findFirst({ where: { id, userId: request.userId } });
     if (!project) return reply.status(404).send({ error: 'Project not found' });
 
-    if (!projectMachine.canTransition(projectMachine.parse(project.status), 'archived')) {
-      return reply.status(409).send({ error: `Project cannot be archived from status '${project.status}'` });
-    }
-
     return prisma.project.update({
       where: { id },
-      data: archiveProject(project),
+      data: { status: 'archived', area: 'archives' },
     });
   });
 }

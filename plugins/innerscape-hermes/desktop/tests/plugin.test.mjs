@@ -19,6 +19,7 @@ const HERE = dirname(fileURLToPath(import.meta.url))
 const PLUGIN = resolve(HERE, '..', 'plugin.js')
 const SOURCE = readFileSync(PLUGIN, 'utf8')
 const WORKFLOW = readFileSync(resolve(HERE, '../../../../.github/workflows/ci.yml'), 'utf8')
+const FORGEJO_WORKFLOW = readFileSync(resolve(HERE, '../../../../.forgejo/workflows/ci.yml'), 'utf8')
 const STUBS = {
   '@hermes/plugin-sdk': 'plugin-sdk.mjs',
   react: 'react.mjs',
@@ -64,10 +65,11 @@ function makeCtx({ stored, storageThrows = false, rest } = {}) {
 }
 
 // A fresh module instance per call, with its imports pointed at the stubs.
-async function load() {
+async function load(sdkPath = join(HERE, 'stubs', STUBS['@hermes/plugin-sdk'])) {
   let code = SOURCE
   for (const [spec, file] of Object.entries(STUBS)) {
-    code = code.split(`from '${spec}'`).join(`from '${pathToFileURL(join(HERE, 'stubs', file)).href}'`)
+    const target = spec === '@hermes/plugin-sdk' ? sdkPath : join(HERE, 'stubs', file)
+    code = code.split(`from '${spec}'`).join(`from '${pathToFileURL(target).href}'`)
   }
   code += '\nexport const __testComponents = { Today, CheckInForm }\n'
   const out = join(OUT, `plugin-${copies++}.mjs`)
@@ -136,35 +138,43 @@ test('the mutation stub applies rerendered options to a pending save', async () 
   assert.equal(globalThis.__is.callback, 'submitted')
 })
 
-test('a submitted snapshot survives a rerender in real query-core', { skip: !process.env.TANSTACK_QUERY_CORE }, async () => {
-  const { MutationObserver, QueryClient } = await import(pathToFileURL(resolve(process.env.TANSTACK_QUERY_CORE, 'build/modern/index.js')).href)
-  const blank = { energy: 5, valence: '', feeling: '', body: '' }
-  let draft = { energy: 42, valence: 'neutral', feeling: 'submitted feeling', body: '' }
+test('the real CheckInForm onSuccess keeps post-submit edits with real query-core', async (t) => {
+  if (!process.env.TANSTACK_QUERY_CORE) return t.skip('TANSTACK_QUERY_CORE is not configured')
+  freshGlobals()
+  const queryCore = pathToFileURL(resolve(process.env.TANSTACK_QUERY_CORE, 'build/modern/index.js')).href
+  const sdkPath = join(OUT, 'real-query-sdk.mjs')
+  writeFileSync(sdkPath, `
+    export * from ${JSON.stringify(pathToFileURL(join(HERE, 'stubs', STUBS['@hermes/plugin-sdk'])).href)}
+    import { MutationObserver, QueryClient } from ${JSON.stringify(queryCore)}
+    let observer
+    export function useMutation(options) {
+      if (!observer) observer = new MutationObserver(new QueryClient(), options)
+      else observer.setOptions(options)
+      return { get isPending() { return observer.getCurrentResult().isPending }, mutate(value) { globalThis.__is.pendingMutation = observer.mutate(value) } }
+    }
+  `)
+  const { __internals: I, __testComponents: { CheckInForm } } = await load(sdkPath)
+  I.drafts.set({ ...I.drafts.get(), checkin: { energy: 42, valence: 'neutral', feeling: 'submitted feeling', body: '' } })
   let resolveSave
   const response = new Promise((resolve) => { resolveSave = resolve })
-  const observer = new MutationObserver(new QueryClient(), {
-    mutationFn: (sent) => response.then(() => sent),
-    onSuccess: (_result, sent) => {
-      if (draft.energy === sent.energy && draft.valence === sent.valence && draft.feeling === sent.feeling && draft.body === sent.body) draft = blank
-    }
-  })
-  const pending = observer.mutate({ ...draft })
+  const ctx = { rest: async () => response.then(() => ({ ok: true })) }
+  const tree = CheckInForm({ ctx, t: key => key, onSaved() {} })
+  tree.props.onSubmit({ preventDefault() {} })
   await new Promise((resolve) => setTimeout(resolve, 0))
-  draft = { ...draft, feeling: 'new unsaved feeling' }
-  observer.setOptions({
-    mutationFn: (sent) => response.then(() => sent),
-    onSuccess: (_result, sent) => {
-      if (draft.energy === sent.energy && draft.valence === sent.valence && draft.feeling === sent.feeling && draft.body === sent.body) draft = blank
-    }
-  })
+  I.drafts.set({ ...I.drafts.get(), checkin: { ...I.drafts.get().checkin, feeling: 'new unsaved feeling' } })
+  CheckInForm({ ctx, t: key => key, onSaved() {} })
   resolveSave()
-  await pending
-  assert.equal(draft.feeling, 'new unsaved feeling')
+  await globalThis.__is.pendingMutation
+  assert.equal(I.drafts.get().checkin.feeling, 'new unsaved feeling')
 })
 
 test('CI covers the Hermes Python plugin and Desktop plugin tests', () => {
   assert.match(WORKFLOW, /hermes-plugin:[\s\S]*python3 -m pytest plugins\/innerscape-hermes\/tests/)
   assert.match(WORKFLOW, /hermes-plugin:[\s\S]*node --test plugins\/innerscape-hermes\/desktop\/tests\/plugin\.test\.mjs/)
+  for (const workflow of [WORKFLOW, FORGEJO_WORKFLOW]) {
+    assert.match(workflow, /@tanstack\/query-core@5\.104\.1/)
+    assert.match(workflow, /TANSTACK_QUERY_CORE/)
+  }
 })
 
 test('imports only the three specifiers Desktop allows', () => {
@@ -405,6 +415,38 @@ test('agent view events open the page, keep the latest request, and unsubscribe 
   assert.equal(I.paneRequest.get(), null)
   await emit('view.set', { view: 'checkin' })
   assert.equal(globalThis.__is.navigations.length, 2)
+})
+
+test('unrendered view requests expire and settled missing sections are discarded', async () => {
+  freshGlobals()
+  const scheduled = []
+  const originalSetTimeout = globalThis.setTimeout
+  globalThis.setTimeout = (fn, ms) => { scheduled.push({ fn, ms }); return scheduled.length }
+  try {
+    const { default: plugin, __internals: I } = await load()
+    const ctx = makeCtx()
+    plugin.register(ctx)
+    await emit('view.set', { view: 'journal' })
+    assert.equal(scheduled[0].ms, 5000)
+    assert.equal(I.handlePaneRequest({ querySelector: () => null }, I.paneRequest.get(), false), false)
+    assert.equal(I.handlePaneRequest({ querySelector: () => null }, I.paneRequest.get(), true), true)
+    scheduled[0].fn()
+    assert.equal(I.paneRequest.get(), null)
+    ctx.dispose()
+  } finally {
+    globalThis.setTimeout = originalSetTimeout
+  }
+})
+
+test('view requests never steal focus or scroll while an input is active', async () => {
+  freshGlobals()
+  const { __internals: I } = await load()
+  const calls = []
+  const input = { matches: selector => selector === 'input, textarea, [contenteditable="true"]' }
+  const section = { querySelector: () => ({ scrollIntoView: () => calls.push('scroll'), focus: () => calls.push('focus') }), scrollIntoView: () => calls.push('section scroll'), focus: () => calls.push('section focus') }
+  const root = { ownerDocument: { activeElement: input }, querySelector: () => section }
+  assert.equal(I.handlePaneRequest(root, { view: 'journal' }, false), true)
+  assert.deepEqual(calls, [])
 })
 
 test('unknown and oversized live inputs are ignored without navigating or refreshing', async () => {

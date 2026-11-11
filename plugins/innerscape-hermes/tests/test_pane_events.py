@@ -2,6 +2,8 @@
 
 import importlib.util
 import json
+import os
+import subprocess
 import sys
 from types import ModuleType
 
@@ -49,6 +51,7 @@ def bridge(monkeypatch):
     hermes = ModuleType("hermes_cli")
     events = ModuleType("hermes_cli.plugin_events")
     events.broadcast_plugin_event = lambda *args: calls.append(args)
+    monkeypatch.setitem(sys.modules, "tui_gateway.server", ModuleType("tui_gateway.server"))
     monkeypatch.setitem(sys.modules, "hermes_cli", hermes)
     monkeypatch.setitem(sys.modules, "hermes_cli.plugin_events", events)
     return events, calls
@@ -104,6 +107,29 @@ def test_registered_show_tool_requests_real_sections_without_server_access(plugi
     assert "open and enabled" in result["message"]
     assert calls == [("innerscape", "view.set", {"view": view, "item_id": "isc-journal"})]
     assert api["requests"] == []
+
+
+def test_broadcast_in_non_tui_process_does_not_import_real_hermes_gateway():
+    source = os.environ.get("HERMES_V023_SOURCE")
+    tui_source = os.environ.get("HERMES_V023_TUI_SOURCE", source)
+    if not source or not os.path.isfile(os.path.join(source, "hermes_cli", "plugin_events.py")):
+        pytest.skip("HERMES_V023_SOURCE must point to the real Hermes source tree")
+    if not tui_source or not os.path.isfile(os.path.join(tui_source, "tui_gateway", "server.py")):
+        pytest.skip("HERMES_V023_TUI_SOURCE must point to the real Hermes TUI source tree")
+    env = dict(os.environ, PYTHONPATH=os.pathsep.join((source, tui_source, os.environ.get("PYTHONPATH", ""))))
+    script = r"""
+import importlib.util, sys
+spec = importlib.util.spec_from_file_location('innerscape_real_hermes_probe', sys.argv[1])
+plugin = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(plugin)
+before = sys.stdout
+assert 'tui_gateway.server' not in sys.modules
+plugin._broadcast_pane_event('view.set', {'view': 'journal'})
+assert sys.stdout is before
+assert 'tui_gateway.server' not in sys.modules
+"""
+    subprocess.run([sys.executable, "-B", "-c", script, str(PLUGIN_DIR / "__init__.py")],
+                   check=True, env=env, capture_output=True, text=True)
 
 
 @pytest.mark.parametrize("args", [None, [], {}, {"view": "inbox"}, {"view": 7}, {"view": {}},

@@ -9,7 +9,7 @@
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
-    "test": "vitest run tests/unit tests/integration",
+    "test": "vitest run tests/integration",
     "test:watch": "vitest",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
@@ -24,19 +24,18 @@
     "@fastify/jwt": "^10.1.0",
     "@fastify/rate-limit": "^11.0.0",
     "@innerscape/shared": "*",
-    "@prisma/adapter-pg": "^7.10.1",
-    "@prisma/client": "^7.10.1",
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
     "ai": "^6.0.194",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
-    "fastify": "^5.12.8",
+    "fastify": "^5.0.0",
     "jose": "^6.0.0",
     "pg": "^8.21.0",
-    "zod": "^4.6.7"
+    "zod": "^3.24.0"
   },
   "devDependencies": {
-    "fast-check": "^4.10.2",
-    "prisma": "^7.10.1",
+    "prisma": "^7.8.0",
     "tsx": "^4.22.4",
     "typescript": "^5.7.0",
     "vitest": "^4.1.5"

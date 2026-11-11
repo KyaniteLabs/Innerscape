@@ -2,7 +2,6 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { prisma } from '../db.js';
 import { authMiddleware } from '../middleware/auth.js';
-import { GOAL_STATES, completeTask, taskMachine, taskState } from '../domain/lifecycles.js';
 
 // --- Habits ---
 
@@ -80,10 +79,6 @@ const goalSchema = z.object({
   parentGoalId: z.string().optional(),
 });
 
-const goalQuerySchema = z.object({
-  status: z.enum(GOAL_STATES).default('active'),
-});
-
 const taskSchema = z.object({
   title: z.string().min(1).max(200),
   goalId: z.string().optional(),
@@ -92,12 +87,8 @@ const taskSchema = z.object({
 });
 
 export async function goalRoutes(app: FastifyInstance) {
-  app.get('/api/v1/goals', { preHandler: authMiddleware }, async (request, reply) => {
-    const parsedQuery = goalQuerySchema.safeParse(request.query ?? {});
-    if (!parsedQuery.success) {
-      return reply.status(400).send({ error: parsedQuery.error.flatten().fieldErrors });
-    }
-    const { status } = parsedQuery.data;
+  app.get('/api/v1/goals', { preHandler: authMiddleware }, async (request) => {
+    const { status = 'active' } = request.query as { status?: string };
     return prisma.goal.findMany({
       where: { userId: request.userId, status },
       orderBy: { deadline: 'asc' },
@@ -155,13 +146,11 @@ export async function goalRoutes(app: FastifyInstance) {
     const { id } = request.params as { id: string };
     const task = await prisma.task.findFirst({ where: { id, userId: request.userId } });
     if (!task) return reply.status(404).send({ error: 'Task not found' });
-    if (!taskMachine.canTransition(taskState(task), 'completed')) {
-      return reply.status(400).send({ error: 'Already completed' });
-    }
+    if (task.completed) return reply.status(400).send({ error: 'Already completed' });
 
     return prisma.task.update({
       where: { id },
-      data: completeTask(task),
+      data: { completed: true, completedAt: new Date() },
     });
   });
 }

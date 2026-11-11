@@ -99,14 +99,18 @@ jobs:
     name: ci/hermes-plugin
     runs-on: docker
     timeout-minutes: 10
+    env:
+      TANSTACK_QUERY_CORE: ${{ github.workspace }}/.ci-query-core/node_modules/@tanstack/query-core
     container:
       image: python:3.11-slim-bookworm@sha256:a83ba18aef0f865b1a4a611c2cf460fe446f2795673bbb9fe43be570439e3b39
     steps:
       - name: Install checkout runtime (actions/checkout needs node + git)
-        run: apt-get update -qq && apt-get install -y -qq --no-install-recommends git nodejs ca-certificates
+        run: apt-get update -qq && apt-get install -y -qq --no-install-recommends git nodejs npm ca-certificates
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           persist-credentials: false
+      - name: Install pinned query-core for Desktop regression test
+        run: mkdir -p .ci-query-core && cd .ci-query-core && echo '{"private":true}' > package.json && npm install --no-save --package-lock=false --ignore-scripts @tanstack/query-core@5.104.1
       - name: Install the test runner (FastAPI for the Desktop page's routes)
         run: python -m pip install --no-cache-dir -q "pytest==8.4.2" "fastapi==0.115.6" "httpx==0.28.1"
       - name: Hermes plugin tests (fake Innerscape API, vendored Hermes v0.21.6 session context)

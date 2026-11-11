@@ -1,15 +1,13 @@
-# Innerscape primary identity
+# Innerscape branding
 
-The approved product mark and the Chakra Petch Bold700 horizontal lockup are
-the primary identity. `innerscape-hero.webp` supplies the README hero;
-`og-social-preview.png` supplies the GitHub settings upload; `og.jpg` supplies
-the canonical website social card. GitHub settings and website deployment
-require separate live verification.
+| File | Use |
+|---|---|
+| `innerscape.png`, `innerscape-{512,192,128}.png` | The transparent cairn icon |
+| `innerscape-favicon.png`, `innerscape-favicon.ico` | Favicons |
+| `innerscape-lockup-transparent-light-ink.png` | Lockup for dark backgrounds |
+| `innerscape-lockup-transparent-dark-ink.png` | Lockup for light backgrounds |
+| `innerscape-lockup-{dark,light,walnut}.png` | Lockup on solid backgrounds |
+| `innerscape-wordmark.svg` | Wordmark alone |
+| `CHAKRA-PETCH-OFL.txt` | Font licence (Chakra Petch, SIL OFL 1.1) |
 
-`innerscape-wordmark.svg` embeds the licensed Chakra Petch font as a data URI and
-sets the wordmark as native-kerning text — the real font with native shaping,
-not generated lettering; the letterforms are unmodified. Chakra Petch is
-licensed under the adjacent SIL Open Font License, `CHAKRA-PETCH-OFL.txt`.
-
-The source lockup is approved artwork; these files are deterministic
-extensions of it (uniform scaling onto plain canvases plus the wordmark).
+Lockup rules: use Chakra Petch Bold 700 uppercase for the wordmark and Medium 500 for "by KyaniteLabs". Don't redraw glyphs. On dark backgrounds, invert only the ink. The reasoning behind these choices is in `docs/DESIGN-PREFLIGHT.md`.

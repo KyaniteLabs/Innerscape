@@ -16,15 +16,11 @@ import {
   useCompleteScan,
   useAddDetectedItem,
 } from '../../hooks/useSpaces';
-import type { SpaceScanStatus } from '@innerscape/shared';
 import { COLORS, RADIUS, FONT, SPACING } from '../../lib/theme';
 
-// Exhaustive over the backend scan lifecycle: adding a SpaceScanStatus without a label fails typecheck.
-// The backend writes 'active' for an in-progress scan; 'pending' is kept for legacy rows.
-const SCAN_STATUS_LABELS: Record<SpaceScanStatus, string> & Record<string, string> = {
-  active: 'In Progress',
-  completed: 'Completed',
+const SCAN_STATUS_LABELS: Record<string, string> = {
   pending: 'In Progress',
+  completed: 'Completed',
 };
 
 interface Props {
