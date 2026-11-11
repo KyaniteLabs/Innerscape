@@ -5,6 +5,7 @@ Surfaces:
   innerscape_journal  -> save one journal entry, only after the user said yes to those words
   innerscape_today    -> today's counts and the latest check-in, as the user logged them
   innerscape_capture  -> park one item in the Innerscape inbox, only after the user said yes
+  innerscape_show     -> open and focus a section of the enabled Desktop page
   /innerscape         -> today | checkin | journal | capture | status | help
   skills              -> skills/innerscape/SKILL.md (check-ins and journal)
                          skills/unstuck/SKILL.md (the Unstuck Coach)
@@ -45,6 +46,13 @@ BODY_NOTE_MAX = 500
 TAG_MAX = 40
 TAGS_MAX = 10
 VALENCES = ("pleasant", "unpleasant", "neutral")
+VIEWS = ("today", "checkin", "journal", "unstuck")
+ITEM_ID_MAX = 128
+_PANE_UPDATES = ("checkin.updated", "journal.updated", "capture.updated")
+_PANE_SETUP = (
+    "Check that the Innerscape pane is on in Desktop Capabilities -> Plugins and its sidebar page "
+    "is open; enabling the pane is the one step a person does."
+)
 
 DEFAULTS: Dict[str, Any] = {
     "base_url": "http://127.0.0.1:3001",
@@ -343,6 +351,51 @@ def _saved_id(res: Dict[str, Any]) -> Dict[str, Any]:
 
 # --- operations ----------------------------------------------------------------------
 
+def _valid_item_id(value: Any) -> bool:
+    return isinstance(value, str) and re.fullmatch(r"[A-Za-z0-9_-]{1,128}", value) is not None
+
+
+def _broadcast_pane_event(event: str, payload: Dict[str, Any]) -> None:
+    """Only bounded visual hints cross the local Desktop bridge; delivery is best effort."""
+    if not isinstance(event, str) or len(event) > 128 or not isinstance(payload, dict):
+        return
+    if event in _PANE_UPDATES:
+        valid = set(payload) <= {"id"} and ("id" not in payload or _valid_item_id(payload["id"]))
+    elif event == "view.set":
+        valid = (set(payload) <= {"view", "item_id"} and payload.get("view") in VIEWS
+                 and ("item_id" not in payload or _valid_item_id(payload["item_id"])))
+    else:
+        return
+    if not valid:
+        return
+    try:
+        from hermes_cli.plugin_events import broadcast_plugin_event
+    except ImportError:  # older Hermes and plugin-only installs have no Desktop bridge
+        return
+    try:
+        broadcast_plugin_event(PLUGIN_NAME, event, payload)
+    except Exception:
+        # A transport failure must not turn a confirmed save into a retryable error.
+        logger.debug("innerscape: Desktop event was not delivered", exc_info=True)
+
+
+def _saved_event(event: str, item_id: str) -> None:
+    _broadcast_pane_event(event, {"id": item_id} if _valid_item_id(item_id) else {})
+
+
+def show(view: Any = None, item_id: Any = None) -> Dict[str, Any]:
+    if not isinstance(view, str) or view not in VIEWS:
+        raise ValueError("view must be today, checkin, journal or unstuck")
+    payload = {"view": view}
+    if item_id is not None:
+        if not _valid_item_id(item_id):
+            raise ValueError(f"item_id must be 1-{ITEM_ID_MAX} letters, digits, underscores or hyphens")
+        payload["item_id"] = item_id
+    _broadcast_pane_event("view.set", payload)
+    item = f", item {item_id}" if item_id is not None else ""
+    return {"ok": True, "message": f"Asked Innerscape to show {view}{item}; the page must be open and enabled."}
+
+
 def _units(text: str) -> int:
     """Length the way the server's Zod .max() counts it: UTF-16 code units."""
     return len(text.encode("utf-16-le")) // 2
@@ -392,6 +445,7 @@ def checkin(energy: Any = None, valence: Any = None, feeling: Any = None, body_n
     saved = _saved_id(res)
     if not saved["ok"]:
         return saved
+    _saved_event("checkin.updated", saved["id"])
     return {
         "ok": True,
         "saved": "check-in",
@@ -429,6 +483,7 @@ def journal(content: Any = None, tags: Any = None, user_confirmed: Any = False) 
     saved = _saved_id(res)
     if not saved["ok"]:
         return saved
+    _saved_event("journal.updated", saved["id"])
     return {"ok": True, "saved": "journal entry", "id": saved["id"], "characters": len(text or ""), "tags": clean_tags,
             "reading": _CRISIS}
 
@@ -448,6 +503,7 @@ def capture(content: Any = None, tags: Any = None, user_confirmed: Any = False) 
     saved = _saved_id(res)
     if not saved["ok"]:
         return saved
+    _saved_event("capture.updated", saved["id"])
     return {"ok": True, "saved": "inbox item", "id": saved["id"], "characters": len(text or ""), "tags": clean_tags,
             "reading": "Parked. Tell the user it is held in their Innerscape inbox and return to the one next move. " + _CRISIS}
 
@@ -496,6 +552,8 @@ def today() -> Dict[str, Any]:
             "valence": ci.get("valence"),
             "feeling": ci.get("feelingLabel"),
         }
+        if _valid_item_id(ci.get("id")):
+            latest["id"] = ci["id"]
     out: Dict[str, Any] = {
         "ok": True,
         "counts": counts,
@@ -518,6 +576,7 @@ def status() -> Dict[str, Any]:
         "ok": True,
         "reads_on_gateway": _cfg("allow_reads_on_gateway") is True,
         "writes_on_gateway": _cfg("allow_writes_on_gateway") is True,
+        "pane_setup": _PANE_SETUP,
     }
     try:
         tok = _token()
@@ -630,6 +689,25 @@ TODAY_SCHEMA = {
     "parameters": {"type": "object", "properties": {}, "additionalProperties": False},
 }
 
+SHOW_SCHEMA = {
+    "name": "innerscape_show",
+    "description": (
+        "Ask the enabled Innerscape Desktop page to open and focus today, checkin, journal or unstuck. "
+        "An optional item_id targets a rendered control or the latest check-in; missing items fall back "
+        "to the section. This requests navigation, not confirmation that a page received it. " + _PANE_SETUP
+    ),
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "view": {"type": "string", "enum": list(VIEWS)},
+            "item_id": {"type": "string", "minLength": 1, "maxLength": ITEM_ID_MAX,
+                        "pattern": "^[A-Za-z0-9_-]+$", "description": "Optional rendered item or control id."},
+        },
+        "required": ["view"],
+        "additionalProperties": False,
+    },
+}
+
 
 def _known(args: Dict[str, Any], allowed: set) -> Dict[str, Any]:
     extra = sorted(set(args) - allowed)
@@ -665,6 +743,7 @@ _tool_checkin = _wrap(lambda a: checkin(**_known(a, {"energy", "valence", "feeli
 _tool_journal = _wrap(lambda a: journal(**_known(a, {"content", "tags", "user_confirmed"})), writes=True)
 _tool_capture = _wrap(lambda a: capture(**_known(a, {"content", "tags", "user_confirmed"})), writes=True)
 _tool_today = _wrap(lambda a: today(**_known(a, set())), writes=False)
+_tool_show = _wrap(lambda a: show(**_known(a, {"view", "item_id"})), writes=False)
 
 
 # --- slash ---------------------------------------------------------------------------
@@ -678,7 +757,7 @@ _HELP = (
     "  /innerscape status                                 Server, token and expiry\n"
     "Reading and saving work only from the CLI, TUI, Desktop or an ACP editor; chat platforms,\n"
     "webhooks and other remote surfaces need allow_reads_on_gateway or allow_writes_on_gateway.\n"
-    "Saving is always off in scheduled runs."
+    "Saving is always off in scheduled runs.\n" + _PANE_SETUP
 )
 
 
@@ -719,6 +798,7 @@ def _fmt_status(s: Dict[str, Any]) -> str:
              f"  saving from chat platforms: {'on' if s.get('writes_on_gateway') else 'off'}"]
     if s.get("token_note"):
         lines.append(s["token_note"])
+    lines.append(_PANE_SETUP)
     return "\n".join(lines)
 
 
@@ -797,6 +877,7 @@ def register(ctx) -> None:
         (JOURNAL_SCHEMA, _tool_journal, "📓"),
         (TODAY_SCHEMA, _tool_today, "🌤"),
         (CAPTURE_SCHEMA, _tool_capture, "📥"),
+        (SHOW_SCHEMA, _tool_show, "🪨"),
     ):
         ctx.register_tool(
             name=schema["name"],

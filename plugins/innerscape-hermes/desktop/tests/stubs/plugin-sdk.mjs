@@ -24,6 +24,15 @@ export function atom(value) {
 }
 
 export const host = {
+  get onEvent() {
+    if (is().eventsSupported === false) return undefined
+    return (name, fn) => {
+      const listeners = is().listeners.get(name) || new Set()
+      listeners.add(fn)
+      is().listeners.set(name, listeners)
+      return () => { listeners.delete(fn); if (!listeners.size) is().listeners.delete(name) }
+    }
+  },
   navigate: (path) => is().navigations.push(path),
   notify: (m) => is().notifies.push(m),
   notifyError: (err, fallback) => is().errors.push([String(err?.message ?? err), fallback]),

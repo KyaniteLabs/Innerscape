@@ -4,11 +4,12 @@ You're talking to your agent at the end of a long day and you want to note how i
 
 ## What it adds
 
-- **Four agent tools.**
+- **Five agent tools.**
   - `innerscape_checkin` saves one check-in in your words: energy from 0 to 100, whether it feels pleasant, unpleasant or neutral, and an optional feeling word and body note. It saves only when you asked to log it or said yes; the tool refuses unless `user_confirmed` is true.
   - `innerscape_journal` saves one journal entry, exactly as written. The agent must show you the text and any tags and get a yes first; the tool refuses unless `user_confirmed` is true.
   - `innerscape_capture` parks one item in your Innerscape inbox, such as a task you're putting down, an idea or a note for later. The agent shows you the exact words and asks first; the tool refuses unless `user_confirmed` is true.
   - `innerscape_today` reads today's counts (check-ins, journal entries, habits, tasks, captures) and your latest check-in with its date. A check-in the app inferred, rather than one you logged, is left out.
+  - `innerscape_show` asks the enabled Desktop page to open and focus `today`, `checkin`, `journal` or `unstuck`, with an optional `item_id` (1–128 letters, digits, underscores or hyphens) for a rendered control or the latest check-in. An item that is absent falls back to its section; the page has no saved journal or inbox list. The result describes the request, without claiming a window received it.
 - **A slash command.** `/innerscape today | checkin <0-100> <pleasant|unpleasant|neutral> [feeling] | journal <text> | capture <text> | status | help`. Typing `journal` or `capture` with your text is your yes to saving it.
 - **A Desktop page.** In Hermes Desktop, Innerscape gets its own page in the sidebar: today's counts and your latest check-in, an Unstuck Coach card, a check-in form, and a journal box. A journal entry is saved only after a dialog shows you the exact text and tags and you press Save. *Get unstuck* opens a new chat with your note in the composer, ready for the coach; nothing is sent until you press send. The command palette has *Innerscape: open*, *check in*, *write in journal* and *get unstuck*, and a small cairn in the status bar opens the page (you can hide it in Settings ▸ Plugins ▸ Innerscape).
 - **The Unstuck Coach.** The bundled `unstuck` skill is an executive-function coach for when you want to do the thing and can't start, switch or stop. It names what's in the way without blame, gives one next move small enough to start in under two minutes, and holds the rest, offering to park it in your inbox. It reads your latest check-in to size the move, never diagnoses or advises on medication, never acts on your accounts, and stops coaching to point you to 988 or emergency services in a crisis. Adapted from Unstuck Coach (KyaniteLabs/unstuck-coach-live, MIT).
@@ -51,6 +52,10 @@ The second line should answer `Saved a check-in: energy 60, pleasant, rested.`
 **Turn on the Desktop page.** Hermes Desktop installs the page with the plugin but leaves it off. Open Capabilities ▸ Plugins, search for Innerscape, open it and switch it on. The Innerscape page then shows in the sidebar, and the cairn shows in the status bar. If your Desktop app connects to Hermes on another machine, install the plugin on both: the tools run where Hermes runs, and the page loads from the app's own machine.
 
 Tokens last 7 days by default. `/innerscape status` shows whether the token is set, when it expires, and whether the server is up. It never prints the token.
+
+Check that the Innerscape pane is on in Desktop Capabilities -> Plugins and its sidebar page is open; enabling the pane is the one step a person does.
+
+The page reacts to agent tool calls via local Desktop events: confirmed check-in, journal and capture saves refresh today's data, and `innerscape_show` opens and focuses a section. The events carry only bounded record or control ids and view names, with no reflection text or credentials. Live updates cancel older REST reads before refreshing, and navigation requests stay separate from REST data. Without a Desktop client the events are a logged no-op; older Hermes builds without the bridge still run the tools.
 
 ## What it does on your machine
 

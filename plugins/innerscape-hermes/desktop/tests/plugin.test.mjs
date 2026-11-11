@@ -7,9 +7,9 @@
  *
  * It is not a render test: the page itself is checked in a real browser.
  */
-import { test } from 'node:test'
+import { after, test } from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -24,10 +24,11 @@ const STUBS = {
   'react/jsx-runtime': 'jsx-runtime.mjs'
 }
 const OUT = mkdtempSync(join(tmpdir(), 'innerscape-desktop-'))
+after(() => rmSync(OUT, { recursive: true, force: true }))
 let copies = 0
 
 function freshGlobals() {
-  globalThis.__is = { navigations: [], notifies: [], errors: [] }
+  globalThis.__is = { navigations: [], notifies: [], errors: [], listeners: new Map() }
   const head = []
   globalThis.document = {
     head: { appendChild: (el) => { head.push(el); el.remove = () => head.splice(head.indexOf(el), 1) } },
@@ -337,4 +338,117 @@ test('the page footer says it is not a crisis service and that coach notes reach
   assert.match(SOURCE, /not a crisis service and not medical advice/)
   assert.match(SOURCE, /t\('care\.notService'\)/)
   assert.match(SOURCE, /it goes to your AI provider/)
+})
+
+async function emit(name, payload) {
+  await Promise.all([...(globalThis.__is.listeners.get(`plugin.innerscape.${name}`) || [])].map(fn => fn({ payload })))
+}
+
+test('agent view events open the page, keep the latest request, and unsubscribe on disposal', async () => {
+  freshGlobals()
+  const { default: plugin, __internals: I } = await load()
+  const ctx = makeCtx()
+  plugin.register(ctx)
+  await emit('view.set', { view: 'journal', item_id: 'isc-journal' })
+  assert.deepEqual(globalThis.__is.navigations, ['/innerscape'])
+  assert.deepEqual(I.paneRequest.get(), { view: 'journal', item_id: 'isc-journal' })
+  await emit('view.set', { view: 'unstuck' })
+  assert.deepEqual(I.paneRequest.get(), { view: 'unstuck' })
+  ctx.dispose()
+  assert.equal(globalThis.__is.listeners.size, 0)
+  assert.equal(I.paneRequest.get(), null)
+  await emit('view.set', { view: 'checkin' })
+  assert.equal(globalThis.__is.navigations.length, 2)
+})
+
+test('unknown and oversized live inputs are ignored without navigating or refreshing', async () => {
+  freshGlobals()
+  const { default: plugin, __internals: I } = await load()
+  const ctx = makeCtx()
+  plugin.register(ctx)
+  let refreshed = 0
+  const stop = I.subscribePaneUpdates({ cancelQueries: async () => { refreshed++ }, invalidateQueries: async () => {} })
+  for (const payload of [null, [], {}, { view: 'inbox' }, { view: 'x'.repeat(1000) },
+    { view: 'today', item_id: '../private' }, { view: 'journal', item_id: 'x'.repeat(129) },
+    { view: 'today', item_id: 'ci_1\n' },
+    { view: 'today', item_id: '' }, { view: 'today', content: 'private' }]) await emit('view.set', payload)
+  for (const payload of [null, [], { id: 'x'.repeat(129) }, { id: '/private/item' }, { id: 'ci_1\n' }, { id: 'ci_1', content: 'private' }]) {
+    await emit('checkin.updated', payload)
+  }
+  assert.deepEqual(globalThis.__is.navigations, [])
+  assert.equal(refreshed, 0)
+  stop()
+  ctx.dispose()
+})
+
+test('save events cancel stale REST queries before refreshing and unsubscribe on page unmount', async () => {
+  freshGlobals()
+  const { __internals: I } = await load()
+  const operations = []
+  let finishCancel
+  const qc = {
+    cancelQueries: (filter) => { operations.push(['cancel', filter]); return new Promise(r => { finishCancel = r }) },
+    invalidateQueries: async (filter) => { operations.push(['invalidate', filter]) }
+  }
+  const stop = I.subscribePaneUpdates(qc)
+  for (const name of ['checkin.updated', 'journal.updated', 'capture.updated']) {
+    operations.length = 0
+    const pending = emit(name, { id: 'record_1' })
+    assert.deepEqual(operations, [['cancel', { queryKey: ['innerscape', 'today'] }]])
+    finishCancel()
+    await pending
+    assert.deepEqual(operations, [
+      ['cancel', { queryKey: ['innerscape', 'today'] }],
+      ['invalidate', { queryKey: ['innerscape', 'today'] }]
+    ])
+  }
+  operations.length = 0
+  stop()
+  await emit('checkin.updated', {})
+  assert.deepEqual(operations, [])
+  assert.equal(globalThis.__is.listeners.size, 0)
+})
+
+test('view focus stays within its section and falls back when an item is absent', async () => {
+  freshGlobals()
+  const { __internals: I } = await load()
+  const calls = []
+  const item = { scrollIntoView: () => calls.push('scroll item'), focus: () => calls.push('focus item') }
+  const section = {
+    querySelector: selector => selector === '[data-isc-item="ci_1"], [id="ci_1"]' ? item : null,
+    scrollIntoView: () => calls.push('scroll section'), focus: () => calls.push('focus section')
+  }
+  const root = { querySelector: selector => selector === '[data-isc-view="today"]' ? section : null }
+  assert.equal(I.focusPaneView(root, { view: 'today', item_id: 'ci_1' }), true)
+  assert.deepEqual(calls, ['scroll item', 'focus item'])
+  calls.length = 0
+  assert.equal(I.focusPaneView(root, { view: 'today', item_id: 'missing' }), true)
+  assert.deepEqual(calls, ['scroll section', 'focus section'])
+  assert.equal(I.focusPaneView(root, { view: 'journal' }), false, 'wait for an unmounted section')
+})
+
+test('unmounting while cancellation is pending does not start another REST read', async () => {
+  freshGlobals()
+  const { __internals: I } = await load()
+  let finishCancel
+  let refreshes = 0
+  const stop = I.subscribePaneUpdates({
+    cancelQueries: () => new Promise(r => { finishCancel = r }),
+    invalidateQueries: async () => { refreshes++ }
+  })
+  const pending = emit('journal.updated', {})
+  stop()
+  finishCancel()
+  await pending
+  assert.equal(refreshes, 0)
+})
+
+test('older Desktop builds without events still register and dispose safely', async () => {
+  freshGlobals()
+  globalThis.__is.eventsSupported = false
+  const { default: plugin, __internals: I } = await load()
+  const ctx = makeCtx()
+  assert.doesNotThrow(() => plugin.register(ctx))
+  assert.doesNotThrow(() => I.subscribePaneUpdates({})())
+  assert.doesNotThrow(() => ctx.dispose())
 })
