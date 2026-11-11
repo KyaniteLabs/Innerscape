@@ -176,8 +176,9 @@ const EN = {
     confirm: 'Save entry', busy: 'Saving…', done: 'Saved', saved: 'Journal entry saved.', keep: 'Keep editing'
   },
   care: {
+    notService: 'Innerscape is not a crisis service and not medical advice.',
     crisis: 'If you are in danger or thinking about harming yourself, contact local emergency services now. In the US, call or text 988.',
-    privacy: url => `Check-ins and journal entries go straight to your Innerscape server at ${url}, and nothing is saved on a schedule. A note you hand to the coach becomes a Hermes chat draft, which Hermes keeps like any other chat.`
+    privacy: url => `Check-ins and journal entries go straight to your Innerscape server at ${url}, and nothing is saved on a schedule. A note you hand to the coach becomes a Hermes chat draft, which Hermes keeps like any other chat, and, like any chat, it goes to your AI provider.`
   },
   chip: { open: 'Open Innerscape' },
   palette: { open: 'Innerscape: Open today', checkin: 'Innerscape: Check in', journal: 'Innerscape: Write in journal', unstuck: 'Innerscape: Get unstuck' },
@@ -495,6 +496,7 @@ function InnerscapePage({ ctx, status, refreshStatus }) {
     ] }, 'cols'),
     jsxs('footer', { className: 'isc-note', children: [
       jsx('p', { children: jsx('b', { children: t('care.crisis') }) }),
+      jsx('p', { children: t('care.notService') }),
       jsx('p', { children: t('care.privacy', url) })
     ] }, 'note')
   ])
