@@ -26,7 +26,13 @@ export function atom(value) {
 export const host = {
   navigate: (path) => is().navigations.push(path),
   notify: (m) => is().notifies.push(m),
-  notifyError: (err, fallback) => is().errors.push([String(err?.message ?? err), fallback])
+  notifyError: (err, fallback) => is().errors.push([String(err?.message ?? err), fallback]),
+  // newChat/composer exist only when a test asks for them (older hosts lack both).
+  get newChat() { return is().chat ? () => { is().chat.opened++ } : undefined },
+  get composer() {
+    const c = is().chat
+    return c ? { setDraft: async (id, text) => { c.drafts.push([id, text]); return c.opened > 0 && c.drafts.length >= c.mountAfter } } : undefined
+  }
 }
 
 export const relativeTime = (ms) => `t${ms}`

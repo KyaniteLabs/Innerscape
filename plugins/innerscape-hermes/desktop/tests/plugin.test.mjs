@@ -90,19 +90,19 @@ test('no eval, Function constructor, dynamic import, raw network or browser stor
   ]) assert.doesNotMatch(code, re, `${name} must not appear`)
 })
 
-test('registers the page, nav, chip, three palette actions and a settings page', async () => {
+test('registers the page, nav, chip, four palette actions and a settings page', async () => {
   freshGlobals()
   const { default: plugin } = await load()
   assert.equal(plugin.id, 'innerscape')
   const ctx = makeCtx()
   plugin.register(ctx)
   const byId = Object.fromEntries(ctx.registered.map((c) => [c.id, c]))
-  assert.deepEqual(Object.keys(byId).sort(), ['checkin', 'chip', 'journal', 'nav', 'open', 'page'])
+  assert.deepEqual(Object.keys(byId).sort(), ['checkin', 'chip', 'journal', 'nav', 'open', 'page', 'unstuck'])
   assert.equal(byId.page.area, 'routes')
   assert.equal(byId.page.data.path, '/innerscape')
   assert.deepEqual(byId.nav.data, { path: '/innerscape', label: 't:name', codicon: 'heart' })
   assert.equal(byId.chip.area, 'statusbar.right')
-  assert.deepEqual(['open', 'checkin', 'journal'].map((id) => byId[id].data.id), ['innerscape.open', 'innerscape.checkin', 'innerscape.journal'])
+  assert.deepEqual(['open', 'checkin', 'journal', 'unstuck'].map((id) => byId[id].data.id), ['innerscape.open', 'innerscape.checkin', 'innerscape.journal', 'innerscape.unstuck'])
   assert.equal(ctx.settings.length, 1)
   assert.equal(ctx.settings[0].id, 'settings')
   assert.ok(ctx.bundles[0].en && typeof ctx.bundles[0].en.name === 'string', 'English bundle registered')
@@ -118,9 +118,11 @@ test('palette actions set the focus target and open the page', async () => {
   assert.equal(I.focusTarget.get(), 'checkin')
   run('journal')
   assert.equal(I.focusTarget.get(), 'journal')
+  run('unstuck')
+  assert.equal(I.focusTarget.get(), 'stuck')
   run('open')
   assert.equal(I.focusTarget.get(), null)
-  assert.deepEqual(globalThis.__is.navigations, ['/innerscape', '/innerscape', '/innerscape'])
+  assert.deepEqual(globalThis.__is.navigations, ['/innerscape', '/innerscape', '/innerscape', '/innerscape'])
 })
 
 test('stored prefs are untrusted: junk is dropped, a broken store falls back to defaults', async () => {
@@ -141,11 +143,11 @@ test('dispose removes the stylesheet and forgets every draft', async () => {
   plugin.register(ctx)
   assert.equal(head.length, 1)
   assert.equal(head[0].dataset.plugin, 'innerscape')
-  I.drafts.set({ checkin: { energy: 9, valence: 'unpleasant', feeling: 'raw', body: 'tight chest' }, journal: 'private words', tags: 'a' })
+  I.drafts.set({ checkin: { energy: 9, valence: 'unpleasant', feeling: 'raw', body: 'tight chest' }, journal: 'private words', tags: 'a', stuck: 'the bill' })
   I.focusTarget.set('journal')
   ctx.dispose()
   assert.equal(head.length, 0)
-  assert.deepEqual(I.drafts.get(), { checkin: { energy: 50, valence: '', feeling: '', body: '' }, journal: '', tags: '' })
+  assert.deepEqual(I.drafts.get(), { checkin: { energy: 50, valence: '', feeling: '', body: '' }, journal: '', tags: '', stuck: '' })
   assert.equal(I.focusTarget.get(), null)
 })
 
@@ -172,6 +174,28 @@ test('tags are trimmed and de-duplicated; a failed save throws the readable erro
   assert.throws(() => I.okOr({ ok: false, error: 'Innerscape refused the token (expired or wrong).' }), /expired or wrong/)
   assert.throws(() => I.okOr(null), /no answer/)
   assert.deepEqual(I.okOr({ ok: true, id: 1 }), { ok: true, id: 1 })
+})
+
+test('the coach opens a new chat and drafts the note; nothing is sent', async () => {
+  freshGlobals()
+  const { __internals: I } = await load()
+  const t = (k, a) => (k === 'coach.prompt' ? `P:${a}` : k)
+  assert.equal(I.coachPrompt('  the bill  ', t), 'P:the bill')
+  assert.equal(I.coachPrompt('   ', t), 'coach.starter')
+
+  // An older host without newChat/composer: report a miss, touch nothing.
+  assert.equal(await I.handToCoach('x', { tries: 2, wait: 0 }), false)
+
+  // The composer mounts on the third try.
+  globalThis.__is.chat = { opened: 0, drafts: [], mountAfter: 3 }
+  assert.equal(await I.handToCoach('P:the bill', { tries: 5, wait: 0 }), true)
+  assert.equal(globalThis.__is.chat.opened, 1)
+  assert.deepEqual(globalThis.__is.chat.drafts.map(([id]) => id), ['new', 'new', 'new'])
+
+  // It never mounts: give up after the retries, so the page keeps the words.
+  globalThis.__is.chat = { opened: 0, drafts: [], mountAfter: 99 }
+  assert.equal(await I.handToCoach('x', { tries: 4, wait: 0 }), false)
+  assert.equal(globalThis.__is.chat.drafts.length, 4)
 })
 
 test('no brown, orange or amber in the stylesheet', async () => {

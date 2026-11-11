@@ -4,8 +4,10 @@ Surfaces:
   innerscape_checkin  -> save one mood check-in (energy 0-100 plus pleasant/unpleasant/neutral)
   innerscape_journal  -> save one journal entry, only after the user said yes to those words
   innerscape_today    -> today's counts and the latest check-in, as the user logged them
-  /innerscape         -> today | checkin | journal | status | help
-  skill               -> skills/innerscape/SKILL.md
+  innerscape_capture  -> park one item in the Innerscape inbox, only after the user said yes
+  /innerscape         -> today | checkin | journal | capture | status | help
+  skills              -> skills/innerscape/SKILL.md (check-ins and journal)
+                         skills/unstuck/SKILL.md (the Unstuck Coach)
 
 Everything goes through your own Innerscape server's REST API (default
 http://127.0.0.1:3001) with the token in INNERSCAPE_TOKEN. Standard library only.
@@ -36,6 +38,7 @@ TOKEN_ENV = "INNERSCAPE_TOKEN"
 RESPONSE_MAX = 1024 * 1024
 TOOL_JSON_MAX = 12_000
 JOURNAL_MAX = 10_000
+CAPTURE_MAX = 5_000
 FEELING_MAX = 50
 BODY_NOTE_MAX = 500
 TAG_MAX = 40
@@ -373,13 +376,7 @@ def checkin(energy: Any = None, valence: Any = None, feeling: Any = None, body_n
     }
 
 
-def journal(content: Any = None, tags: Any = None, user_confirmed: Any = False) -> Dict[str, Any]:
-    if user_confirmed is not True:
-        raise ValueError(
-            "not saved: show the user the exact entry and ask whether to save it to Innerscape; "
-            "call again with user_confirmed: true only after they say yes"
-        )
-    text = _clean_text(content, "content", JOURNAL_MAX, required=True, strip=False)
+def _clean_tags(tags: Any) -> List[str]:
     clean_tags: List[str] = []
     if tags is not None:
         if not isinstance(tags, list) or len(tags) > TAGS_MAX:
@@ -388,6 +385,17 @@ def journal(content: Any = None, tags: Any = None, user_confirmed: Any = False) 
             t = _clean_text(t, "tag", TAG_MAX)
             if t and t not in clean_tags:
                 clean_tags.append(t)
+    return clean_tags
+
+
+def journal(content: Any = None, tags: Any = None, user_confirmed: Any = False) -> Dict[str, Any]:
+    if user_confirmed is not True:
+        raise ValueError(
+            "not saved: show the user the exact entry and ask whether to save it to Innerscape; "
+            "call again with user_confirmed: true only after they say yes"
+        )
+    text = _clean_text(content, "content", JOURNAL_MAX, required=True, strip=False)
+    clean_tags = _clean_tags(tags)
     res = _api("POST", "/api/v1/journal/entries", {"content": text, "tags": clean_tags})
     if not res["ok"]:
         return res
@@ -396,6 +404,25 @@ def journal(content: Any = None, tags: Any = None, user_confirmed: Any = False) 
         return saved
     return {"ok": True, "saved": "journal entry", "id": saved["id"], "characters": len(text or ""), "tags": clean_tags,
             "reading": _CRISIS}
+
+
+def capture(content: Any = None, tags: Any = None, user_confirmed: Any = False) -> Dict[str, Any]:
+    """Park one item in the Innerscape inbox (POST /api/v1/capture), as text."""
+    if user_confirmed is not True:
+        raise ValueError(
+            "not saved: show the user the exact words and ask whether to park them in Innerscape; "
+            "call again with user_confirmed: true only after they say yes"
+        )
+    text = _clean_text(content, "content", CAPTURE_MAX, required=True, strip=False)
+    clean_tags = _clean_tags(tags)
+    res = _api("POST", "/api/v1/capture", {"content": text, "contentType": "text", "source": "hermes", "tags": clean_tags})
+    if not res["ok"]:
+        return res
+    saved = _saved_id(res)
+    if not saved["ok"]:
+        return saved
+    return {"ok": True, "saved": "inbox item", "id": saved["id"], "characters": len(text or ""), "tags": clean_tags,
+            "reading": "Parked. Tell the user it is held in their Innerscape inbox and return to the one next move. " + _CRISIS}
 
 
 def today() -> Dict[str, Any]:
@@ -520,6 +547,27 @@ JOURNAL_SCHEMA = {
     },
 }
 
+CAPTURE_SCHEMA = {
+    "name": "innerscape_capture",
+    "description": (
+        "Park one item in the user's Innerscape inbox: a task they are setting down, an 'idea:', or a "
+        "note for coming back later. Show the user the exact words first and ask whether to park them; "
+        "set user_confirmed only after they say yes. Never capture on your own initiative or on a schedule. "
+        + _CRISIS
+    ),
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "content": {"type": "string", "maxLength": CAPTURE_MAX, "description": "The item, exactly as the user approved it; it is saved unchanged."},
+            "tags": {"type": "array", "items": {"type": "string", "maxLength": TAG_MAX}, "maxItems": TAGS_MAX,
+                     "description": "Optional short words the user chose, like 'bills' or 'later'."},
+            "user_confirmed": {"type": "boolean", "description": "True only after the user said yes to parking these exact words."},
+        },
+        "required": ["content", "user_confirmed"],
+        "additionalProperties": False,
+    },
+}
+
 TODAY_SCHEMA = {
     "name": "innerscape_today",
     "description": (
@@ -562,6 +610,7 @@ def _wrap(fn, writes: bool):
 
 _tool_checkin = _wrap(lambda a: checkin(**_known(a, {"energy", "valence", "feeling", "body_note", "user_confirmed"})), writes=True)
 _tool_journal = _wrap(lambda a: journal(**_known(a, {"content", "tags", "user_confirmed"})), writes=True)
+_tool_capture = _wrap(lambda a: capture(**_known(a, {"content", "tags", "user_confirmed"})), writes=True)
 _tool_today = _wrap(lambda a: today(**_known(a, set())), writes=False)
 
 
@@ -572,6 +621,7 @@ _HELP = (
     "  /innerscape today                                  Today's counts and latest check-in\n"
     "  /innerscape checkin <0-100> <pleasant|unpleasant|neutral> [feeling]\n"
     "  /innerscape journal <text>                         Save these words as an entry\n"
+    "  /innerscape capture <text>                         Park these words in your inbox\n"
     "  /innerscape status                                 Server, token and expiry\n"
     "Reading and saving are off on chat platforms unless allow_reads_on_gateway or\n"
     "allow_writes_on_gateway is true. Saving is always off in scheduled runs."
@@ -628,9 +678,15 @@ def _slash(raw_args: str, platform: Any = None, **_: Any) -> str:
             return _fmt_today(today())
         if cmd == "status":
             return _fmt_status(status())
-        if cmd in {"checkin", "journal"}:
+        if cmd in {"checkin", "journal", "capture"}:
             if not _writes_allowed(platform):
                 return _GATEWAY_WRITE_OFF
+            if cmd == "capture":
+                if not rest:
+                    return "Nothing to park.\n\n" + _HELP
+                # Typing the command is the user's own yes to these exact words.
+                res = capture(rest, None, True)
+                return f"Parked in your Innerscape inbox ({res['characters']} characters)." if res.get("ok") else f"Innerscape: {res.get('error')}"
             if cmd == "journal":
                 if not rest:
                     return "Nothing to save.\n\n" + _HELP
@@ -675,13 +731,14 @@ def register(ctx) -> None:
     ctx.register_command(
         "innerscape",
         handler=_slash,
-        description="Innerscape check-ins and journal (today, checkin, journal, status).",
-        args_hint="today | checkin <0-100> <pleasant|unpleasant|neutral> [feeling] | journal <text> | status",
+        description="Innerscape check-ins, journal and inbox (today, checkin, journal, capture, status).",
+        args_hint="today | checkin <0-100> <pleasant|unpleasant|neutral> [feeling] | journal <text> | capture <text> | status",
     )
     for schema, handler, emoji in (
         (CHECKIN_SCHEMA, _tool_checkin, "🪨"),
         (JOURNAL_SCHEMA, _tool_journal, "📓"),
         (TODAY_SCHEMA, _tool_today, "🌤"),
+        (CAPTURE_SCHEMA, _tool_capture, "📥"),
     ):
         ctx.register_tool(
             name=schema["name"],
