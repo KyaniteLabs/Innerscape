@@ -290,7 +290,8 @@ function Today({ q, t }) {
       ? jsxs('p', { className: 'isc-p', role: 'alert', children: [t('err.today'), ' ', jsx(Button, { size: 'xs', variant: 'secondary', onClick: () => q.refetch(), children: t('err.retry') })] })
       : jsx(Skeleton, { style: { height: 120, borderRadius: 10 } })
   }
-  if (d.ok === false) return jsx('p', { className: 'isc-p', role: 'alert', children: d.error || t('err.today') })
+  // The connection banner above names the cause; raw tool errors stay out of the page.
+  if (d.ok === false) return jsxs('p', { className: 'isc-p', role: 'alert', children: [t('err.today'), ' ', jsx(Button, { size: 'xs', variant: 'secondary', onClick: () => q.refetch(), children: t('err.retry') })] })
   const counts = d.counts && typeof d.counts === 'object' ? d.counts : {}
   const c = d.latest_checkin
   const energy = Number.isFinite(Number(c?.energy)) ? Math.max(0, Math.min(100, Number(c.energy))) : null
@@ -348,7 +349,8 @@ function CheckInForm({ ctx, t, onSaved }) {
       jsx('span', { id: 'isc-val-l', style: { fontSize: 12.5, fontWeight: 500 }, children: t('checkin.valence') }),
       jsx('div', { className: 'isc-seg', children: jsx(SegmentedControl, { value: d.valence, onChange: v => set({ valence: v }),
         options: VALENCES.map(v => ({ id: v, label: t(`valence.${v}`) })) }) }),
-      d.valence ? null : jsx('small', { children: t('checkin.pick') })
+      // Hidden, not removed, once a feeling is picked, so the form below doesn't jump.
+      jsx('small', { 'aria-hidden': d.valence ? 'true' : undefined, style: d.valence ? { visibility: 'hidden' } : undefined, children: t('checkin.pick') })
     ] }),
     jsxs('div', { className: 'isc-field', children: [
       jsx('label', { htmlFor: 'isc-feel', children: t('checkin.feeling') }),
