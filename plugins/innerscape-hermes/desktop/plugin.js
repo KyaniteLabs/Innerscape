@@ -225,6 +225,7 @@ const blankDrafts = () => ({ checkin: blankCheckin(), journal: '', tags: '', stu
 const drafts = atom(blankDrafts())
 const focusTarget = atom(null)
 const paneRequest = atom(null)
+let paneRequestTimer = null
 const VIEWS = ['today', 'checkin', 'journal', 'unstuck']
 const UPDATE_EVENTS = ['checkin.updated', 'journal.updated', 'capture.updated']
 const validItemId = id => typeof id === 'string' && /^[A-Za-z0-9_-]{1,128}$/.test(id)
@@ -256,6 +257,8 @@ function subscribePaneUpdates(qc) {
 
 function focusPaneView(root, request) {
   if (!root || !validPaneEvent('view.set', request)) return false
+  const active = root.ownerDocument?.activeElement ?? document.activeElement
+  if (active?.matches?.('input, textarea, [contenteditable="true"]')) return true
   const section = root.querySelector(`[data-isc-view="${request.view}"]`)
   if (!section) return false // the status request may still be loading
   const item = request.item_id
@@ -265,6 +268,17 @@ function focusPaneView(root, request) {
   target.scrollIntoView?.({ block: 'center' })
   target.focus?.({ preventScroll: true })
   return true
+}
+
+function handlePaneRequest(root, request, statusSettled) {
+  return focusPaneView(root, request) || statusSettled
+}
+
+function clearPaneRequest(request = paneRequest.get()) {
+  if (paneRequest.get() !== request) return
+  if (paneRequestTimer !== null) clearTimeout(paneRequestTimer)
+  paneRequestTimer = null
+  paneRequest.set(null)
 }
 
 function connState(s) {
@@ -502,8 +516,8 @@ function InnerscapePage({ ctx, status, refreshStatus }) {
   useEffect(() => subscribePaneUpdates(qc), [qc])
   useEffect(() => {
     if (request?.view === 'today' && request.item_id && !today.data && !today.isError) return
-    if (focusPaneView(root.current, request) && paneRequest.get() === request) paneRequest.set(null)
-  }, [request, s, today.data, today.isError])
+    if (request && handlePaneRequest(root.current, request, Boolean(s || st.isError))) clearPaneRequest(request)
+  }, [request, s, st.isError, today.data, today.isError])
   const refresh = () => { qc.invalidateQueries({ queryKey: [ID] }); refreshStatus() }
   const shell = children => jsx('div', { ref: root, className: 'isc-host', children: jsx('div', { className: 'isc', children }) })
   const url = s?.base_url || 'http://127.0.0.1:3001'
@@ -601,7 +615,7 @@ function cleanPrefs(raw) {
 
 // Pure helpers, exported for desktop/tests only; the host reads the default export.
 export const __internals = { cleanPrefs, connState, parseTags, okOr, drafts, focusTarget, CSS, coachPrompt, handToCoach, startCoach, transfer,
-  paneRequest, subscribePaneUpdates, focusPaneView }
+  paneRequest, subscribePaneUpdates, focusPaneView, handlePaneRequest }
 
 export default {
   id: ID,
@@ -620,13 +634,16 @@ export default {
     document.head.appendChild(style)
     ctx.onDispose(() => style.remove())
     // Drafts never outlive the plugin.
-    ctx.onDispose(() => { transferSeq++; transfer.set(null); drafts.set(blankDrafts()); focusTarget.set(null); paneRequest.set(null) })
+    ctx.onDispose(() => { transferSeq++; transfer.set(null); drafts.set(blankDrafts()); focusTarget.set(null); clearPaneRequest() })
 
     // Navigation listens for the enabled plugin's lifetime so the agent can open
     // the page from another route; data subscriptions belong to the mounted page.
     if (typeof host.onEvent === 'function') ctx.onDispose(host.onEvent(`plugin.${ID}.view.set`, ({ payload } = {}) => {
       if (!validPaneEvent('view.set', payload)) return
-      paneRequest.set({ ...payload })
+      clearPaneRequest()
+      const request = { ...payload }
+      paneRequest.set(request)
+      paneRequestTimer = setTimeout(() => clearPaneRequest(request), 5000)
       host.navigate(PATH)
     }))
 

@@ -18,6 +18,7 @@ Innerscape is a TypeScript monorepo with a Fastify backend, Expo mobile app, sha
 - `apps/backend/`: Fastify API, Prisma, auth, route modules
 - `apps/mobile/`: Expo app with Home, Mind, Flow, Body, and Hub tabs
 - `packages/shared/`: shared TypeScript types
+- `plugins/innerscape-hermes/`: Hermes Agent plugin (check-in, journal and today tools)
 
 ## Keywords
 personal growth OS, life OS, journaling app, emotional check-in app, habit tracker, goal tracker, neurodivergent productivity, ADHD-friendly planning, decluttering app, Expo app, Fastify API, Prisma PostgreSQL, TypeScript wellness app.
