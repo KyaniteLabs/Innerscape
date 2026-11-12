@@ -544,7 +544,7 @@ test('typing in a view-focused input makes it the user\'s, so later requests do 
   assert.deepEqual(calls, ['scroll journal', 'focus journal', 'scroll unstuck'])
 })
 
-test('view requests focus and scroll when the active input is outside the plugin root', async () => {
+test('view requests scroll without stealing focus from an input outside the plugin root', async () => {
   freshGlobals()
   const { __internals: I } = await load()
   const calls = []
@@ -557,7 +557,7 @@ test('view requests focus and scroll when the active input is outside the plugin
     querySelector: () => section
   }
   assert.equal(I.focusPaneView(root, { view: 'journal' }), true)
-  assert.deepEqual(calls, ['scroll', 'focus'])
+  assert.deepEqual(calls, ['scroll'])
 })
 
 test('unknown and oversized live inputs are ignored without navigating or refreshing', async () => {
