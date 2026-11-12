@@ -225,6 +225,7 @@ const blankDrafts = () => ({ checkin: blankCheckin(), journal: '', tags: '', stu
 const drafts = atom(blankDrafts())
 const focusTarget = atom(null)
 const paneRequest = atom(null)
+const viewFocusedElements = new WeakSet()
 let paneRequestTimer = null
 const VIEWS = ['today', 'checkin', 'journal', 'unstuck']
 const UPDATE_EVENTS = ['checkin.updated', 'journal.updated', 'capture.updated']
@@ -258,7 +259,6 @@ function subscribePaneUpdates(qc) {
 function focusPaneView(root, request) {
   if (!root || !validPaneEvent('view.set', request)) return false
   const active = root.ownerDocument?.activeElement ?? document.activeElement
-  if (root.contains?.(active) && active?.matches?.('input, textarea, [contenteditable="true"]')) return true
   const section = root.querySelector(`[data-isc-view="${request.view}"]`)
   if (!section) return false // the status request may still be loading
   const item = request.item_id
@@ -266,7 +266,16 @@ function focusPaneView(root, request) {
     : section.querySelector('input, textarea')
   const target = item || section
   target.scrollIntoView?.({ block: 'center' })
+  const userFocusedInput = root.contains?.(active)
+    && active?.matches?.('input, textarea, [contenteditable="true"]')
+    && !viewFocusedElements.has(active)
+  if (userFocusedInput) return true
   target.focus?.({ preventScroll: true })
+  if (typeof target.focus === 'function') {
+    viewFocusedElements.add(target)
+    // Once the user types here, the input is theirs and later requests must not move focus.
+    target.addEventListener?.('input', () => viewFocusedElements.delete(target), { once: true })
+  }
   return true
 }
 

@@ -480,15 +480,68 @@ test('unrendered view requests expire and settled missing sections are discarded
   }
 })
 
-test('view requests never steal focus or scroll while an input is active', async () => {
+test('view requests still scroll when a user-focused input keeps focus', async () => {
   freshGlobals()
   const { __internals: I } = await load()
   const calls = []
   const input = { matches: selector => selector === 'input, textarea, [contenteditable="true"]' }
-  const section = { querySelector: () => ({ scrollIntoView: () => calls.push('scroll'), focus: () => calls.push('focus') }), scrollIntoView: () => calls.push('section scroll'), focus: () => calls.push('section focus') }
+  const target = { scrollIntoView: () => calls.push('scroll'), focus: () => calls.push('focus') }
+  const section = { querySelector: () => target, scrollIntoView: () => calls.push('section scroll'), focus: () => calls.push('section focus') }
   const root = { ownerDocument: { activeElement: input }, contains: active => active === input, querySelector: () => section }
   assert.equal(I.handlePaneRequest(root, { view: 'journal' }, false), true)
-  assert.deepEqual(calls, [])
+  assert.deepEqual(calls, ['scroll'])
+})
+
+test('consecutive view requests scroll and focus check-in, journal, then unstuck', async () => {
+  freshGlobals()
+  const { __internals: I } = await load()
+  const calls = []
+  const doc = { activeElement: null }
+  const inputs = Object.fromEntries(['checkin', 'journal', 'unstuck'].map(view => [view, {
+    matches: selector => selector === 'input, textarea, [contenteditable="true"]',
+    scrollIntoView: () => calls.push(`scroll ${view}`),
+    focus: () => { calls.push(`focus ${view}`); doc.activeElement = inputs[view] }
+  }]))
+  const sections = Object.fromEntries(Object.entries(inputs).map(([view, input]) => [view, { querySelector: () => input }]))
+  const root = {
+    ownerDocument: doc,
+    contains: active => Object.values(inputs).includes(active),
+    querySelector: selector => sections[selector.match(/data-isc-view="([^"]+)/)?.[1]]
+  }
+
+  for (const view of ['checkin', 'journal', 'unstuck']) {
+    assert.equal(I.focusPaneView(root, { view }), true)
+  }
+  assert.deepEqual(calls, [
+    'scroll checkin', 'focus checkin',
+    'scroll journal', 'focus journal',
+    'scroll unstuck', 'focus unstuck'
+  ])
+})
+
+test('typing in a view-focused input makes it the user\'s, so later requests do not take focus', async () => {
+  freshGlobals()
+  const { __internals: I } = await load()
+  const calls = []
+  const doc = { activeElement: null }
+  const listeners = {}
+  const mk = view => ({
+    matches: selector => selector === 'input, textarea, [contenteditable="true"]',
+    scrollIntoView: () => calls.push(`scroll ${view}`),
+    focus: () => { calls.push(`focus ${view}`); doc.activeElement = inputs[view] },
+    addEventListener: (type, fn) => { listeners[`${view}:${type}`] = fn }
+  })
+  const inputs = { journal: mk('journal'), unstuck: mk('unstuck') }
+  const sections = Object.fromEntries(Object.entries(inputs).map(([view, input]) => [view, { querySelector: () => input }]))
+  const root = {
+    ownerDocument: doc,
+    contains: active => Object.values(inputs).includes(active),
+    querySelector: selector => sections[selector.match(/data-isc-view="([^"]+)/)?.[1]]
+  }
+  assert.equal(I.focusPaneView(root, { view: 'journal' }), true)
+  listeners['journal:input']()
+  assert.equal(I.focusPaneView(root, { view: 'unstuck' }), true)
+  assert.deepEqual(calls, ['scroll journal', 'focus journal', 'scroll unstuck'])
 })
 
 test('view requests focus and scroll when the active input is outside the plugin root', async () => {
