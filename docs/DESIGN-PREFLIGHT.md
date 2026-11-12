@@ -10,13 +10,13 @@ Innerscape is a self-hosted personal growth OS built neurodivergent-first. It co
 
 | Element | Choice | Evidence class |
 |---|---|---|
-| Object | A cairn of tumbled stones: balance built one stone at a time, like an inner landscape kept steady | Product fit (our metaphor); Simon approved the cairn 2026-10-26 ("innerscape A approved") and the v2 render 2026-11-10 |
+| Object | A cairn of tumbled stones: balance built one stone at a time, like an inner landscape kept steady | Product fit (our metaphor); the owner approved the cairn 2026-10-26 ("innerscape A approved") and the v2 render 2026-11-10 |
 | Cap stone | Amethyst | Approved render (v2, "amethyst cap") |
-| Body stones | Base to top: pink, then pale banded grey-white, then banded blue | **Assumption:** read visually from the approved render as rose quartz, a satin grey-white stone and blue lace agate. Simon has not named them; confirm before writing stone claims in copy. |
+| Body stones | Base to top: pink, then pale banded grey-white, then banded blue | **Assumption:** read visually from the approved render as rose quartz, a satin grey-white stone and blue lace agate. The owner has not named them; confirm before writing stone claims in copy. |
 
 ## 3. Rejected metaphors
 
-- The earlier cairn render: Simon (2026-10-27) said it "needs more craft and craftsmanship, it looks cheap".
+- The earlier cairn render: the owner (2026-10-27) said it "needs more craft and craftsmanship, it looks cheap".
 - Opaque RGB tile with no alpha: the icon must be transparent.
 - A separate Coach mark: dropped, because the Coach is a feature of Innerscape.
 
@@ -30,7 +30,7 @@ One hero object, centred at about 80% fill, three-quarter light from the upper l
 
 ## 6. Typography
 
-The lockup Simon approved on 2026-11-10 is Chakra Petch Bold 700 uppercase for the wordmark, with Medium 500 for "by KyaniteLabs". Glyphs are unmodified and use native kerning. On dark backgrounds only the ink is inverted. The OFL licence ships in `branding/CHAKRA-PETCH-OFL.txt`.
+The lockup the owner approved on 2026-11-10 is Chakra Petch Bold 700 uppercase for the wordmark, with Medium 500 for "by KyaniteLabs". Glyphs are unmodified and use native kerning. On dark backgrounds only the ink is inverted. The OFL licence ships in `branding/CHAKRA-PETCH-OFL.txt`.
 
 ## 7. Platform conventions
 
@@ -65,4 +65,4 @@ Not used: brown, orange or amber anywhere; the "walnut" lockup; red for "unpleas
 
 **Unstuck Coach card (added 2026-11-11).** The Coach is a feature inside Innerscape, not a separate mark, so its card uses the same ground, card surface, text tokens, accent button and Chakra Petch section title as the rest of the page. No new colour, icon or illustration. It sits right under Today because being stuck is the moment someone opens the page with the least capacity. It explains itself in one line, takes free text, and hands off to a new chat with the note drafted and unsent; the button reads "Get unstuck", not a stance menu.
 
-**Assumption:** a fixed dark ground reads well inside a light Desktop theme. Selenite took the same route (one fixed ground) after an owner correction; Simon's eye-gate confirms it.
+**Assumption:** a fixed dark ground reads well inside a light Desktop theme. Selenite took the same route (one fixed ground) after an owner correction; the owner's eye-gate confirms it.

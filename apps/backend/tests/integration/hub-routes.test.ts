@@ -237,6 +237,84 @@ describe('POST /api/v1/projects/:id/archive', () => {
 
 // --- Knowledge ---
 
+describe('Project lifecycle (active -> archived)', () => {
+  // Bug: archiving twice used to succeed; archived is terminal.
+  it('refuses to archive an already-archived project', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/projects/${projectId}/archive`,
+      headers: authHeaders(),
+    });
+    expect(res.statusCode).toBe(409);
+  });
+
+  // Bug: creating a project in the "archives" area produced status=active + area=archives,
+  // an illegal combination that showed archived work in the default (active) project list.
+  it('a project created in the archives area is archived, not active', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/projects',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      payload: { name: 'Old Stuff', area: 'archives' },
+    });
+    expect(res.statusCode).toBe(201);
+    expect(res.json()).toMatchObject({ status: 'archived', area: 'archives' });
+
+    const active = await app.inject({ method: 'GET', url: '/api/v1/projects', headers: authHeaders() });
+    expect(active.json().map((p: { name: string }) => p.name)).not.toContain('Old Stuff');
+  });
+
+  it('rejects an unknown status filter instead of silently returning nothing', async () => {
+    const res = await app.inject({ method: 'GET', url: '/api/v1/projects?status=done', headers: authHeaders() });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('empty status filter still returns every status', async () => {
+    const res = await app.inject({ method: 'GET', url: '/api/v1/projects?status=', headers: authHeaders() });
+    expect(res.statusCode).toBe(200);
+    const statuses = new Set(res.json().map((p: { status: string }) => p.status));
+    expect(statuses.has('archived')).toBe(true);
+  });
+});
+
+describe('Capture classification lifecycle', () => {
+  it('rejects an unknown status filter', async () => {
+    const res = await app.inject({ method: 'GET', url: '/api/v1/capture?status=done', headers: authHeaders() });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('accepts every named status filter', async () => {
+    for (const status of ['pending', 'classified', 'needs_review', '']) {
+      const res = await app.inject({ method: 'GET', url: `/api/v1/capture?status=${status}`, headers: authHeaders() });
+      expect(res.statusCode).toBe(200);
+    }
+  });
+
+  it('refuses to classify an item whose stored status is unknown', async () => {
+    const item = await prisma.captureItem.create({
+      data: { userId, content: 'x', contentType: 'text', classificationStatus: 'bogus' },
+    });
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/capture/${item.id}/classify`,
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      payload: { module: 'mind', type: 'note', confidence: 0.5 },
+    });
+    expect(res.statusCode).toBe(409);
+  });
+
+  it('allows reclassifying an already-classified item (correction)', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/capture/${captureId}/classify`,
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      payload: { module: 'flow', type: 'task', confidence: 0.7 },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toMatchObject({ classificationStatus: 'classified', classifiedModule: 'flow' });
+  });
+});
+
 describe('POST /api/v1/knowledge', () => {
   it('creates a knowledge item with valid data', async () => {
     const res = await app.inject({
