@@ -71,7 +71,7 @@ async function load(sdkPath = join(HERE, 'stubs', STUBS['@hermes/plugin-sdk'])) 
     const target = spec === '@hermes/plugin-sdk' ? sdkPath : join(HERE, 'stubs', file)
     code = code.split(`from '${spec}'`).join(`from '${pathToFileURL(target).href}'`)
   }
-  code += '\nexport const __testComponents = { Today, CheckInForm }\n'
+  code += '\nexport const __testComponents = { Today, CheckInForm, JournalForm }\n'
   const out = join(OUT, `plugin-${copies++}.mjs`)
   writeFileSync(out, code)
   return import(pathToFileURL(out).href)
@@ -121,6 +121,40 @@ test('saving a check-in preserves edits made after submission', async () => {
   assert.equal(I.drafts.get().checkin.feeling, 'new unsaved feeling')
 })
 
+test('saving a journal entry preserves a newer unsaved entry and tags', async () => {
+  freshGlobals()
+  const { __internals: I, __testComponents: { JournalForm } } = await load()
+  I.drafts.set({ ...I.drafts.get(), journal: 'first entry', tags: 'work' })
+  let resolveSave
+  const ctx = { rest: async (_path, options) => {
+    globalThis.__is.submitted = options.body
+    return new Promise((resolve) => { resolveSave = resolve })
+  } }
+  const tree = JournalForm({ ctx, t: (key) => key, onSaved() {} })
+  const dialog = findNode(tree, (node) => node.type?.displayName === 'ConfirmDialog')
+  const pending = dialog.props.onConfirm()
+  assert.deepEqual(globalThis.__is.submitted, { content: 'first entry', tags: ['work'], confirmed: true })
+  I.drafts.set({ ...I.drafts.get(), journal: 'new unsaved entry', tags: 'personal' })
+  resolveSave({ ok: true })
+  await pending
+  assert.equal(I.drafts.get().journal, 'new unsaved entry')
+  assert.equal(I.drafts.get().tags, 'personal')
+})
+
+test('saving a journal entry clears only fields that still match the submission', async () => {
+  freshGlobals()
+  const { __internals: I, __testComponents: { JournalForm } } = await load()
+  I.drafts.set({ ...I.drafts.get(), journal: 'first entry', tags: 'work' })
+  const ctx = { rest: async () => ({ ok: true }) }
+  const tree = JournalForm({ ctx, t: (key) => key, onSaved() {} })
+  const dialog = findNode(tree, (node) => node.type?.displayName === 'ConfirmDialog')
+  const pending = dialog.props.onConfirm()
+  I.drafts.set({ ...I.drafts.get(), journal: 'new unsaved entry' })
+  await pending
+  assert.equal(I.drafts.get().journal, 'new unsaved entry')
+  assert.equal(I.drafts.get().tags, '')
+})
+
 test('the mutation stub applies rerendered options to a pending save', async () => {
   freshGlobals()
   let resolveSave
@@ -138,8 +172,8 @@ test('the mutation stub applies rerendered options to a pending save', async () 
   assert.equal(globalThis.__is.callback, 'submitted')
 })
 
-test('the real CheckInForm onSuccess keeps post-submit edits with real query-core', async (t) => {
-  if (!process.env.TANSTACK_QUERY_CORE) return t.skip('TANSTACK_QUERY_CORE is not configured')
+test('the real CheckInForm onSuccess keeps post-submit edits with real query-core', async () => {
+  assert.ok(process.env.TANSTACK_QUERY_CORE, 'TANSTACK_QUERY_CORE must point to the pinned query-core install')
   freshGlobals()
   const queryCore = pathToFileURL(resolve(process.env.TANSTACK_QUERY_CORE, 'build/modern/index.js')).href
   const sdkPath = join(OUT, 'real-query-sdk.mjs')
@@ -171,6 +205,14 @@ test('the real CheckInForm onSuccess keeps post-submit edits with real query-cor
 test('CI covers the Hermes Python plugin and Desktop plugin tests', () => {
   assert.match(WORKFLOW, /hermes-plugin:[\s\S]*python3 -m pytest plugins\/innerscape-hermes\/tests/)
   assert.match(WORKFLOW, /hermes-plugin:[\s\S]*node --test plugins\/innerscape-hermes\/desktop\/tests\/plugin\.test\.mjs/)
+  for (const workflow of [WORKFLOW, FORGEJO_WORKFLOW]) {
+    assert.ok(workflow.includes('HERMES_V023_SOURCE: ${{ github.workspace }}/.ci-hermes-v023'))
+    assert.ok(workflow.includes('HERMES_V023_TUI_SOURCE: ${{ github.workspace }}/.ci-hermes-v023'))
+  }
+  // GitHub checks Hermes out by repository; Forgejo would resolve that name on its own server, so it fetches from GitHub by commit.
+  assert.match(WORKFLOW, /repository: NousResearch\/hermes-agent[\s\S]*ref: 2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19 # Hermes v0\.23\.0/)
+  assert.doesNotMatch(FORGEJO_WORKFLOW, /repository: NousResearch\/hermes-agent/)
+  assert.match(FORGEJO_WORKFLOW, /fetch -q --depth 1 https:\/\/github\.com\/NousResearch\/hermes-agent 2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19/)
   for (const workflow of [WORKFLOW, FORGEJO_WORKFLOW]) {
     assert.match(workflow, /@tanstack\/query-core@5\.104\.1/)
     assert.match(workflow, /TANSTACK_QUERY_CORE/)
@@ -444,9 +486,25 @@ test('view requests never steal focus or scroll while an input is active', async
   const calls = []
   const input = { matches: selector => selector === 'input, textarea, [contenteditable="true"]' }
   const section = { querySelector: () => ({ scrollIntoView: () => calls.push('scroll'), focus: () => calls.push('focus') }), scrollIntoView: () => calls.push('section scroll'), focus: () => calls.push('section focus') }
-  const root = { ownerDocument: { activeElement: input }, querySelector: () => section }
+  const root = { ownerDocument: { activeElement: input }, contains: active => active === input, querySelector: () => section }
   assert.equal(I.handlePaneRequest(root, { view: 'journal' }, false), true)
   assert.deepEqual(calls, [])
+})
+
+test('view requests focus and scroll when the active input is outside the plugin root', async () => {
+  freshGlobals()
+  const { __internals: I } = await load()
+  const calls = []
+  const composer = { matches: selector => selector === 'input, textarea, [contenteditable="true"]' }
+  const item = { scrollIntoView: () => calls.push('scroll'), focus: () => calls.push('focus') }
+  const section = { querySelector: () => item }
+  const root = {
+    ownerDocument: { activeElement: composer },
+    contains: active => active !== composer,
+    querySelector: () => section
+  }
+  assert.equal(I.focusPaneView(root, { view: 'journal' }), true)
+  assert.deepEqual(calls, ['scroll', 'focus'])
 })
 
 test('unknown and oversized live inputs are ignored without navigating or refreshing', async () => {

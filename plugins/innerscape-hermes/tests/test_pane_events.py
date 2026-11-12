@@ -8,7 +8,6 @@ import sys
 from types import ModuleType
 
 import pytest
-
 from conftest import PLUGIN_DIR, FakeCtx
 
 
@@ -112,10 +111,12 @@ def test_registered_show_tool_requests_real_sections_without_server_access(plugi
 def test_broadcast_in_non_tui_process_does_not_import_real_hermes_gateway():
     source = os.environ.get("HERMES_V023_SOURCE")
     tui_source = os.environ.get("HERMES_V023_TUI_SOURCE", source)
-    if not source or not os.path.isfile(os.path.join(source, "hermes_cli", "plugin_events.py")):
-        pytest.skip("HERMES_V023_SOURCE must point to the real Hermes source tree")
-    if not tui_source or not os.path.isfile(os.path.join(tui_source, "tui_gateway", "server.py")):
-        pytest.skip("HERMES_V023_TUI_SOURCE must point to the real Hermes TUI source tree")
+    assert source and os.path.isfile(os.path.join(source, "hermes_cli", "plugin_events.py")), (
+        "HERMES_V023_SOURCE must point to the real Hermes v0.23.0 source tree"
+    )
+    assert tui_source and os.path.isfile(os.path.join(tui_source, "tui_gateway", "server.py")), (
+        "HERMES_V023_TUI_SOURCE must point to the real Hermes v0.23.0 TUI source tree"
+    )
     env = dict(os.environ, PYTHONPATH=os.pathsep.join((source, tui_source, os.environ.get("PYTHONPATH", ""))))
     script = r"""
 import importlib.util, sys
@@ -205,11 +206,13 @@ def test_status_and_help_explain_the_persons_enable_step(plugin):
 
 
 def test_desktop_routes_share_the_save_events(plugin, bridge):
-    pytest.importorskip("fastapi")
+    from fastapi import APIRouter
+
     _, calls = bridge
     spec = importlib.util.spec_from_file_location("innerscape_event_routes", PLUGIN_DIR / "dashboard" / "plugin_api.py")
     routes = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(routes)
+    assert isinstance(routes.router, APIRouter)
     routes._agent = plugin
     assert routes.checkin(routes.CheckIn(energy=50, valence="neutral"))["ok"]
     assert routes.journal(routes.Journal(content="private", confirmed=True))["ok"]

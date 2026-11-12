@@ -258,7 +258,7 @@ function subscribePaneUpdates(qc) {
 function focusPaneView(root, request) {
   if (!root || !validPaneEvent('view.set', request)) return false
   const active = root.ownerDocument?.activeElement ?? document.activeElement
-  if (active?.matches?.('input, textarea, [contenteditable="true"]')) return true
+  if (root.contains?.(active) && active?.matches?.('input, textarea, [contenteditable="true"]')) return true
   const section = root.querySelector(`[data-isc-view="${request.view}"]`)
   if (!section) return false // the status request may still be loading
   const item = request.item_id
@@ -492,11 +492,19 @@ function JournalForm({ ctx, t, onSaved }) {
       title: t('journal.confirmTitle'), description: t('journal.confirmBody'),
       confirmLabel: t('journal.confirm'), busyLabel: t('journal.busy'), doneLabel: t('journal.done'), cancelLabel: t('journal.keep'),
       // Throwing keeps the dialog open with the error shown inline.
-      onConfirm: () => ctx.rest('/journal', { method: 'POST', body: { content: text, tags: tagList, confirmed: true } }).then(okOr).then(() => {
-        drafts.set({ ...drafts.get(), journal: '', tags: '' })
-        host.notify({ kind: 'success', message: t('journal.saved') })
-        onSaved()
-      }),
+      onConfirm: () => {
+        const submitted = { journal: text, tags }
+        return ctx.rest('/journal', { method: 'POST', body: { content: submitted.journal, tags: tagList, confirmed: true } }).then(okOr).then(() => {
+          const current = drafts.get()
+          drafts.set({
+            ...current,
+            journal: current.journal === submitted.journal ? '' : current.journal,
+            tags: current.tags === submitted.tags ? '' : current.tags
+          })
+          host.notify({ kind: 'success', message: t('journal.saved') })
+          onSaved()
+        })
+      },
       children: jsxs(Fragment, { children: [
         jsx('p', { className: 'isc-dlg-text', tabIndex: 0, children: text }),
         tagList.length ? jsx('p', { className: 'isc-dlg-tags', children: t('journal.tagsLine', tagList) }) : null
