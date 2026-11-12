@@ -101,6 +101,8 @@ jobs:
     timeout-minutes: 10
     env:
       TANSTACK_QUERY_CORE: ${{ github.workspace }}/.ci-query-core/node_modules/@tanstack/query-core
+      HERMES_V023_SOURCE: ${{ github.workspace }}/.ci-hermes-v023
+      HERMES_V023_TUI_SOURCE: ${{ github.workspace }}/.ci-hermes-v023
     container:
       image: python:3.11-slim-bookworm@sha256:a83ba18aef0f865b1a4a611c2cf460fe446f2795673bbb9fe43be570439e3b39
     steps:
@@ -109,6 +111,12 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           persist-credentials: false
+      # Forgejo resolves `repository:` against this server, so fetch Hermes from GitHub by commit.
+      - name: Fetch the tested Hermes runtime (v0.23.0, pinned by commit)
+        run: |
+          git init -q .ci-hermes-v023
+          git -C .ci-hermes-v023 fetch -q --depth 1 https://github.com/NousResearch/hermes-agent 2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19
+          git -C .ci-hermes-v023 checkout -q FETCH_HEAD
       - name: Install pinned query-core for Desktop regression test
         run: mkdir -p .ci-query-core && cd .ci-query-core && echo '{"private":true}' > package.json && npm install --no-save --package-lock=false --ignore-scripts @tanstack/query-core@5.104.1
       - name: Install the test runner (FastAPI for the Desktop page's routes)
