@@ -266,8 +266,7 @@ function focusPaneView(root, request) {
     : section.querySelector('input, textarea')
   const target = item || section
   target.scrollIntoView?.({ block: 'center' })
-  const userFocusedInput = root.contains?.(active)
-    && active?.matches?.('input, textarea, [contenteditable="true"]')
+  const userFocusedInput = active?.matches?.('input, textarea, [contenteditable="true"]')
     && !viewFocusedElements.has(active)
   if (userFocusedInput) return true
   target.focus?.({ preventScroll: true })
