@@ -19,7 +19,6 @@ const HERE = dirname(fileURLToPath(import.meta.url))
 const PLUGIN = resolve(HERE, '..', 'plugin.js')
 const SOURCE = readFileSync(PLUGIN, 'utf8')
 const WORKFLOW = readFileSync(resolve(HERE, '../../../../.github/workflows/ci.yml'), 'utf8')
-const FORGEJO_WORKFLOW = readFileSync(resolve(HERE, '../../../../.forgejo/workflows/ci.yml'), 'utf8')
 const STUBS = {
   '@hermes/plugin-sdk': 'plugin-sdk.mjs',
   react: 'react.mjs',
@@ -205,18 +204,12 @@ test('the real CheckInForm onSuccess keeps post-submit edits with real query-cor
 test('CI covers the Hermes Python plugin and Desktop plugin tests', () => {
   assert.match(WORKFLOW, /hermes-plugin:[\s\S]*python3 -m pytest plugins\/innerscape-hermes\/tests/)
   assert.match(WORKFLOW, /hermes-plugin:[\s\S]*node --test plugins\/innerscape-hermes\/desktop\/tests\/plugin\.test\.mjs/)
-  for (const workflow of [WORKFLOW, FORGEJO_WORKFLOW]) {
-    assert.ok(workflow.includes('HERMES_V023_SOURCE: ${{ github.workspace }}/.ci-hermes-v023'))
-    assert.ok(workflow.includes('HERMES_V023_TUI_SOURCE: ${{ github.workspace }}/.ci-hermes-v023'))
-  }
-  // GitHub checks Hermes out by repository; Forgejo would resolve that name on its own server, so it fetches from GitHub by commit.
+  // GitHub is the only CI (fleet GIT-CI-STRATEGY-20261123); the Forgejo copy runs nothing.
+  assert.ok(WORKFLOW.includes('HERMES_V023_SOURCE: ${{ github.workspace }}/.ci-hermes-v023'))
+  assert.ok(WORKFLOW.includes('HERMES_V023_TUI_SOURCE: ${{ github.workspace }}/.ci-hermes-v023'))
   assert.match(WORKFLOW, /repository: NousResearch\/hermes-agent[\s\S]*ref: 2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19 # Hermes v0\.23\.0/)
-  assert.doesNotMatch(FORGEJO_WORKFLOW, /repository: NousResearch\/hermes-agent/)
-  assert.match(FORGEJO_WORKFLOW, /fetch -q --depth 1 https:\/\/github\.com\/NousResearch\/hermes-agent 2bd378ed1b8d6bf2192cb26e0a55ff3091e6bd19/)
-  for (const workflow of [WORKFLOW, FORGEJO_WORKFLOW]) {
-    assert.match(workflow, /@tanstack\/query-core@5\.104\.1/)
-    assert.match(workflow, /TANSTACK_QUERY_CORE/)
-  }
+  assert.match(WORKFLOW, /@tanstack\/query-core@5\.104\.1/)
+  assert.match(WORKFLOW, /TANSTACK_QUERY_CORE/)
 })
 
 test('imports only the three specifiers Desktop allows', () => {
