@@ -114,6 +114,108 @@ describe('GET /api/v1/journal/entries', () => {
   });
 });
 
+// Regression: a non-numeric limit/offset reached Prisma as NaN and
+// crashed the request with a 500. It is a client error and has to read as one.
+describe('GET /api/v1/journal/entries query validation', () => {
+  it.each([
+    ['limit=notanumber', 'limit'],
+    ['offset=notanumber', 'offset'],
+    ['limit=abc', 'limit'],
+  ])('returns 400, not 500, for %s', async (query, param) => {
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/v1/journal/entries?${query}`,
+      headers: authHeaders(),
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toHaveProperty(`error.${param}`);
+  });
+
+  it.each(['limit=1.5', 'limit=-1', 'offset=1.5', 'offset=-1'])('returns 400 for %s', async (query) => {
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/v1/journal/entries?${query}`,
+      headers: authHeaders(),
+    });
+    expect(res.statusCode, query).toBe(400);
+  });
+
+  it('accepts limit=0 and offset=0', async () => {
+    for (const query of ['limit=0', 'offset=0']) {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/api/v1/journal/entries?${query}`,
+        headers: authHeaders(),
+      });
+      expect(res.statusCode, query).toBe(200);
+    }
+  });
+});
+
+describe('GET /api/v1/journal/entries pagination', () => {
+  const CAP = 200;
+  let previousUserId: string;
+  let previousToken: string;
+
+  beforeAll(async () => {
+    // A user of our own, so the pages hold nothing but the rows seeded here.
+    previousUserId = userId;
+    previousToken = token;
+    const owner = await prisma.user.create({
+      data: {
+        email: `journal-pagination-${Date.now()}@test.com`,
+        password: 'hashed-not-real-password',
+        preferences: { create: {} },
+      },
+    });
+    userId = owner.id;
+    token = await signToken({ userId });
+
+    // One entry per second, newest first, so the pages are predictable.
+    const now = Date.now();
+    await prisma.journalEntry.createMany({
+      data: Array.from({ length: CAP + 5 }, (_, i) => ({
+        userId,
+        content: `pagination-probe:${i}`,
+        createdAt: new Date(now - i * 1000),
+      })),
+    });
+  });
+
+  afterAll(async () => {
+    // Deleting the owner cascades to its entries.
+    await prisma.user.delete({ where: { id: userId } }).catch(() => {});
+    userId = previousUserId;
+    token = previousToken;
+  });
+
+  it('clamps a limit above the cap of 200 instead of failing or over-fetching', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/journal/entries?limit=999999',
+      headers: authHeaders(),
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toHaveLength(CAP);
+  });
+
+  it('pages in order: offset advances the window and limit=0 gives an empty page', async () => {
+    const page = async (limit: number, offset: number) => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/api/v1/journal/entries?limit=${limit}&offset=${offset}`,
+        headers: authHeaders(),
+      });
+      expect(res.statusCode).toBe(200);
+      return (res.json() as Array<{ content: string }>).map((entry) => entry.content);
+    };
+
+    expect(await page(2, 0)).toEqual(['pagination-probe:0', 'pagination-probe:1']);
+    expect(await page(2, 2)).toEqual(['pagination-probe:2', 'pagination-probe:3']);
+    expect(await page(0, 0)).toEqual([]);
+  });
+});
+
 describe('GET /api/v1/journal/entries/:id', () => {
   it('returns a single entry', async () => {
     const res = await app.inject({
@@ -237,6 +339,60 @@ describe('GET /api/v1/insights', () => {
     expect(res.statusCode).toBe(200);
     const body = res.json();
     expect(Array.isArray(body)).toBe(true);
+  });
+});
+
+describe('GET /api/v1/insights query validation', () => {
+  const CAP = 50;
+
+  beforeAll(async () => {
+    await prisma.insight.createMany({
+      data: Array.from({ length: CAP + 5 }, (_, i) => ({
+        userId,
+        type: 'pattern',
+        title: `cap-probe:${i}`,
+        description: 'Seeded to prove the list route caps its page size.',
+        confidence: 0.5,
+      })),
+    });
+  });
+
+  afterAll(async () => {
+    await prisma.insight.deleteMany({ where: { userId, title: { startsWith: 'cap-probe:' } } });
+  });
+
+  it.each([
+    ['limit=notanumber', 'limit'],
+    ['limit=1.5', 'limit'],
+    ['limit=-1', 'limit'],
+  ])('returns 400, not 500, for %s', async (query, param) => {
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/v1/insights?${query}`,
+      headers: authHeaders(),
+    });
+    expect(res.statusCode, query).toBe(400);
+    expect(res.json()).toHaveProperty(`error.${param}`);
+  });
+
+  it('accepts limit=0', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/insights?limit=0',
+      headers: authHeaders(),
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual([]);
+  });
+
+  it('clamps a limit above the cap of 50 instead of failing or over-fetching', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/insights?limit=999999',
+      headers: authHeaders(),
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toHaveLength(CAP);
   });
 });
 
