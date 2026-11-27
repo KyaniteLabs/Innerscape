@@ -183,12 +183,120 @@ describe('GET /api/v1/checkins', () => {
     }
   });
 
+  // Regression: a non-numeric limit/offset reached Prisma as NaN and
+  // crashed the request with a 500. It is a client error and has to read as one.
+  it.each([
+    ['limit=notanumber', 'limit'],
+    ['offset=notanumber', 'offset'],
+  ])('returns 400, not 500, for %s', async (query, param) => {
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/v1/checkins?${query}`,
+      headers: authHeaders(),
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toHaveProperty(`error.${param}`);
+  });
+
+  it.each(['limit=1.5', 'limit=-1', 'offset=1.5', 'offset=-1'])('returns 400 for %s', async (query) => {
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/v1/checkins?${query}`,
+      headers: authHeaders(),
+    });
+    expect(res.statusCode, query).toBe(400);
+  });
+
+  it('accepts limit=0 and offset=0', async () => {
+    for (const query of ['limit=0', 'offset=0']) {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/api/v1/checkins?${query}`,
+        headers: authHeaders(),
+      });
+      expect(res.statusCode, query).toBe(200);
+    }
+  });
+
   it('rejects requests without auth token', async () => {
     const res = await app.inject({
       method: 'GET',
       url: '/api/v1/checkins',
     });
     expect(res.statusCode).toBe(401);
+  });
+});
+
+describe('GET /api/v1/checkins limit cap', () => {
+  const CAP = 200;
+
+  beforeAll(async () => {
+    await prisma.emotionalCheckIn.createMany({
+      data: Array.from({ length: CAP + 5 }, () => ({
+        userId,
+        energyLevel: 50,
+        valence: 'neutral',
+        feelingLabel: 'cap-probe',
+      })),
+    });
+  });
+
+  afterAll(async () => {
+    await prisma.emotionalCheckIn.deleteMany({ where: { userId, feelingLabel: 'cap-probe' } });
+  });
+
+  it('clamps a limit above the cap of 200 instead of failing or over-fetching', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/checkins?limit=999999',
+      headers: authHeaders(),
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toHaveLength(CAP);
+  });
+});
+
+describe('GET /api/v1/checkins/timeline', () => {
+  it('returns the check-ins grouped by day', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/checkins/timeline?days=7',
+      headers: authHeaders(),
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(Array.isArray(body)).toBe(true);
+    expect(body[0]).toHaveProperty('date');
+    expect(body[0]).toHaveProperty('checkInCount');
+  });
+
+  it('returns 400, not 500, for a non-numeric days', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/checkins/timeline?days=notanumber',
+      headers: authHeaders(),
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toHaveProperty('error.days');
+  });
+
+  it.each(['days=1.5', 'days=-1', 'days=Infinity'])('returns 400 for %s', async (query) => {
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/v1/checkins/timeline?${query}`,
+      headers: authHeaders(),
+    });
+    expect(res.statusCode, query).toBe(400);
+  });
+
+  it('clamps a window above 90 days instead of failing', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/checkins/timeline?days=999999',
+      headers: authHeaders(),
+    });
+    expect(res.statusCode).toBe(200);
+    expect(Array.isArray(res.json())).toBe(true);
   });
 });
 

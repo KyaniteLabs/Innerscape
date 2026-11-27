@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { prisma } from '../db.js';
 import { authMiddleware } from '../middleware/auth.js';
+import { daysQuery, listQuery, parseQuery } from '../utils/query-params.js';
 import { ITEM_DECISIONS, completeScan, decideItem, scanMachine } from '../domain/lifecycles.js';
 
 // --- Body Check-Ins ---
@@ -12,6 +13,9 @@ const bodyCheckInSchema = z.object({
   emotionWheelValence: z.enum(['pleasant', 'unpleasant', 'neutral']),
   reflectionRating: z.number().int().min(1).max(5).optional(),
 });
+
+// Capped like the other list routes; this one used to take any limit at all.
+const bodyCheckInListQuery = listQuery(20, 200);
 
 export async function bodyCheckInRoutes(app: FastifyInstance) {
   app.post('/api/v1/body-checkins', { preHandler: authMiddleware }, async (request, reply) => {
@@ -27,14 +31,15 @@ export async function bodyCheckInRoutes(app: FastifyInstance) {
     return reply.status(201).send(checkIn);
   });
 
-  app.get('/api/v1/body-checkins', { preHandler: authMiddleware }, async (request) => {
-    const { limit = '20', offset = '0' } = request.query as { limit?: string; offset?: string };
+  app.get('/api/v1/body-checkins', { preHandler: authMiddleware }, async (request, reply) => {
+    const query = parseQuery(request, reply, bodyCheckInListQuery);
+    if (!query) return;
 
     return prisma.bodyCheckIn.findMany({
       where: { userId: request.userId },
       orderBy: { timestamp: 'desc' },
-      take: Number(limit),
-      skip: Number(offset),
+      take: query.limit,
+      skip: query.offset,
     });
   });
 
@@ -86,6 +91,8 @@ const sleepLogSchema = z.object({
   qualityScore: z.number().int().min(1).max(5),
 });
 
+const sleepWindowQuery = daysQuery(7);
+
 export async function sleepRoutes(app: FastifyInstance) {
   app.post('/api/v1/sleep', { preHandler: authMiddleware }, async (request, reply) => {
     const parsed = sleepLogSchema.safeParse(request.body);
@@ -105,10 +112,12 @@ export async function sleepRoutes(app: FastifyInstance) {
     return reply.status(201).send(log);
   });
 
-  app.get('/api/v1/sleep', { preHandler: authMiddleware }, async (request) => {
-    const { days = '7' } = request.query as { days?: string };
+  app.get('/api/v1/sleep', { preHandler: authMiddleware }, async (request, reply) => {
+    const query = parseQuery(request, reply, sleepWindowQuery);
+    if (!query) return;
+
     const since = new Date();
-    since.setDate(since.getDate() - Number(days));
+    since.setDate(since.getDate() - query.days);
 
     const logs = await prisma.sleepLog.findMany({
       where: {

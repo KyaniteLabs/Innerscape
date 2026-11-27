@@ -3,12 +3,15 @@ import { z } from 'zod';
 import { prisma } from '../db.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { generateInsights } from '../services/insights.js';
+import { listQuery, parseQuery } from '../utils/query-params.js';
 
 const journalSchema = z.object({
   content: z.string().min(1).max(10000),
   tags: z.array(z.string()).default([]),
   linkedCheckIns: z.array(z.string()).default([]),
 });
+
+const journalListQuery = listQuery(50, 200);
 
 export async function journalRoutes(app: FastifyInstance) {
   app.post('/api/v1/journal/entries', { preHandler: authMiddleware }, async (request, reply) => {
@@ -24,14 +27,15 @@ export async function journalRoutes(app: FastifyInstance) {
     return reply.status(201).send(entry);
   });
 
-  app.get('/api/v1/journal/entries', { preHandler: authMiddleware }, async (request) => {
-    const { limit = '50', offset = '0' } = request.query as { limit?: string; offset?: string };
+  app.get('/api/v1/journal/entries', { preHandler: authMiddleware }, async (request, reply) => {
+    const query = parseQuery(request, reply, journalListQuery);
+    if (!query) return;
 
     return prisma.journalEntry.findMany({
       where: { userId: request.userId },
       orderBy: { createdAt: 'desc' },
-      take: Math.min(Number(limit), 200),
-      skip: Number(offset),
+      take: query.limit,
+      skip: query.offset,
     });
   });
 
@@ -61,9 +65,14 @@ const insightSchema = z.object({
   dataPoints: z.array(z.string()).default([]),
 });
 
+const insightListQuery = listQuery(10, 50);
+
 export async function insightRoutes(app: FastifyInstance) {
-  app.get('/api/v1/insights', { preHandler: authMiddleware }, async (request) => {
-    const { limit = '10', dismissed } = request.query as { limit?: string; dismissed?: string };
+  app.get('/api/v1/insights', { preHandler: authMiddleware }, async (request, reply) => {
+    const query = parseQuery(request, reply, insightListQuery);
+    if (!query) return;
+
+    const { dismissed } = request.query as { dismissed?: string };
 
     return prisma.insight.findMany({
       where: {
@@ -71,7 +80,7 @@ export async function insightRoutes(app: FastifyInstance) {
         ...(dismissed === 'false' ? { dismissedAt: null } : {}),
       },
       orderBy: { createdAt: 'desc' },
-      take: Math.min(Number(limit), 50),
+      take: query.limit,
     });
   });
 

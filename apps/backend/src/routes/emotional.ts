@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { prisma } from '../db.js';
 import { authMiddleware } from '../middleware/auth.js';
+import { daysQuery, listQuery, parseQuery } from '../utils/query-params.js';
 
 const checkInSchema = z.object({
   energyLevel: z.number().int().min(0).max(100),
@@ -10,6 +11,9 @@ const checkInSchema = z.object({
   bodySensationNote: z.string().max(500).optional(),
   source: z.enum(['manual', 'inferred']).default('manual'),
 });
+
+const checkInListQuery = listQuery(50, 200);
+const timelineQuery = daysQuery(7, 90);
 
 function getTimeOfDay(): 'morning' | 'afternoon' | 'evening' | 'night' {
   const hour = new Date().getHours();
@@ -44,14 +48,15 @@ export async function emotionalRoutes(app: FastifyInstance) {
     return reply.status(201).send(checkIn);
   });
 
-  app.get('/api/v1/checkins', { preHandler: authMiddleware }, async (request) => {
-    const { limit = '50', offset = '0' } = request.query as { limit?: string; offset?: string };
+  app.get('/api/v1/checkins', { preHandler: authMiddleware }, async (request, reply) => {
+    const query = parseQuery(request, reply, checkInListQuery);
+    if (!query) return;
 
     const checkIns = await prisma.emotionalCheckIn.findMany({
       where: { userId: request.userId },
       orderBy: { timestamp: 'desc' },
-      take: Math.min(Number(limit), 200),
-      skip: Number(offset),
+      take: query.limit,
+      skip: query.offset,
     });
 
     return checkIns;
@@ -115,12 +120,12 @@ export async function emotionalRoutes(app: FastifyInstance) {
     };
   });
 
-  app.get('/api/v1/checkins/timeline', { preHandler: authMiddleware }, async (request) => {
-    const { days = '7' } = request.query as { days?: string };
-    const daysBack = Math.min(Number(days), 90);
+  app.get('/api/v1/checkins/timeline', { preHandler: authMiddleware }, async (request, reply) => {
+    const query = parseQuery(request, reply, timelineQuery);
+    if (!query) return;
 
     const since = new Date();
-    since.setDate(since.getDate() - daysBack);
+    since.setDate(since.getDate() - query.days);
 
     const checkIns = await prisma.emotionalCheckIn.findMany({
       where: {
